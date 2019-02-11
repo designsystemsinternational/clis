@@ -1,6 +1,4 @@
 #!/usr/bin/env node
-process.env.AWS_SDK_LOAD_CONFIG = true;
-
 const fs = require("fs");
 const util = require("util");
 const readFile = util.promisify(fs.readFile);
@@ -17,11 +15,14 @@ const loadConfig = async () => {
   return JSON.parse(json);
 };
 
-const saveEnvironment = async env => {
+const saveEnvironment = async (env, stack, bucket) => {
   const conf = await loadConfig();
-  conf.environments = conf.environments || [];
-  conf.environments.push(env);
-  await writeFile(configFile, JSON.stringify(conf));
+  conf.environments = conf.environments || {};
+  conf.environments[env] = {
+    stack,
+    bucket
+  };
+  await writeFile(configFile, JSON.stringify(conf, null, 4));
 };
 
 // Init
@@ -96,13 +97,20 @@ const create = async args => {
   const answers = await inquirer.prompt(questions);
   const all = Object.assign({}, dynamicDefaults, answers);
   await apiCreate(conf.awsProfile, conf.awsRegion, stackName, all);
-  await saveEnvironment(env);
+  await saveEnvironment(env, stackName, all.S3BucketName);
 };
 
 // Deploy
 // ----------------------------------------------------
 
-const deploy = async () => {};
+const deploy = async args => {
+  if (!args[3]) {
+    return console.error("Please state which environment to deploy to");
+  }
+
+  const conf = await loadConfig();
+  const env = args[3];
+};
 
 // Destroy
 // ----------------------------------------------------

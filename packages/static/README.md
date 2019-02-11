@@ -24,13 +24,19 @@ This will save a `.staticconfig` file in your project folder so you do not need 
 
 ## Creating a site
 
-The package allows you to have multiple deployed versions of the same site. To set up infrastructure for a new deployment, you run the `create` command with a name of your new environment:
+The package allows you to have multiple deployed versions of the same site. To set up infrastructure for a new deployment, you run the `create` command with a name of your new environment.
 
 ```
 $ dsi-static create production
 ```
 
-## Uploading the site
+## Deploying a site
+
+To upload a site to a specific environment, run the following command.
+
+```
+$ dsi-static deploy production
+```
 
 ## Deleting a site
 

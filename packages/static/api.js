@@ -1,1 +1,5 @@
-process.env.AWS_SDK_LOAD_CONFIG = true;
+const Create = require("./commands/create");
+
+module.exports = {
+  create
+};
