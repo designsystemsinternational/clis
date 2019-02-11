@@ -1,0 +1,16 @@
+{
+  "name": "dsi-static",
+  "version": "1.0.0",
+  "description": "Setup and deploy single-page applications to AWS",
+  "main": "api.js",
+  "scripts": {},
+  "author": "Rune Skjoldborg Madsen",
+  "license": "ISC",
+  "dependencies": {
+    "aws-sdk": "^2.333.0",
+    "inquirer": "^6.2.2"
+  },
+  "bin": {
+    "dsi-static": "cli.js"
+  }
+}

@@ -1,0 +1,94 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+
+  "Description": "AWS CloudFormation template to set up a static site on AWS",
+
+  "Parameters": {
+    "S3BucketName": {
+      "Description": "Name of the S3 bucket.",
+      "Type": "String"
+    },
+    "IndexPage": {
+      "Description": "Name of the index page.",
+      "Type": "String",
+      "Default": "index.html"
+    },
+    "ErrorPage": {
+      "Description": "Name of the error page. Set to index.html for single-page applications.",
+      "Type": "String",
+      "Default": "error.html"
+    }
+  },
+
+  "Resources": {
+    "S3Bucket": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "AccessControl": "PublicRead",
+        "BucketName": { "Ref": "S3BucketName" },
+        "MetricsConfigurations": [
+          {
+            "Id": "EntireBucket"
+          }
+        ],
+        "WebsiteConfiguration": {
+          "IndexDocument": { "Ref": "IndexPage" },
+          "ErrorDocument": { "Ref": "ErrorPage" }
+        },
+        "CorsConfiguration": {
+          "CorsRules": [
+            {
+              "AllowedHeaders": ["Authorization"],
+              "AllowedMethods": ["GET"],
+              "AllowedOrigins": ["*"]
+            }
+          ]
+        }
+      }
+    },
+    "CloudfrontDistribution": {
+      "Type": "AWS::CloudFront::Distribution",
+      "Properties": {
+        "DistributionConfig": {
+          "Enabled": true,
+          "Comment": { "Fn::Sub": "Distribution for ${S3BucketName}" },
+          "DefaultRootObject": "index.html",
+          "HttpVersion": "http2",
+          "IPV6Enabled": true,
+          "Origins": [
+            {
+              "Id": "s3-website-origin",
+              "DomainName": { "Fn::GetAtt": ["S3Bucket", "WebsiteURL"] },
+              "CustomOriginConfig": {
+                "OriginProtocolPolicy": "https-only"
+              }
+            }
+          ],
+          "DefaultCacheBehavior": {
+            "TargetOriginId": "s3-website-origin",
+            "MaxTTL": 31536000,
+            "MinTTL": 0,
+            "ViewerProtocolPolicy": "redirect-to-https",
+            "ForwardedValues": {
+              "Cookies": {
+                "Forward": "none"
+              },
+              "QueryString": false
+            }
+          }
+        }
+      }
+    }
+  },
+
+  "Outputs": {
+    "S3WebsiteURL": {
+      "Description": "The URL of the S3 website",
+      "Value": { "Fn::GetAtt": ["S3Bucket", "WebsiteURL"] }
+    },
+    "CloudfrontWebsiteURL": {
+      "Description": "The URL of the cached Cloudfront website. Use this for production.",
+      "Value": { "Fn::GetAtt": ["CloudfrontDistribution", "DomainName"] }
+    }
+  }
+}
