@@ -58,7 +58,18 @@
           "Origins": [
             {
               "Id": "s3-website-origin",
-              "DomainName": { "Fn::GetAtt": ["S3Bucket", "WebsiteURL"] },
+              "DomainName": {
+                "Fn::Select": [
+                  2,
+                  {
+                    "Fn::Split": [
+                      "/",
+                      { "Fn::GetAtt": ["S3Bucket", "WebsiteURL"] }
+                    ]
+                  }
+                ]
+              },
+
               "CustomOriginConfig": {
                 "OriginProtocolPolicy": "https-only"
               }
