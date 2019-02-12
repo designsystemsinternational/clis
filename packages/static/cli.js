@@ -5,8 +5,9 @@ const readFile = util.promisify(fs.readFile);
 const writeFile = util.promisify(fs.writeFile);
 const inquirer = require("inquirer");
 
-const apiCreate = require("./commands/create");
-const templateCreate = require("./commands/create.json");
+const createFunc = require("./commands/create");
+const createTmpl = require("./commands/create.json");
+const deployFunc = require("./commands/deploy");
 
 const configFile = "./.staticconfig";
 
@@ -15,13 +16,10 @@ const loadConfig = async () => {
   return JSON.parse(json);
 };
 
-const saveEnvironment = async (env, stack, bucket) => {
+const saveEnvironment = async (env, vars) => {
   const conf = await loadConfig();
   conf.environments = conf.environments || {};
-  conf.environments[env] = {
-    stack,
-    bucket
-  };
+  conf.environments[env] = vars;
   await writeFile(configFile, JSON.stringify(conf, null, 4));
 };
 
@@ -46,9 +44,15 @@ const init = async () => {
       type: "input",
       name: "websiteName",
       message: "Name of the website. No spaces or weirdo characters"
+    },
+    {
+      type: "input",
+      name: "buildFolder",
+      message: "Path to your build folder",
+      default: "build"
     }
   ]);
-  fs.writeFileSync(configFile, JSON.stringify(answers));
+  fs.writeFileSync(configFile, JSON.stringify(answers, null, 4));
   console.log("Config file saved!");
 };
 
@@ -76,14 +80,27 @@ const create = async args => {
   };
 
   // Default questions
-  const questions = [];
+  const questions = [
+    {
+      type: "input",
+      name: "htmlCache",
+      message: "Cloudfront cache time for HTML files (in seconds)",
+      default: "300"
+    },
+    {
+      type: "input",
+      name: "assetsCache",
+      message: "Cache time for all other assets (in seconds)",
+      default: "31536000"
+    }
+  ];
 
   // Add questions based on Cloudformation parameters
-  const parameterNames = Object.keys(templateCreate.Parameters);
+  const parameterNames = Object.keys(createTmpl.Parameters);
   parameterNames.forEach(key => {
     // do not ask for parameters in dontAsk
     if (!dontAsk.includes(key)) {
-      const obj = templateCreate.Parameters[key];
+      const obj = createTmpl.Parameters[key];
       questions.push({
         name: key,
         type: obj.AllowedValues ? "list" : "input",
@@ -96,8 +113,13 @@ const create = async args => {
 
   const answers = await inquirer.prompt(questions);
   const all = Object.assign({}, dynamicDefaults, answers);
-  await apiCreate(conf.awsProfile, conf.awsRegion, stackName, all);
-  await saveEnvironment(env, stackName, all.S3BucketName);
+  await createFunc(conf.awsProfile, conf.awsRegion, stackName, all);
+  await saveEnvironment(env, {
+    stack: stackName,
+    bucket: answers.S3BucketName,
+    htmlCache: answers.htmlCache,
+    assetsCache: answers.assetsCache
+  });
 };
 
 // Deploy
@@ -110,6 +132,13 @@ const deploy = async args => {
 
   const conf = await loadConfig();
   const env = args[3];
+  const envConfig = conf.environments[env];
+
+  if (!envConfig) {
+    return console.error("Environment does not exist");
+  }
+
+  await deployFunc(conf, env);
 };
 
 // Destroy
@@ -123,7 +152,7 @@ const destroy = async () => {};
 const map = { init, create, deploy, destroy };
 const cmd = process.argv[2];
 if (map.hasOwnProperty(cmd)) {
-  map[cmd](process.argv).then(() => console.log("Done"));
+  map[cmd](process.argv).then(() => {});
 } else {
   console.error("Command not supported");
 }

@@ -71,7 +71,7 @@
               },
 
               "CustomOriginConfig": {
-                "OriginProtocolPolicy": "https-only"
+                "OriginProtocolPolicy": "http-only"
               }
             }
           ],
