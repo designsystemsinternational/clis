@@ -1,6 +1,6 @@
 # DSI Static
 
-This is a simple, opinionated command-line client that takes the pain out of deploying a static site to S3 and Cloudfront. We use this for deploying and managing our React applications.
+This is a simple, opinionated command-line client that takes the pain out of deploying a static site to S3 and Cloudfront via Cloudformation. We use this at [Design Systems International](https://designsystems.international/) for deploying and managing our React applications.
 
 ## First time install
 
@@ -38,8 +38,27 @@ To upload a site to a specific environment, run the following command.
 $ dsi-static deploy production
 ```
 
+Keep in mind that you will need to wait until the `.html` cache time has expired to see your new site via the Cloudfront distribution.
+
 ## Deleting a site
+
+You can delete the resources for a site by calling the `destroy` command:
+
+```
+$ dsi-static destroy production
+```
 
 ## Node API
 
-You can use all the functions directly inside Node, however, you have to pass all required params to the functions as it bypasses the config files entirely.
+You can use all the functions directly in Node without the config file setup. All functions are in the `commands` folder and can be imported and used like this:
+
+```js
+const { create } = require("dsi-static");
+
+await create(
+  "aws-profile-name",
+  "aws-region",
+  "my-site-staging",
+  stackTemplateParameters
+);
+```

@@ -8,6 +8,7 @@ const inquirer = require("inquirer");
 const createFunc = require("./commands/create");
 const createTmpl = require("./commands/create.json");
 const deployFunc = require("./commands/deploy");
+const destroyFunc = require("./commands/destroy");
 
 const configFile = "./.staticconfig";
 
@@ -112,7 +113,16 @@ const create = async args => {
   });
 
   const answers = await inquirer.prompt(questions);
-  const all = Object.assign({}, dynamicDefaults, answers);
+
+  // Find CloudFormation params in answers
+  const cfAnswers = {};
+  Object.keys(answers).forEach(key => {
+    if (parameterNames.includes(key)) {
+      cfAnswers[key] = answers[key];
+    }
+  });
+
+  const all = Object.assign({}, dynamicDefaults, cfAnswers);
   await createFunc(conf.awsProfile, conf.awsRegion, stackName, all);
   await saveEnvironment(env, {
     stack: stackName,
@@ -144,7 +154,33 @@ const deploy = async args => {
 // Destroy
 // ----------------------------------------------------
 
-const destroy = async () => {};
+const destroy = async args => {
+  if (!args[3]) {
+    return console.error("Please state which environment to deploy to");
+  }
+
+  const conf = await loadConfig();
+  const env = args[3];
+  const envConfig = conf.environments[env];
+
+  if (!envConfig) {
+    return console.error("Environment does not exist");
+  }
+
+  const answers = await inquirer.prompt([
+    {
+      type: "confirm",
+      name: "confirm",
+      message: `Are you sure you want to delete the ${envConfig.stack} stack?`
+    }
+  ]);
+
+  if (!answers.confirm) {
+    return;
+  }
+
+  await destroyFunc(conf.awsProfile, conf.awsRegion, envConfig.stack);
+};
 
 // Go Go Go!
 // ----------------------------------------------------
