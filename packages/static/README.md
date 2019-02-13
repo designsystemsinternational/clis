@@ -2,11 +2,15 @@
 
 This is a simple, opinionated command-line client that takes the pain out of deploying a static website to S3 and Cloudfront via Cloudformation. We use this at [Design Systems International](https://designsystems.international/) for deploying and managing our React applications.
 
-The tool works with the [AWS command line client](https://aws.amazon.com/cli/), so make sure that it is installed and that you have [configured it](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html) with at least a default profile.
+Features:
 
-The tool works by saving a `.staticconfig` file in your repository with information about the AWS profile and region to use. This file will also hold information about every environment that you create with the `create` command. This file does not have any AWS access keys and should be checked into your code repository.
+- **Easily create AWS resources**. The tool will create an S3 bucket and CloudFront distribution with healthy defaults such a CORS and HTTPS to serve your static website.
+- **Multiple environments**. Deploy different versions of your website. This allows you to e.g. have a `staging` and `production` environment for the same website.
+- **Customize project setting**. Easily customize the build folder and cache time for your website files.
 
-## Install
+The tool works with the [AWS command line client](https://aws.amazon.com/cli/), so make sure that it is installed and that you have [configured it](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html) with at least a default profile. It will create a `.staticconfig` file in your repository with information about the AWS profile and region to use. This file does not have any AWS access keys and should be checked into your code repository.
+
+## Project setup
 
 Make sure to globally install the command line tool.
 
@@ -14,15 +18,13 @@ Make sure to globally install the command line tool.
 $ npm install -g dsi-static
 ```
 
-## Project setup
-
-First, you need to create a config file. You only need to do this once per project. This will save a `.staticconfig` file in your project folder.
+You need to run the `init` command once inside your project folder to create a config file.
 
 ```
 $ dsi-static init
 ```
 
-Each project needs to have at least one environment. An environment is a set of resources controlled via an AWS CloudFormation stack, and multiple environments allow you to deploy separate versions of the same site. To set up a new environment, run the `create` command. This will create a CloudFormation stack with the resources needed to host your website.
+Each project needs to have at least one environment. An environment is a set of resources controlled via an AWS CloudFormation stack, and multiple environments allow you to deploy separate versions of the same site. To set up a new environment, run the `create` command. This will create a CloudFormation stack with the aforementioned resources needed to host your website.
 
 ```
 $ dsi-static create production
