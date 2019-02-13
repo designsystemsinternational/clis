@@ -171,7 +171,9 @@ const destroy = async args => {
     {
       type: "confirm",
       name: "confirm",
-      message: `Are you sure you want to delete the ${envConfig.stack} stack?`
+      message: `Warning! This will delete all files and resources in the ${
+        envConfig.stack
+      } stack. Continue?`
     }
   ]);
 

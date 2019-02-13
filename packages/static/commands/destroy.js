@@ -1,4 +1,5 @@
 const AWS = require("aws-sdk");
+const execa = require("execa");
 
 const destroy = async (profile, region, stackName) => {
   AWS.config.update({
@@ -6,7 +7,23 @@ const destroy = async (profile, region, stackName) => {
     credentials: new AWS.SharedIniFileCredentials({ profile })
   });
 
-  // MUST DELETE ALL S3 Objects here first!
+  // Delete all files in the bucket
+  await execa(
+    "aws",
+    [
+      "s3",
+      "rm",
+      `s3://${envConfig.bucket}`,
+      "--profile",
+      conf.awsProfile,
+      "--region",
+      conf.awsRegion,
+      "--recursive"
+    ],
+    {
+      stdout: "inherit"
+    }
+  );
 
   // Cloudformation!
   console.log("Deleting AWS Cloudformation stack");
