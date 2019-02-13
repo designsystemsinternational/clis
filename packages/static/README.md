@@ -10,7 +10,7 @@ Features:
 
 The tool works with the [AWS command line client](https://aws.amazon.com/cli/), so make sure that it is installed and that you have [configured it](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html) with at least a default profile. It will create a `.staticconfig` file in your repository with information about the AWS profile and region to use. This file does not have any AWS access keys and should be checked into your code repository.
 
-## Project setup
+## Setup
 
 Make sure to globally install the command line tool.
 
@@ -21,6 +21,7 @@ $ npm install -g @designsystemsinternational/static
 You need to run the `init` command once inside your project folder to create a config file.
 
 ```
+$ cd myproject
 $ static init
 ```
 
