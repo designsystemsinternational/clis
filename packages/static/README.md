@@ -4,9 +4,9 @@ This is a simple, opinionated command-line client that takes the pain out of dep
 
 Features:
 
-- **Easily create AWS resources**. The tool will create an S3 bucket and CloudFront distribution with healthy defaults such a CORS and HTTPS to serve your static website.
+- **Manage AWS resources**. The tool will create an S3 bucket and CloudFront distribution with healthy defaults such a CORS and HTTPS to serve your static website.
 - **Multiple environments**. Deploy different versions of your website. This allows you to e.g. have a `staging` and `production` environment for the same website.
-- **Customize project setting**. Easily customize the build folder and cache time for your website files.
+- **Project settings**. Easily customize the build folder and cache time for your website files.
 
 The tool works with the [AWS command line client](https://aws.amazon.com/cli/), so make sure that it is installed and that you have [configured it](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html) with at least a default profile. It will create a `.staticconfig` file in your repository with information about the AWS profile and region to use. This file does not have any AWS access keys and should be checked into your code repository.
 
