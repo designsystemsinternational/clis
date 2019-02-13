@@ -1,7 +1,7 @@
 {
-  "name": "dsi-static",
+  "name": "@designsystemsinternational/static",
   "version": "1.0.0",
-  "description": "Setup and deploy single-page applications to AWS",
+  "description": "A simple, opinionated command-line tool to deploy a static website to S3 and Cloudfront with Cloudformation",
   "main": "api.js",
   "scripts": {},
   "author": "Rune Skjoldborg Madsen",
@@ -12,6 +12,6 @@
     "inquirer": "^6.2.2"
   },
   "bin": {
-    "dsi-static": "cli.js"
+    "static": "cli.js"
   }
 }
