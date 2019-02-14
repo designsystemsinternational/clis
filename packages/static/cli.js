@@ -2,9 +2,12 @@
 
 const fs = require("fs");
 const util = require("util");
+const access = util.promisify(fs.access);
 const readFile = util.promisify(fs.readFile);
 const writeFile = util.promisify(fs.writeFile);
 const inquirer = require("inquirer");
+
+const { man } = require("./utils");
 
 const createFunc = require("./commands/create");
 const createTmpl = require("./commands/create.json");
@@ -14,8 +17,13 @@ const destroyFunc = require("./commands/destroy");
 const configFile = "./.staticconfig";
 
 const loadConfig = async () => {
-  const json = await readFile(configFile);
-  return JSON.parse(json);
+  try {
+    await access(configFile);
+    const json = await readFile(configFile);
+    return JSON.parse(json);
+  } catch (e) {
+    return {};
+  }
 };
 
 const saveEnvironment = async (env, vars) => {
@@ -194,4 +202,5 @@ if (map.hasOwnProperty(cmd)) {
   map[cmd](process.argv).then(() => {});
 } else {
   console.error("Command not supported");
+  console.log(man(map));
 }
