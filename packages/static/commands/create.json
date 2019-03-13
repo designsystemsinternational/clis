@@ -14,9 +14,9 @@
       "Default": "index.html"
     },
     "ErrorPage": {
-      "Description": "Name of the error page. Set to index.html for single-page applications.",
+      "Description": "Name of the error page.",
       "Type": "String",
-      "Default": "error.html"
+      "Default": "index.html"
     }
   },
 
