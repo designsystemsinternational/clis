@@ -3,6 +3,13 @@ const execa = require("execa");
 const deploy = async (conf, env) => {
   const envConfig = conf.environments[env];
 
+  // Run build command if needed
+  if (conf.shouldRunBuildCommand) {
+    await execa.shell(conf.buildCommand, {
+      stdout: "inherit"
+    });
+  }
+
   // Sync assets
   await execa(
     "aws",

@@ -17,12 +17,21 @@ const destroyFunc = require("./commands/destroy");
 const configFile = "./.staticconfig";
 
 const hasConfig = async () => {
-  return await access(configFile);
+  try {
+    await access(configFile);
+    return true;
+  } catch {
+    return false;
+  }
 };
 
 const loadConfig = async () => {
   const json = await readFile(configFile);
   return JSON.parse(json);
+};
+
+const hasEnv = (conf, env) => {
+  return conf.environments && conf.environments.hasOwnProperty(env);
 };
 
 const saveEnvironment = async (env, vars) => {
@@ -80,6 +89,21 @@ const init = async () => {
       name: "buildFolder",
       message: "Path to your build folder",
       default: "dist"
+    },
+    {
+      type: "confirm",
+      name: "shouldRunBuildCommand",
+      message: "Do you want to run a build command before deploying?",
+      default: true
+    },
+    {
+      type: "input",
+      name: "buildCommand",
+      when: answers => {
+        return answers.shouldRunBuildCommand;
+      },
+      message: "Build command",
+      default: "npm run build"
     }
   ]);
   fs.writeFileSync(configFile, JSON.stringify(answers, null, 4));
@@ -90,13 +114,13 @@ const init = async () => {
 // ----------------------------------------------------
 
 const create = async args => {
-  if (!args[3]) {
-    return console.error("Please state a name for this environment");
+  if (!(await hasConfig())) {
+    console.error("Could not find .staticconfig file. Please run init first.");
+    return process.exit();
   }
 
-  if (!hasConfig()) {
-    console.error("Could not find .staticconfig file in current folder");
-    process.exit();
+  if (!args[3]) {
+    return console.error("Please state a name for this environment");
   }
 
   const conf = await loadConfig();
@@ -104,7 +128,7 @@ const create = async args => {
   const stackName = `${conf.websiteName}-${env}`;
 
   // Check that this environment does not exist
-  if (conf.environments && conf.evironments.hasOwnProperty(env)) {
+  if (hasEnv(conf, env)) {
     console.error("This environment already exists");
     process.exit();
   }
@@ -182,10 +206,10 @@ const deploy = async args => {
 
   const conf = await loadConfig();
   const env = args[3];
-  const envConfig = conf.environments[env];
 
-  if (!envConfig) {
-    return console.error("Environment does not exist");
+  if (!hasEnv(conf, env)) {
+    console.error("This environment does not exist");
+    process.exit();
   }
 
   await deployFunc(conf, env);
@@ -201,10 +225,10 @@ const destroy = async args => {
 
   const conf = await loadConfig();
   const env = args[3];
-  const envConfig = conf.environments[env];
 
-  if (!envConfig) {
-    return console.error("Environment does not exist");
+  if (!hasEnv(conf, env)) {
+    console.error("This environment does not exist");
+    process.exit();
   }
 
   const answers = await inquirer.prompt([
