@@ -73,7 +73,7 @@ const init = async () => {
     {
       type: "input",
       name: "websiteName",
-      message: "Name of the website. No spaces or weirdo characters"
+      message: "Name of the website. (a-z,0-9,-)"
     },
     {
       type: "input",
