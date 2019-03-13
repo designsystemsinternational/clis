@@ -59,7 +59,7 @@ const init = async () => {
       type: "input",
       name: "buildFolder",
       message: "Path to your build folder",
-      default: "build"
+      default: "dist"
     }
   ]);
   fs.writeFileSync(configFile, JSON.stringify(answers, null, 4));
