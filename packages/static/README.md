@@ -8,7 +8,7 @@ Features:
 - **Multiple environments**. Deploy different versions of your website. This allows you to e.g. have a `staging` and `production` environment for the same website.
 - **Project settings**. Easily customize the build folder and cache time for your website files.
 
-The tool works with the [AWS command line client](https://aws.amazon.com/cli/), so make sure that it is installed and that you have [configured it](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html) with at least a default profile. It will create a `.staticconfig` file in your repository with information about the AWS profile and region to use. This file does not have any AWS access keys and should be checked into your code repository.
+The tool works with the [AWS command line client](https://aws.amazon.com/cli/), so make sure that it is installed and that you have [configured it](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html) with at least a default profile. It will create a `static.json` file in your repository with information about the AWS profile and region to use. This file does not have any AWS access keys and should be checked into your code repository.
 
 ## Setup
 
@@ -45,19 +45,4 @@ You can delete the resources for a site by calling the `destroy` command with th
 
 ```
 $ static destroy production
-```
-
-## Node API
-
-You can use all the functions directly in Node without the config file setup. All functions are in the `commands` folder and can be imported and used like this:
-
-```js
-const { create } = require("@designsystemsinternational/static");
-
-await create(
-  "aws-profile-name",
-  "aws-region",
-  "my-site-staging",
-  stackTemplateParameters
-);
 ```

@@ -1,6 +1,19 @@
 const execa = require("execa");
+const { hasConfig, hasEnv, loadConfig } = require("../utils");
 
-const deploy = async (conf, env) => {
+const deploy = async args => {
+  if (!args[3]) {
+    return console.error("Please state which environment to deploy to");
+  }
+
+  const conf = loadConfig();
+  const env = args[3];
+
+  if (!hasEnv(conf, env)) {
+    console.error("This environment does not exist");
+    process.exit();
+  }
+
   const envConfig = conf.environments[env];
 
   // Run build command if needed
