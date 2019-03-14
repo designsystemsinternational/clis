@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.0.0
+
+- Config file is now `static.json`
+- All commands will now poll the cloudformation stack until action is resolved
+- Cloudfront distribution is now optional
+- Environment is now deleted in config file after deletion
+- Removed ability to use as Node API. Did not make sense.
+
 ## 1.1.0
 
 Adding build folder functionality and better defaults.
