@@ -1,0 +1,10 @@
+.root {
+  display: inline-block;
+}
+
+.root .input {
+}
+
+.label {
+  display: inline-block;
+}
