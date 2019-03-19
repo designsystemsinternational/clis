@@ -3,6 +3,8 @@ import { actions, connect } from "../store";
 import { Link } from "react-router-dom";
 import css from "./Home.css";
 
+import Input from "../components/Input";
+
 class Home extends Component {
   componentDidMount() {
     actions.loadTestData();
@@ -27,6 +29,7 @@ class Home extends Component {
 
     return (
       <div className={css.root}>
+        <Input name="rune" value="Something" label="Something" />
         <h1>Home</h1>
         <Link to="/components">See components</Link>
         <h2>API Response</h2>
