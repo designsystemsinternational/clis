@@ -1,10 +1,7 @@
 .root {
-  display: inline-block;
+	display: inline-block;
 }
 
-.root .input {
-}
-
-.label {
-  display: inline-block;
+.root label {
+	display: inline-block;
 }
