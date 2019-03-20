@@ -118,7 +118,7 @@ module.exports = async (env, argv) => {
   ].concat(
     isProduction
       ? [
-          new CleanWebpackPlugin(["dist/*"]),
+          new CleanWebpackPlugin(),
           new MiniCssExtractPlugin({
             filename: "[contenthash]-[name].css"
           })
