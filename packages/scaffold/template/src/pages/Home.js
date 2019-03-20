@@ -1,9 +1,6 @@
 import React, { Component } from "react";
 import { actions, connect } from "../store";
-import { Link } from "react-router-dom";
 import css from "./Home.css";
-
-import Input from "../components/Input";
 
 class Home extends Component {
   componentDidMount() {
@@ -20,7 +17,7 @@ class Home extends Component {
     const headers = testData.toJS().headers;
 
     // The api endpoint returns a JSON document with the headers
-    // Let's just show that.
+    // Let's just show that in a list.
     const lis = Object.keys(headers).map(k => (
       <li key={k}>
         {k}: {headers[k]}
@@ -29,10 +26,7 @@ class Home extends Component {
 
     return (
       <div className={css.root}>
-        <Input name="rune" value="Something" label="Something" />
-        <h1>Home</h1>
-        <Link to="/components">See components</Link>
-        <h2>API Response</h2>
+        <h1>Sample API Response</h1>
         <ul>{lis}</ul>
       </div>
     );

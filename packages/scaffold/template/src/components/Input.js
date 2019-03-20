@@ -58,11 +58,7 @@ export class Input extends Component {
     return (
       <div style={css} className={rootClasses}>
         {label && (
-          <label
-            htmlFor={id}
-            className={css.inputLabel}
-            suppressHydrationWarning={true}
-          >
+          <label htmlFor={id} className={css.inputLabel}>
             <span className={css.labelTxt}>{label}</span>
             <input
               autoComplete={autocomplete}
