@@ -6,4 +6,4 @@
 
 ## Deploying
 
-This project uses [`static`](https://www.npmjs.com/package/@designsystemsinternational/static) to deploy to AWS. Please follow the instructions in the repo's README.
+We suggest that you use [`@designsystemsinternational/static`](https://www.npmjs.com/package/@designsystemsinternational/static) for deployment.
