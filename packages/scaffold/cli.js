@@ -8,6 +8,7 @@ const fs = require("fs-extra");
 const path = require("path");
 const ora = require("ora");
 const ejs = require("ejs");
+const shell = require("shelljs");
 
 const templateDir = path.join(__dirname, "template");
 
@@ -66,12 +67,15 @@ const prompt = async () => {
   // Success outro logging
   console.log("");
   console.log(blue("Success!"));
-  console.log(
-    "  The following commands are available within that directory:\n"
-  );
+  console.log("");
+  console.log("  The following commands are available:");
+  console.log("");
   console.log(`  ${white("npm run dev")}         Starts a development server`);
   console.log(`  ${white("npm run build")}       Builds a production bundle`);
   console.log(`  ${white("npm run test")}        Runs project tests`);
+  console.log("");
+
+  console.log("   Now run " + white(`cd ${answers.slug}`) + " to get started");
 };
 
 prompt();
