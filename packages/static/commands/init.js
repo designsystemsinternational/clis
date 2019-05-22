@@ -20,8 +20,8 @@ const init = async () => {
       message: "Name of AWS region for the S3 bucket",
       default: "us-east-1",
       choices: [
-        { name: "us-east-1 (Ohio)", value: "us-east-1" },
-        { name: "us-east-2 (N. Virginia)", value: "us-east-2" },
+        { name: "us-east-1 (N. Virginia)", value: "us-east-1" },
+        { name: "us-east-2 (Ohio)", value: "us-east-2" },
         { name: "us-west-1 (N. California)", value: "us-west-1" },
         { name: "us-west-2 (Oregon)", value: "us-west-2" },
         { name: "ap-south-1 (Mumbai)", value: "ap-south-1" },

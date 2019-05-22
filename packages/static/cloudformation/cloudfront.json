@@ -11,7 +11,7 @@
       "Properties": {
         "DistributionConfig": {
           "Enabled": true,
-          "Comment": { "Fn::Sub": "Distribution for ${S3BucketName}" },
+          "Comment": { "Fn::Sub": "S3 bucket ${S3BucketName}" },
           "DefaultRootObject": "index.html",
           "HttpVersion": "http2",
           "IPV6Enabled": true,

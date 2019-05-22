@@ -1,12 +1,11 @@
 {
   "name": "@designsystemsinternational/static",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "A simple, opinionated command-line tool to deploy a static website to S3 and Cloudfront with Cloudformation",
   "repository": {
     "type": "git",
     "url": "git+ssh://git@github.com/designsystemsinternational/static.git"
   },
-  "main": "api.js",
   "scripts": {},
   "author": {
     "name": "Rune Skjoldborg Madsen",

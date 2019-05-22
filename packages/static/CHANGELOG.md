@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.1
+
+- Fixing labels of US East regions
+
 ## 2.0.0
 
 - Config file is now `static.json`

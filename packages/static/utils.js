@@ -1,6 +1,4 @@
 const fs = require("fs");
-const util = require("util");
-
 const configPath = "./static.json";
 
 const hasConfig = () => {
