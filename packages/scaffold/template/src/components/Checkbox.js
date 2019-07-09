@@ -19,10 +19,11 @@ export class Checkbox extends Component {
 	}
 
 	render() {
-		const { checked, disabled, id = this._id, label, name, value } = this.props;
+		const { className, checked, disabled, id = this._id, label, name, value } = this.props;
 		return (
 			<div
 				className={classnames(css.root, {
+					[className]: className,
 					[css.checked]: checked,
 					[css.disabled]: disabled
 				})}>
@@ -47,6 +48,7 @@ Checkbox.propTypes = {
 	name: PropTypes.string,
 	value: PropTypes.string,
 	label: PropTypes.string.isRequired,
+	className: PropTypes.string,
 	id: PropTypes.string,
 	onChange: PropTypes.func,
 	checked: PropTypes.bool,

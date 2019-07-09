@@ -28,10 +28,11 @@ export class Radio extends Component {
 	}
 
 	render() {
-		const { checked, disabled, id = this._id, name, value, label } = this.props;
+		const { className, checked, disabled, id = this._id, name, value, label } = this.props;
 		return (
 			<div
 				className={classnames(css.root, {
+					className: className,
 					[css.focus]: this.state.focus,
 					[css.checked]: checked,
 					[css.disabled]: disabled
@@ -59,7 +60,9 @@ Radio.propTypes = {
 	value: PropTypes.string,
 	checked: PropTypes.bool,
 	disabled: PropTypes.bool,
+	className: PropTypes.string,
 	id: PropTypes.string,
 	label: PropTypes.string,
+	className: PropTypes.string,
 	onChange: PropTypes.func
 };

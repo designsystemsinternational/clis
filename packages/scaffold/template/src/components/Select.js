@@ -30,6 +30,7 @@ export class Select extends Component {
 	render() {
 		const {
 			children,
+			className,
 			defaultValue,
 			disabled,
 			error,
@@ -43,6 +44,7 @@ export class Select extends Component {
 		} = this.props;
 
 		const rootClasses = classnames(css.root, {
+			[className]: className,
 			[css.focus]: this.state.focus,
 			[css.withLabel]: label,
 			[css.invalid]: invalid,
@@ -64,7 +66,6 @@ export class Select extends Component {
 						onFocus={this.handleOnFocus}
 						onBlur={this.handleOnBlur}
 						name={name}
-						defaultValue={defaultValue}
 						placeholder={placeholder}
 						value={value}
 						aria-required={required}
@@ -87,19 +88,19 @@ export class Select extends Component {
 export default Select;
 
 Select.defaultProps = {
-	placeholder: 'Please choose...'
+	placeholder: 'Select...'
 };
 
 Select.propTypes = {
 	name: PropTypes.string,
-	value: PropTypes.string, // for controlled component
-	defaultValue: PropTypes.string, // for uncontrolled component
+	value: PropTypes.string,
 	children: PropTypes.node,
 	disabled: PropTypes.bool,
 	error: PropTypes.string,
 	id: PropTypes.string,
 	invalid: PropTypes.bool,
 	label: PropTypes.string,
+	className: PropTypes.string,
 	onChange: PropTypes.func,
 	placeholder: PropTypes.string,
 	required: PropTypes.bool

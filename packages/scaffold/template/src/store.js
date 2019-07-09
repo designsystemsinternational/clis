@@ -1,50 +1,30 @@
-import createStore from "react-waterfall";
-const { fromJS } = require("immutable");
-
-const addActions = (config, defaultAction, funcs) => {
-  const startAction = defaultAction + "Start";
-  const successAction = defaultAction + "Success";
-  const failAction = defaultAction + "Fail";
-
-  config.actionsCreators[defaultAction] = (state, actions, ...args) => {
-    if (actions[startAction]) actions[startAction]();
-    funcs
-      .request(state, actions, ...args)
-      .then(res => {
-        if (actions[successAction]) {
-          actions[successAction](res, ...args);
-        }
-      })
-      .catch(e => {
-        if (actions[failAction]) {
-          actions[failAction](e);
-        }
-      });
-    return {};
-  };
-
-  if (funcs.onStart) config.actionsCreators[startAction] = funcs.onStart;
-  if (funcs.onSuccess) config.actionsCreators[successAction] = funcs.onSuccess;
-  if (funcs.onFail) config.actionsCreators[failAction] = funcs.onFail;
-};
+import createStore from 'react-waterfall';
+import { fromJS } from 'immutable';
+import { to } from './utils';
 
 const config = {
-  initialState: {},
-  actionsCreators: {}
-};
+	initialState: {},
+	actionsCreators: {
+		// generic set helper
+		set: (store, __, obj) => {
+			return obj;
+		},
 
-addActions(config, "loadTestData", {
-  request: (state, actions, actionArg) => fetch(process.env.TEST_API),
-  onStart: () => {
-    return { loading: true };
-  },
-  onSuccess: (state, actions, res) =>
-    res.json().then(json => {
-      return { testData: fromJS(json), loading: false };
-    }),
-  onFail: () => {
-    return {};
-  }
-});
+		// sample async action
+		loadTestData: async (store, actions, params) => {
+			actions.set({ loading: true }); // start
+			try {
+				const res = await fetch(process.env.TEST_API);
+				const json = await res.json();
+				return {
+					loading: false,
+					testData: fromJS(json)
+				}; //success
+			} catch (err) {
+				return { loading: false, error: err.message }; // fail
+			}
+		}
+	}
+};
 
 export const { Provider, connect, actions } = createStore(config);

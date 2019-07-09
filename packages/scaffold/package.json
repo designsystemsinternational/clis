@@ -1,9 +1,11 @@
 {
   "name": "@designsystemsinternational/scaffold",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Command-line tool to generate a sensible Javascript project scaffold",
   "repository": "github:designsystemsinternational/scaffold",
-  "scripts": {},
+  "scripts": {
+    "cli": "./cli.js"
+  },
   "author": {
     "name": "Rune Skjoldborg Madsen",
     "email": "i@designsystems.international",

@@ -34,6 +34,7 @@ export class Input extends Component {
 
 	render() {
 		const {
+			className,
 			disabled,
 			autocomplete,
 			error,
@@ -50,6 +51,7 @@ export class Input extends Component {
 
 		const { focus } = this.state;
 		const rootClasses = classnames(css.root, {
+			[className]: className,
 			[css.invalid]: invalid,
 			[css.disabled]: disabled,
 			[css.focus]: focus
@@ -99,6 +101,7 @@ Input.propTypes = {
 	value: PropTypes.string,
 	type: PropTypes.string,
 	label: PropTypes.string.isRequired,
+	className: PropTypes.string,
 	autocomplete: PropTypes.string,
 	disabled: PropTypes.bool,
 	error: PropTypes.string,
