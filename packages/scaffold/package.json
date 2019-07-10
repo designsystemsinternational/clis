@@ -1,6 +1,6 @@
 {
   "name": "@designsystemsinternational/scaffold",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "description": "Command-line tool to generate a sensible Javascript project scaffold",
   "repository": "github:designsystemsinternational/scaffold",
   "scripts": {
