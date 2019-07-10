@@ -1,74 +1,82 @@
 {
-  "name": "@designsystemsinternational/<%= slug %>",
-  "version": "0.0.1",
-  "main": "src/index.js",
-  "scripts": {
-    "start": "serve dist --single",
-    "dev": "webpack-dev-server --mode development",
-    "build": "webpack --mode production",
-    "test": "jest --coverage"
-  },
-  "dependencies": {},
-  "devDependencies": {
-    "@babel/cli": "^7.2.3",
-    "@babel/core": "^7.3.4",
-    "@babel/plugin-transform-runtime": "^7.3.4",
-    "@babel/preset-env": "^7.3.4",
-    "@babel/preset-react": "^7.0.0",
-    "@babel/runtime": "^7.1.2",
-    "babel-jest": "^23.6.0",
-    "babel-loader": "^8.0.5",
-    "classnames": "^2.2.6",
-    "clean-webpack-plugin": "^2.0.1",
-    "css-loader": "^2.1.1",
-    "dotenv": "^7.0.0",
-    "enzyme": "^3.9.0",
-    "enzyme-adapter-react-16": "^1.11.2",
-    "file-loader": "^3.0.1",
-    "get-port": "^4.2.0",
-    "html-loader": "^0.5.5",
-    "html-webpack-plugin": "^3.2.0",
-    "identity-obj-proxy": "^3.0.0",
-    "immutable": "^4.0.0-rc.12",
-    "jest": "^24.5.0",
-    "jest-environment-enzyme": "^7.0.2",
-    "jest-enzyme": "^7.0.2",
-    "mini-css-extract-plugin": "^0.5.0",
-    "optimize-css-assets-webpack-plugin": "^5.0.1",
-    "postcss-loader": "^3.0.0",
-    "postcss-preset-env": "^6.6.0",
-    "prop-types": "^15.7.2",
-    "react": "^16.8.4",
-    "react-dom": "^16.8.4",
-    "react-helmet": "^5.2.0",
-    "react-hot-loader": "^4.8.0",
-    "react-router": "^5.0.0",
-    "react-router-dom": "^5.0.0",
-    "react-waterfall": "^4.0.1",
-    "regenerator-runtime": "^0.13.1",
-    "responsive-loader": "^1.2.0",
-    "serve": "^10.1.2",
-    "sharp": "^0.22.0",
-    "static-site-generator-webpack-plugin": "^3.4.2",
-    "style-loader": "^0.23.1",
-    "stylelint-config-prettier": "^5.0.0",
-    "svg-react-loader": "^0.4.6",
-    "terser-webpack-plugin": "^1.2.3",
-    "webpack": "^4.29.6",
-    "webpack-cli": "^3.3.0",
-    "webpack-dev-server": "^3.2.1"
-  },
-  "jest": {
-    "setupFilesAfterEnv": [
-      "jest-enzyme"
-    ],
-    "testEnvironment": "enzyme",
-    "moduleNameMapper": {
-      "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "test/fileMock.js",
-      "\\.(css)$": "identity-obj-proxy"
-    },
-    "transform": {
-      "^.+\\.js$": "babel-jest"
-    }
-  }
+	"name": "<%if (namespace.length) { %><%=namespace%>/<%}%><%= slug %>",
+	"version": "0.0.1",
+	"main": "src/index.js",
+	"scripts": {
+		"start": "serve dist",
+		"dev": "webpack-dev-server --mode development",
+		"build": "webpack --mode production",
+		"postbuild": "react-snap",
+		"test": "jest --coverage"
+	},
+	"devDependencies": {
+		"@babel/cli": "^7.2.3",
+		"@babel/core": "^7.5.4",
+		"@babel/plugin-transform-runtime": "^7.3.4",
+		"@babel/preset-env": "^7.5.4",
+		"@babel/preset-react": "^7.0.0",
+		"@babel/runtime": "^7.5.4",
+		"axios": "^0.19.0",
+		"babel-jest": "^24.8.0",
+		"babel-loader": "^8.0.5",
+		"classnames": "^2.2.6",
+		"clean-webpack-plugin": "^3.0.0",
+		"css-loader": "^3.0.0",
+		"dotenv": "^8.0.0",
+		"enzyme": "^3.9.0",
+		"enzyme-adapter-react-16": "^1.11.2",
+		"file-loader": "^4.0.0",
+		"get-port": "^5.0.0",
+		"html-loader": "^0.5.5",
+		"html-webpack-plugin": "^3.2.0",
+		"identity-obj-proxy": "^3.0.0",
+		"immutable": "^4.0.0-rc.12",
+		"jest": "^24.5.0",
+		"jest-environment-enzyme": "^7.0.2",
+		"jest-enzyme": "^7.0.2",
+		"mini-css-extract-plugin": "^0.7.0",
+		"optimize-css-assets-webpack-plugin": "^5.0.1",
+		"postcss-loader": "^3.0.0",
+		"postcss-preset-env": "^6.6.0",
+		"prop-types": "^15.7.2",
+		"react": "^16.8.4",
+		"react-dom": "^16.8.4",
+		"react-helmet": "^5.2.0",
+		"react-hot-loader": "^4.8.0",
+		"react-router": "^5.0.0",
+		"react-router-dom": "^5.0.0",
+		"react-snap": "^1.23.0",
+		"regenerator-runtime": "^0.13.1",
+		"responsive-loader": "^1.2.0",
+		"serve": "^11.0.2",
+		"sharp": "^0.22.0",
+		"static-site-generator-webpack-plugin": "^3.4.2",
+		"style-loader": "^0.23.1",
+		"stylelint-config-prettier": "^5.0.0",
+		"svg-react-loader": "^0.4.6",
+		"terser-webpack-plugin": "^1.2.3",
+		"webpack": "^4.29.6",
+		"webpack-cli": "^3.3.0",
+		"webpack-dev-server": "^3.2.1"
+	},
+	"jest": {
+		"setupFilesAfterEnv": [
+			"jest-enzyme"
+		],
+		"testEnvironment": "enzyme",
+		"moduleNameMapper": {
+			"\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mov|mp4|webm|wav|mp3|m4a|aac|oga)$": "test/fileMock.js",
+			"\\.(css)$": "identity-obj-proxy"
+		},
+		"transform": {
+			"^.+\\.js$": "babel-jest"
+		}
+	},
+	"reactSnap": {
+		"source": "dist",
+		"cacheAjaxRequests": true,
+		"puppeteer": {
+			"cache": false
+		}
+	}
 }

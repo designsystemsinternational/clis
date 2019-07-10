@@ -42,14 +42,20 @@ const prompt = async () => {
     {
       type: "input",
       name: "name",
-      message: "What is your project name?",
+      message: "What is the project name?",
       default: "My Project"
     },
     {
       type: "input",
       name: "slug",
-      message: "What is your project slug?",
+      message: "What is the project slug?",
       default: a => slugify(a.name.toLowerCase())
+    },
+    {
+      type: "input",
+      name: "namespace",
+      message: "What is the namespace?",
+      default: "@designsystemsinternational"
     }
   ];
   const answers = await inquirer.prompt(questions);

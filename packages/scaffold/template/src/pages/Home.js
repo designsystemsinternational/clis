@@ -1,35 +1,28 @@
-import React, { Component } from 'react';
-import { actions, connect } from '../store';
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { useApi } from '../hooks/api';
 import css from './Home.css';
 
-class Home extends Component {
-	componentDidMount() {
-		actions.loadTestData();
+export default props => {
+	const [data, loadData, status] = useApi('/get');
+
+	if (!status.loaded) {
+		return <p>Loading ...</p>;
 	}
 
-	render() {
-		const { loading, testData } = this.props;
+	// The api endpoint returns a JSON document with the headers
+	// Let's just show that in a list.
+	const list = Object.entries(data.headers).map(entry => (
+		<li key={entry[0]}>
+			{entry[0]}: {entry[1]}
+		</li>
+	));
 
-		if (loading || !testData) {
-			return <p>Loading ...</p>;
-		}
-		const headers = testData.toJS().headers;
-
-		// The api endpoint returns a JSON document with the headers
-		// Let's just show that in a list.
-		const lis = Object.keys(headers).map(k => (
-			<li key={k}>
-				{k}: {headers[k]}
-			</li>
-		));
-
-		return (
-			<div className={css.root}>
-				<h1>Sample API Response</h1>
-				<ul>{lis}</ul>
-			</div>
-		);
-	}
-}
-
-export default connect(({ loading, testData }) => ({ loading, testData }))(Home);
+	return (
+		<div className={css.root}>
+			<Link to={'/page'}>Go to /page</Link>
+			<h1>Sample API Response</h1>
+			<ul>{list}</ul>
+		</div>
+	);
+};

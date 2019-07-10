@@ -2,7 +2,9 @@
 
 ## Scripts
 
-- `npm run dev` - Run the app for local development
+-   `npm run dev` - Run the app for local development
+-   `npm build` - Build the app
+-   `npm start` - Run the built app in a local server
 
 ## Deploying
 
