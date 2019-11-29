@@ -4,6 +4,7 @@ const chalk = require("chalk");
 const ora = require("ora");
 const {
   loadConfig,
+  saveConfig,
   getAWSWithProfile,
   compileCloudformationTemplate,
   paramsToInquirer,
@@ -19,21 +20,21 @@ const deploy = async args => {
   const firstDeploy = !conf || !conf.environments || !conf.environments[branch];
 
   const environment = branch === "master" ? "production" : branch;
-  const stack = `${name}-${environment}`;
+  const stackName = `${name}-${environment}`;
 
   if (firstDeploy) {
-    await createStack(stack, name, environment, conf);
+    await createStack(stackName, name, environment, conf);
   } else {
     await updateStack();
   }
 };
 
-const createStack = async (stack, name, environment, conf) => {
+const createStack = async (stackName, name, environment, conf) => {
   const init = await inquirer.prompt([
     {
       type: "confirm",
       name: "confirm",
-      message: `This will create a new cloudformation stack called ${stack}. Proceed?`
+      message: `This will create a new cloudformation stack called ${stackName}. Proceed?`
     }
   ]);
 
@@ -70,18 +71,61 @@ const createStack = async (stack, name, environment, conf) => {
   const s3Info = await uploadZips(AWS, conf.bucket, environment, zipInfo);
   spinner.succeed();
 
-  console.log(s3Info);
-
   // Assign automatic parameters
   // ----------------------------------
 
-  // Assign lambda names: functionS3Key
+  template.Parameters["operationsS3Bucket"] = {
+    Description: "Bucket that holds the lambda deployment zip files",
+    Type: "String"
+  };
+  parameters["operationsS3Bucket"] = conf.bucket;
+
+  template.Parameters["environment"] = {
+    Description: "Stack environment based on Git branch",
+    Type: "String"
+  };
+  parameters["environment"] = environment;
+
+  Object.keys(s3Info).forEach(key => {
+    const paramName = `${key}S3Key`;
+    template.Parameters[paramName] = {
+      Description: `Path to the ${key} lambda code in the operations bucket`,
+      Type: "String"
+    };
+    parameters[paramName] = s3Info[key].s3Key;
+  });
 
   // Create stack
   // ----------------------------------
 
-  // Save everything into the environment package.json!
-  // region, profile, etc.
+  spinner.start(`Creating Cloudformation stack: ${stackName}`);
+  const cloudformation = new AWS.CloudFormation();
+  const create = await cloudformation
+    .createStack({
+      StackName: stackName,
+      TemplateBody: JSON.stringify(template),
+      Parameters: Object.keys(parameters).map(key => ({
+        ParameterKey: key,
+        ParameterValue: parameters[key].toString()
+      })),
+      Capabilities: ["CAPABILITY_NAMED_IAM"]
+    })
+    .promise();
+
+  const created = await cloudformation
+    .waitFor("stackCreateComplete", {
+      StackName: stackName
+    })
+    .promise();
+
+  spinner.succeed();
+
+  if (!conf.environments) {
+    conf.environments = {};
+  }
+
+  conf.environments[environment] = {};
+  saveConfig(conf);
 };
 
 const updateStack = async () => {
