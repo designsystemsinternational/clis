@@ -9,3 +9,8 @@ All these parameters are automatically added to the Cloudformation template and 
 - `environment`. Name of the current environment, which is named after the current Git branch.
 - `operationsS3Bucket`. Name of the bucket used for lambda zip files.
 - `[function]S3Key`. For every function, the path of the zip file of its code in the operations bucket.
+
+# Why not?
+
+- Serverless
+  Does not use Change Sets for deployment.

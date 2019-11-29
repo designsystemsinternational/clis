@@ -11,25 +11,35 @@ const {
   getFunctions,
   buildFunctions,
   zipWebpackOutput,
-  uploadZips
+  uploadZips,
+  nowLabel,
+  monitorStack,
+  waitForChangeset
 } = require("../utils");
 
 const deploy = async args => {
   const branch = await gitBranch();
-  const { name, conf } = loadConfig();
-  const firstDeploy = !conf || !conf.environments || !conf.environments[branch];
-
   const environment = branch === "master" ? "production" : branch;
+
+  const { name, conf } = loadConfig();
+  const firstDeploy =
+    !conf || !conf.environments || !conf.environments[environment];
+
   const stackName = `${name}-${environment}`;
 
   if (firstDeploy) {
-    await createStack(stackName, name, environment, conf);
+    await createStack(stackName, environment, conf);
+  } else if (args[3]) {
+    await updateFunction(stackName, environment, args[3], conf);
   } else {
     await updateStack();
   }
 };
 
-const createStack = async (stackName, name, environment, conf) => {
+// Create Stack
+// ---------------------------------------------------------------------
+
+const createStack = async (stackName, environment, conf) => {
   const init = await inquirer.prompt([
     {
       type: "confirm",
@@ -128,8 +138,110 @@ const createStack = async (stackName, name, environment, conf) => {
   saveConfig(conf);
 };
 
+// Update Function
+// ---------------------------------------------------------------------
+
+const updateFunction = async (stackName, environment, functionName, conf) => {
+  const AWS = getAWSWithProfile(conf.profile, conf.region);
+  const cloudformation = new AWS.CloudFormation();
+  const functionKey = `${functionName}S3Key`;
+
+  // Load stack parameters
+  // ----------------------------------
+
+  const spinner = ora("Getting Cloudformation parameters").start();
+  const res = await cloudformation
+    .describeStacks({ StackName: stackName })
+    .promise();
+  const stack = res.Stacks[0];
+  spinner.succeed();
+
+  // You can only update a function if it already exists in the stack
+  if (!stack.Parameters.find(p => p.ParameterKey === functionKey)) {
+    console.error(
+      chalk.red("Function does not exist. You must run a full deploy first.")
+    );
+    return;
+  }
+
+  // Build and upload lambda
+  // ----------------------------------
+
+  spinner.start("Preparing lambda package");
+  const functions = await getFunctions(functionName);
+  const stats = await buildFunctions(functions, "build");
+  const zipInfo = await zipWebpackOutput(stats);
+  spinner.succeed();
+
+  spinner.start("Uploading lambda package to S3");
+  const s3Info = await uploadZips(AWS, conf.bucket, environment, zipInfo);
+  spinner.succeed();
+
+  const parameters = stack.Parameters.map(p => {
+    if (p.ParameterKey === `${functionName}S3Key`) {
+      return {
+        ParameterKey: p.ParameterKey,
+        ParameterValue: s3Info[functionName].s3Key
+      };
+    } else {
+      return {
+        ParameterKey: p.ParameterKey,
+        UsePreviousValue: true
+      };
+    }
+    p.ParameterKey;
+  });
+
+  spinner.start("Creating changeset");
+
+  const changesetName = `deploy-${nowLabel()}`;
+
+  const update = await cloudformation
+    .createChangeSet({
+      UsePreviousTemplate: true,
+      ChangeSetName: changesetName,
+      StackName: stackName,
+      Parameters: parameters,
+      Capabilities: ["CAPABILITY_NAMED_IAM"]
+    })
+    .promise();
+
+  spinner.succeed();
+  spinner.start("Waiting for changeset completion");
+
+  await waitForChangeset(
+    cloudformation,
+    stackName,
+    changesetName,
+    "Status",
+    "CREATE_COMPLETE"
+  );
+
+  spinner.succeed();
+  spinner.start("Executing changeset");
+
+  const executed = await cloudformation
+    .executeChangeSet({
+      StackName: stackName,
+      ChangeSetName: changesetName
+    })
+    .promise();
+
+  await monitorStack(AWS, stackName);
+
+  spinner.succeed();
+};
+
+// Update Stack
+// ---------------------------------------------------------------------
+
 const updateStack = async () => {
   //
+  // console.log(
+  //   `CloudFormation - ${eventStatus} - ${event.ResourceType} - ${
+  //     event.LogicalResourceId
+  //   }`
+  // );
 };
 
 module.exports = deploy;

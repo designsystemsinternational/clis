@@ -77,16 +77,25 @@ const awsRegions = {
 // We do this to not have a config file where you declare your functions, but it
 // requires the repo to not have two functions named the same AND not have utils
 // files inside of the /functions folder. Let's reconsider after using for a while.
-const getFunctions = async () => {
-  return await recursiveReadDir(join(process.cwd(), "functions"), [
+const getFunctions = async name => {
+  const files = await recursiveReadDir(join(process.cwd(), "functions"), [
     "node_modules",
     "cf.js"
   ]);
+  const functions = files.map(f => ({
+    name: basename(f, ".js"),
+    path: f
+  }));
+  if (name) {
+    return functions.filter(f => f.name === name);
+  } else {
+    return functions;
+  }
 };
 
-const buildFunctions = async (files, buildFolder) => {
+const buildFunctions = async (functions, buildFolder) => {
   const entries = {};
-  files.forEach(f => (entries[basename(f, ".js")] = f));
+  functions.forEach(f => (entries[f.name] = f.path));
   return new Promise((resolve, reject) => {
     webpack(defaultConfig(entries, buildFolder), (err, stats) => {
       if (err || stats.hasErrors()) {
@@ -218,6 +227,166 @@ const paramsToInquirer = params => {
   return questions;
 };
 
+// Monitors stack create/update/delete
+const monitorStack = async (AWS, stackName, onEvent = () => {}) => {
+  const validStatuses = [
+    "CREATE_COMPLETE",
+    "UPDATE_COMPLETE",
+    "DELETE_COMPLETE"
+  ];
+  const loggedEvents = [];
+  let monitoredSince = null;
+  let stackStatus = null;
+  let stackLatestError = null;
+
+  const cloudformation = new AWS.CloudFormation();
+
+  return new Promise((resolve, reject) => {
+    const checkStatus = () => {
+      cloudformation
+        .describeStackEvents({ StackName: stackName })
+        .promise()
+        .then(data => {
+          const stackEvents = data.StackEvents;
+
+          // Find the first relevant stack event with CREATE, UPDATE or DELETE status
+          const firstRelevantEvent = stackEvents.find(event => {
+            const isStack = "AWS::CloudFormation::Stack";
+            const updateIsInProgress = "UPDATE_IN_PROGRESS";
+            const createIsInProgress = "CREATE_IN_PROGRESS";
+            const deleteIsInProgress = "DELETE_IN_PROGRESS";
+            return (
+              event.ResourceType === isStack &&
+              (event.ResourceStatus === updateIsInProgress ||
+                event.ResourceStatus === createIsInProgress ||
+                event.ResourceStatus === deleteIsInProgress)
+            );
+          });
+
+          // set the date some time before the first found
+          // stack event of recently issued stack modification
+          if (firstRelevantEvent) {
+            const eventDate = new Date(firstRelevantEvent.Timestamp);
+            const updatedDate = eventDate.setSeconds(
+              eventDate.getSeconds() - 5
+            );
+            monitoredSince = new Date(updatedDate);
+          }
+
+          // Loop through stack events
+          stackEvents.reverse().forEach(event => {
+            const eventInRange = monitoredSince <= event.Timestamp;
+            const eventNotLogged = loggedEvents.indexOf(event.EventId) === -1;
+            let eventStatus = event.ResourceStatus || null;
+            if (eventInRange && eventNotLogged) {
+              // Keep track of stack status
+              if (
+                event.ResourceType === "AWS::CloudFormation::Stack" &&
+                event.StackName === event.LogicalResourceId
+              ) {
+                stackStatus = eventStatus;
+              }
+
+              // Keep track of first failed event
+              if (
+                eventStatus &&
+                (eventStatus.endsWith("FAILED") ||
+                  eventStatus === "UPDATE_ROLLBACK_IN_PROGRESS") &&
+                stackLatestError === null
+              ) {
+                stackLatestError = event;
+              }
+
+              // Log stack events
+              onEvent(eventStatus, event);
+
+              // Prepare for next monitoring action
+              loggedEvents.push(event.EventId);
+            }
+          });
+
+          // Handle stack create/update/delete failures
+          if (
+            stackLatestError ||
+            (stackStatus &&
+              (stackStatus.endsWith("ROLLBACK_COMPLETE") ||
+                stackStatus === "DELETE_FAILED"))
+          ) {
+            console.error("Operation failed!");
+            return reject(
+              `An error occurred: ${stackLatestError.LogicalResourceId} - ${
+                stackLatestError.ResourceStatusReason
+              }.`
+            );
+          }
+
+          if (validStatuses.indexOf(stackStatus) === -1) {
+            setTimeout(checkStatus, 5000);
+          } else {
+            return resolve();
+          }
+        })
+        .catch(e => {
+          if (e.message.endsWith("does not exist")) {
+            // Stack deletion finished
+            resolve();
+          } else {
+            reject(e.message);
+          }
+        });
+    };
+
+    checkStatus();
+  });
+};
+
+const changesetWorking = [
+  "CREATE_PENDING",
+  "CREATE_IN_PROGRESS",
+  "EXECUTE_IN_PROGRESS"
+];
+
+const waitForChangeset = async (
+  cloudformation,
+  stackName,
+  changesetName,
+  attr = "Status",
+  desired = "CREATE_COMPLETE"
+) => {
+  const data = await cloudformation
+    .describeChangeSet({
+      StackName: stackName,
+      ChangeSetName: changesetName
+    })
+    .promise();
+  if (data[attr] === desired) {
+    return;
+  } else if (changesetWorking.includes(data[attr])) {
+    await timeout(3000);
+    return waitForChangeset(
+      cloudformation,
+      stackName,
+      changesetName,
+      attr,
+      desired
+    );
+  } else {
+    console.error(chalk.red(`Changeset.${attr} resulted in ${data[attr]}`));
+    return;
+  }
+};
+
+// Others
+// ---------------------------------------------------
+
+const timeout = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+const nowLabel = () => {
+  const now = new Date();
+  return `${now.getFullYear()}-${now.getMonth() +
+    1}-${now.getDate()}-${now.getHours()}-${now.getMinutes()}-${now.getSeconds()}`;
+};
+
 module.exports = {
   checkS3BucketExists,
   awsRegions,
@@ -230,5 +399,8 @@ module.exports = {
   zipWebpackOutput,
   uploadZip,
   uploadZips,
-  paramsToInquirer
+  monitorStack,
+  paramsToInquirer,
+  nowLabel,
+  waitForChangeset
 };
