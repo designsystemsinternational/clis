@@ -6,7 +6,6 @@ const {
   awsRegions,
   checkS3BucketExists
 } = require("../utils");
-const AWS = require("aws-sdk");
 
 const init = async args => {
   const { name, conf } = loadConfig();
@@ -18,7 +17,7 @@ const init = async args => {
     );
   }
 
-  // General project questions
+  // General questions
   // ----------------------------------
 
   const aws = await inquirer.prompt([
@@ -44,10 +43,7 @@ const init = async args => {
     }
   ]);
 
-  AWS.config.update({
-    region: aws.region,
-    credentials: new AWS.SharedIniFileCredentials({ profile: aws.profile })
-  });
+  const AWS = getAWSWithProfile(aws.profile, aws.region);
 
   // Operations bucket
   // ----------------------------------

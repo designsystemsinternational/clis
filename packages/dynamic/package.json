@@ -21,15 +21,18 @@
   ],
   "license": "ISC",
   "dependencies": {
+    "archiver": "^3.1.1",
     "aws-sdk": "^2.580.0",
     "chalk": "^3.0.0",
+    "clean-webpack-plugin": "^3.0.0",
     "git-branch": "^2.0.1",
+    "i": "^0.3.6",
     "inquirer": "^7.0.0",
     "md5-file": "^4.0.0",
+    "npm": "^6.13.1",
     "ora": "^4.0.3",
     "recursive-readdir": "^2.2.2",
-    "webpack": "^4.41.2",
-    "clean-webpack-plugin": "^3.0.0"
+    "webpack": "^4.41.2"
   },
   "bin": {
     "dynamic": "src/cli.js"

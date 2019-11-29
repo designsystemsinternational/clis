@@ -1,36 +1,34 @@
 const inquirer = require("inquirer");
 const gitBranch = require("git-branch");
+const chalk = require("chalk");
+const ora = require("ora");
 const {
   loadConfig,
+  getAWSWithProfile,
   compileCloudformationTemplate,
-  awsRegions
+  paramsToInquirer,
+  getFunctions,
+  buildFunctions,
+  zipWebpackOutput,
+  uploadZips
 } = require("../utils");
 
 const deploy = async args => {
   const branch = await gitBranch();
   const { name, conf } = loadConfig();
-  const firstDeploy = !conf || !conf.environments[branch];
-  const stack = `${name}-${branch}`;
+  const firstDeploy = !conf || !conf.environments || !conf.environments[branch];
 
-  if (!name) {
-    console.error(
-      chalk.red(
-        `Your package.json file must have a name to deploy with dynamic`
-      )
-    );
-  }
+  const environment = branch === "master" ? "production" : branch;
+  const stack = `${name}-${environment}`;
 
   if (firstDeploy) {
-    await createStack(stack, name, conf);
+    await createStack(stack, name, environment, conf);
   } else {
     await updateStack();
   }
 };
 
-const createStack = async (stack, name, conf) => {
-  // Get user consent
-  // ----------------------------------
-
+const createStack = async (stack, name, environment, conf) => {
   const init = await inquirer.prompt([
     {
       type: "confirm",
@@ -44,50 +42,43 @@ const createStack = async (stack, name, conf) => {
     return;
   }
 
-  // Basic AWS questions
+  const AWS = getAWSWithProfile(conf.profile, conf.region);
+
+  // Compile template and ask for params
   // ----------------------------------
 
-  const aws = await inquirer.prompt([
-    {
-      type: "input",
-      name: "profile",
-      message: `Which AWS profile would you like to use?`
-    },
-    {
-      type: "list",
-      name: "region",
-      message: `Which AWS region would you like to use for this project?`,
-      choices: Object.keys(awsRegions).map(k => ({
-        name: awsRegions[k],
-        value: k
-      }))
-    },
-    {
-      type: "input",
-      name: "bucket",
-      message: `Which bucket would you like to use for the lambda ZIP files? This bucket will be created it if doesn't exist.`,
-      default: `${name}-${operations}`
-    }
-  ]);
-
-  AWS.config.update({
-    region: aws.region,
-    credentials: new AWS.SharedIniFileCredentials({ profile: aws.profile })
-  });
-
-  // Setup operations bucket
-  // ----------------------------------
-
-  // Check if operations bucket exists
-  //   Create operations bucket if not
-
-  const lambdas = await prepareAndUploadLambdas();
-
+  const spinner = ora("Compiling Cloudformation template").start();
   const template = await compileCloudformationTemplate();
+  spinner.succeed();
 
-  // Add parameters
-  //   all functionS3Key
-  //   the operations bucket answer
+  let parameters = {};
+
+  if (Object.keys(template.Parameters).length > 0) {
+    parameters = await inquirer.prompt(paramsToInquirer(template.Parameters));
+  }
+
+  // Build and upload lambdas
+  // ----------------------------------
+
+  spinner.start("Preparing lambda packages");
+  const functions = await getFunctions();
+  const stats = await buildFunctions(functions, "build");
+  const zipInfo = await zipWebpackOutput(stats);
+  spinner.succeed();
+
+  spinner.start("Uploading lambda packages to S3");
+  const s3Info = await uploadZips(AWS, conf.bucket, environment, zipInfo);
+  spinner.succeed();
+
+  console.log(s3Info);
+
+  // Assign automatic parameters
+  // ----------------------------------
+
+  // Assign lambda names: functionS3Key
+
+  // Create stack
+  // ----------------------------------
 
   // Save everything into the environment package.json!
   // region, profile, etc.
