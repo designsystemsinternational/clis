@@ -13,7 +13,7 @@ functions/
 
 Here's what `dynamic` does:
 
-- **CF Templates**. All files named `cf.js` inside of the `/functions` folder will be compiled into a single Cloudformation template. These files can return an object with some or all of the three Cloudformation keys (e.g. `{ Parameters: {}, Resources: {}, Outputs: {}}` or `{ Resources: {}}`) or a function returning these same objects.
+- **CF Templates**. All files named `cf.js` inside of the `/functions` folder will be compiled into a single Cloudformation template. These files can return an object with some or all of the three Cloudformation keys (e.g. `{ Parameters: {}, Resources: {}, Outputs: {}}` or `{ Resources: {}}`) or a function returning these same objects. This makes it possible to divide your Cloudformation template into sections and use JavaScript variables and functions to construct the template.
 
 - **Lambdas**. Any file NOT named `cf.js` inside of the `/functions` folder is interpreted as a lambda. All lambdas are packaged with their dependencies via Webpack, uploaded to the chosen S3 folder, and the S3 key is automatically injected into the Cloudformation template. For our project above, `myScript.js` is packaged, zipped, uploaded to S3, and the parameter `myScriptS3Key` is passed to the template. You can use subfolders too, but they are ignored, so filenames have to be unique. Keep in mind that `dynamic` will not automatically create the lambda. You will have to do this in your `cf.js` template files.
 
