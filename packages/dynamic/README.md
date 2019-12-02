@@ -33,11 +33,17 @@ After doing a full deploy, you can deploy a single lambda function by running `d
 
 ## Commands
 
-```
-$ dynamic init
-$ dynamic deploy
-# dynamic deploy functionName
-```
+### `dynamic init`
+
+Asks a few questions needed to run `dynamic` and saves the response to `package.json`.
+
+### `dynamic deploy`
+
+Create or update the entire stack. This will prompt you about all parameters in the template, and update the template and all the function code.
+
+### `dynamic deploy functionName`
+
+Creates a Cloudformation changeset with only the update function code.
 
 ## Automatic parameters
 
