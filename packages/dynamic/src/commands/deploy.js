@@ -12,7 +12,7 @@ const {
   buildFunctions,
   zipWebpackOutput,
   uploadZips,
-  nowLabel,
+  newChangesetName,
   monitorStack,
   waitForChangeset
 } = require("../utils");
@@ -32,7 +32,7 @@ const deploy = async args => {
   } else if (args[3]) {
     await updateFunction(stackName, environment, args[3], conf);
   } else {
-    await updateStack();
+    await updateStack(stackName, environment, conf);
   }
 };
 
@@ -192,9 +192,12 @@ const updateFunction = async (stackName, environment, functionName, conf) => {
     p.ParameterKey;
   });
 
+  // Create and execute changeset
+  // ----------------------------------
+
   spinner.start("Creating changeset");
 
-  const changesetName = `deploy-${nowLabel()}`;
+  const changesetName = newChangesetName();
 
   const update = await cloudformation
     .createChangeSet({
@@ -235,13 +238,124 @@ const updateFunction = async (stackName, environment, functionName, conf) => {
 // Update Stack
 // ---------------------------------------------------------------------
 
-const updateStack = async () => {
-  //
-  // console.log(
-  //   `CloudFormation - ${eventStatus} - ${event.ResourceType} - ${
-  //     event.LogicalResourceId
-  //   }`
-  // );
+const updateStack = async (stackName, environment, conf) => {
+  const AWS = getAWSWithProfile(conf.profile, conf.region);
+  const cloudformation = new AWS.CloudFormation();
+
+  // Compile template
+  // ----------------------------------
+
+  const spinner = ora("Compiling Cloudformation template").start();
+  const template = await compileCloudformationTemplate();
+  spinner.succeed();
+
+  // Build lambdas
+  // ----------------------------------
+
+  spinner.start("Preparing lambda packages");
+  const functions = await getFunctions();
+  const stats = await buildFunctions(functions, "build");
+  const zipInfo = await zipWebpackOutput(stats);
+  spinner.succeed();
+
+  // Ask for params
+  // ----------------------------------
+
+  let parameters = {};
+
+  if (Object.keys(template.Parameters).length > 0) {
+    parameters = await inquirer.prompt(
+      paramsToInquirer(template.Parameters, { default: "Use Previous" })
+    );
+  }
+
+  // Upload lambdas
+  // ----------------------------------
+
+  spinner.start("Uploading lambda packages to S3");
+  const s3Info = await uploadZips(AWS, conf.bucket, environment, zipInfo);
+  spinner.succeed();
+
+  // Assign automatic parameters
+  // ----------------------------------
+
+  template.Parameters["operationsS3Bucket"] = {
+    Description: "Bucket that holds the lambda deployment zip files",
+    Type: "String"
+  };
+  parameters["operationsS3Bucket"] = conf.bucket;
+
+  template.Parameters["environment"] = {
+    Description: "Stack environment based on Git branch",
+    Type: "String"
+  };
+  parameters["environment"] = environment;
+
+  Object.keys(s3Info).forEach(key => {
+    const paramName = `${key}S3Key`;
+    template.Parameters[paramName] = {
+      Description: `Path to the ${key} lambda code in the operations bucket`,
+      Type: "String"
+    };
+    parameters[paramName] = s3Info[key].s3Key;
+  });
+
+  // Create and execute changeset
+  // ----------------------------------
+
+  const paramsWithPrevious = Object.keys(parameters).map(key => {
+    const ParameterValue = parameters[key].toString();
+    if (ParameterValue === "Use Previous") {
+      return {
+        ParameterKey: key,
+        UsePreviousValue: true
+      };
+    } else {
+      return {
+        ParameterKey: key,
+        ParameterValue
+      };
+    }
+  });
+
+  spinner.start("Creating changeset");
+
+  const changesetName = newChangesetName();
+
+  const update = await cloudformation
+    .createChangeSet({
+      TemplateBody: JSON.stringify(template),
+      ChangeSetName: changesetName,
+      StackName: stackName,
+      Parameters: paramsWithPrevious,
+      Capabilities: ["CAPABILITY_NAMED_IAM"]
+    })
+    .promise();
+
+  spinner.succeed();
+  spinner.start("Waiting for changeset completion");
+
+  await waitForChangeset(
+    cloudformation,
+    stackName,
+    changesetName,
+    "Status",
+    "CREATE_COMPLETE"
+  );
+
+  spinner.succeed();
+  spinner.start("Executing changeset");
+
+  const executed = await cloudformation
+    .executeChangeSet({
+      StackName: stackName,
+      ChangeSetName: changesetName
+    })
+    .promise();
+
+  await monitorStack(AWS, stackName);
+
+  spinner.succeed();
 };
 
 module.exports = deploy;

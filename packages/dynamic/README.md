@@ -31,6 +31,14 @@ When you are ready to deploy your application, run `dynamic deploy`.
 
 After doing a full deploy, you can deploy a single lambda function by running `dynamic deploy NAME`. In our example from above, this would be `dynamic deploy myScript`.
 
+## Commands
+
+```
+$ dynamic init
+$ dynamic deploy
+# dynamic deploy functionName
+```
+
 ## Automatic parameters
 
 The following parameters are automatically added to the Cloudformation template and can be used with `{ Ref: "PARAM_NAME" }`.

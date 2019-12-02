@@ -212,7 +212,7 @@ const compileCloudformationTemplate = async () => {
   return template;
 };
 
-const paramsToInquirer = params => {
+const paramsToInquirer = (params, opts) => {
   const questions = [];
   Object.keys(params).forEach(key => {
     const obj = params[key];
@@ -220,7 +220,7 @@ const paramsToInquirer = params => {
       name: key,
       type: obj.AllowedValues ? "list" : "input",
       message: obj.Description || key,
-      default: obj.Default,
+      default: obj.Default || opts.default,
       choices: obj.AllowedValues
     });
   });
@@ -381,9 +381,9 @@ const waitForChangeset = async (
 
 const timeout = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-const nowLabel = () => {
+const newChangesetName = () => {
   const now = new Date();
-  return `${now.getFullYear()}-${now.getMonth() +
+  return `deploy-${now.getFullYear()}-${now.getMonth() +
     1}-${now.getDate()}-${now.getHours()}-${now.getMinutes()}-${now.getSeconds()}`;
 };
 
@@ -401,6 +401,6 @@ module.exports = {
   uploadZips,
   monitorStack,
   paramsToInquirer,
-  nowLabel,
+  newChangesetName,
   waitForChangeset
 };
