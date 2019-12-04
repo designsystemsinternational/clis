@@ -45,6 +45,10 @@ Create or update the entire stack. This will prompt you about all parameters in 
 
 Creates a Cloudformation changeset with only the update function code.
 
+#### `dynamic show outputs`
+
+Shows the outputs for the current environment.
+
 ## Automatic parameters
 
 The following parameters are automatically added to the Cloudformation template and can be used with `{ Ref: "PARAM_NAME" }`.

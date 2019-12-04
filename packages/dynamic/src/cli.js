@@ -2,9 +2,10 @@
 
 const chalk = require("chalk");
 const { man } = require("./utils");
-const deploy = require("./commands/deploy");
 const init = require("./commands/init");
-const map = { deploy, init };
+const deploy = require("./commands/deploy");
+const show = require("./commands/show");
+const map = { init, deploy, show };
 const cmd = process.argv[2];
 
 if (map.hasOwnProperty(cmd)) {

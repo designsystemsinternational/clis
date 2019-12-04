@@ -12,10 +12,29 @@ const recursiveReadDir = require("recursive-readdir");
 const webpack = require("webpack");
 const defaultConfig = require("./default.webpack.config");
 const chalk = require("chalk");
+const gitBranch = require("git-branch");
 const AWS = require("aws-sdk");
 
-// Config file utils
+// General
 // ---------------------------------------------------
+
+const getEnvironment = async () => {
+  const branch = await gitBranch();
+  return branch === "master" ? "production" : branch;
+};
+
+const getStackName = (name, conf, environment) => {
+  if (
+    conf &&
+    conf.environments &&
+    conf.environments[environment] &&
+    conf.environments[environment].stackName
+  ) {
+    return conf.environments[environment].stackName;
+  } else {
+    return `${name}-${environment}`;
+  }
+};
 
 const loadConfig = () => {
   const pack = JSON.parse(readFileSync("./package.json"));
@@ -388,6 +407,8 @@ const newChangesetName = () => {
 };
 
 module.exports = {
+  getEnvironment,
+  getStackName,
   checkS3BucketExists,
   awsRegions,
   loadConfig,

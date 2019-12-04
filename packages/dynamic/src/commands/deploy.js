@@ -3,6 +3,8 @@ const gitBranch = require("git-branch");
 const chalk = require("chalk");
 const ora = require("ora");
 const {
+  getEnvironment,
+  getStackName,
   loadConfig,
   saveConfig,
   getAWSWithProfile,
@@ -18,14 +20,12 @@ const {
 } = require("../utils");
 
 const deploy = async args => {
-  const branch = await gitBranch();
-  const environment = branch === "master" ? "production" : branch;
-
   const { name, conf } = loadConfig();
+  const environment = await getEnvironment();
   const firstDeploy =
     !conf || !conf.environments || !conf.environments[environment];
 
-  const stackName = `${name}-${environment}`;
+  const stackName = getStackName(name, conf, environment);
 
   if (firstDeploy) {
     await createStack(stackName, environment, conf);
