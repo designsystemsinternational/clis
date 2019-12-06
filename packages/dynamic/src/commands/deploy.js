@@ -3,48 +3,55 @@ const gitBranch = require("git-branch");
 const chalk = require("chalk");
 const ora = require("ora");
 const {
+  NO_DYNAMIC_CONFIG,
+  configDefaults,
+  getFunctions,
+  buildFunctions,
+  compileCloudformationTemplate
+} = require("../utils");
+const {
   getEnvironment,
+  getEnvironmentConfig,
   getStackName,
   loadConfig,
   saveConfig,
   getAWSWithProfile,
-  compileCloudformationTemplate,
   paramsToInquirer,
-  getFunctions,
-  buildFunctions,
   zipWebpackOutput,
   uploadZips,
   newChangesetName,
   monitorStack,
   waitForChangeset
-} = require("../utils");
+} = require("@designsystemsinternational/cli-utils");
 
 const deploy = async args => {
-  const { name, conf } = loadConfig();
-  const environment = await getEnvironment();
-  const firstDeploy =
-    !conf || !conf.environments || !conf.environments[environment];
+  const { conf, packageJson } = loadConfig("dynamic");
+  if (!conf) {
+    throw NO_DYNAMIC_CONFIG;
+  }
+  const confWithDefaults = Object.assign({}, configDefaults, conf);
 
-  const stackName = getStackName(name, conf, environment);
+  const env = await getEnvironment();
+  const envConfig = getEnvironmentConfig(confWithDefaults, env);
 
-  if (firstDeploy) {
-    await createStack(stackName, environment, conf);
+  if (!envConfig) {
+    await createStack(env, packageJson, confWithDefaults, envConfig);
   } else if (args[3]) {
-    await updateFunction(stackName, environment, args[3], conf);
+    await updateFunction(stackName, environment, args[3], confWithDefaults);
   } else {
-    await updateStack(stackName, environment, conf);
+    await updateStack(stackName, environment, confWithDefaults);
   }
 };
 
 // Create Stack
 // ---------------------------------------------------------------------
 
-const createStack = async (stackName, environment, conf) => {
+const createStack = async (env, packageJson, conf, envConfig) => {
   const init = await inquirer.prompt([
     {
       type: "confirm",
       name: "confirm",
-      message: `This will create a new cloudformation stack called ${stackName}. Proceed?`
+      message: `This will create a new ${env} environment. Proceed?`
     }
   ]);
 
@@ -53,13 +60,22 @@ const createStack = async (stackName, environment, conf) => {
     return;
   }
 
+  const { stackName } = await inquirer.prompt([
+    {
+      type: "input",
+      name: "stackName",
+      message: `Name of the new Cloudformation stack`,
+      default: `${packageJson.name}-${env}`
+    }
+  ]);
+
   const AWS = getAWSWithProfile(conf.profile, conf.region);
 
   // Compile template and ask for params
   // ----------------------------------
 
   const spinner = ora("Compiling Cloudformation template").start();
-  const template = await compileCloudformationTemplate();
+  const template = await compileCloudformationTemplate(conf);
   spinner.succeed();
 
   let parameters = {};
@@ -134,7 +150,9 @@ const createStack = async (stackName, environment, conf) => {
     conf.environments = {};
   }
 
-  conf.environments[environment] = {};
+  conf.environments[environment] = {
+    stackName
+  };
   saveConfig(conf);
 };
 

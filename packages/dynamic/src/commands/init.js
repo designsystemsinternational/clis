@@ -5,7 +5,7 @@ const {
   saveConfig,
   awsRegions,
   checkS3BucketExists
-} = require("../utils");
+} = require("@designsystemsinternational/cli-utils");
 
 const init = async args => {
   const { name, conf } = loadConfig();

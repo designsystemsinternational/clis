@@ -33,21 +33,18 @@ After doing a full deploy, you can deploy a single lambda function by running `d
 
 ## Commands
 
-#### `dynamic init`
+- `dynamic init`. Asks a few questions needed to run `dynamic` and saves the response to `package.json`.
+- `dynamic deploy`. Create or update the entire stack. This will prompt you about all parameters in the template, and update the template and all the function code.
+- `dynamic deploy functionName`. Creates a Cloudformation changeset with only the update function code.
+- `dynamic show outputs`. Shows the outputs for the current environment.
 
-Asks a few questions needed to run `dynamic` and saves the response to `package.json`.
+## Config file settings
 
-#### `dynamic deploy`
+The `dynamic` config is defined in a `dynamic` key inside the `package.json`. The following settings apply:
 
-Create or update the entire stack. This will prompt you about all parameters in the template, and update the template and all the function code.
-
-#### `dynamic deploy functionName`
-
-Creates a Cloudformation changeset with only the update function code.
-
-#### `dynamic show outputs`
-
-Shows the outputs for the current environment.
+- `cloudformationMatch`. The glob patterns used to detect cloudformation files. Uses [`micromatch`](https://github.com/micromatch/micromatch) and defaults to `["functions/**/cf.js"]`.
+- `lambdaMatch`. The glob patterns used to detect lambda files. Uses [`micromatch`](https://github.com/micromatch/micromatch) and defaults to `["functions/**/*.js", "!functions/**/cf.js"]`.
+- `buildDir`. Directory where the lambda build files go. Defaults to `build`.
 
 ## Automatic parameters
 

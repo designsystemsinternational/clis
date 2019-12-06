@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
 const chalk = require("chalk");
-const { man } = require("./utils");
 const init = require("./commands/init");
 const deploy = require("./commands/deploy");
 const show = require("./commands/show");
