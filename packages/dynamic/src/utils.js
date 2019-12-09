@@ -61,6 +61,7 @@ const buildFunctions = async (conf, functions) => {
 const addS3Keys = async (env, functionsInfo) => {
   const keys = Object.keys(functionsInfo);
   for (let i = 0; i < keys.length; i++) {
+    const key = keys[i];
     const hash = await md5File(functionsInfo[key].orgFile);
     functionsInfo[key].s3Key = `functions/${env}/${key}-${hash}.zip`;
   }

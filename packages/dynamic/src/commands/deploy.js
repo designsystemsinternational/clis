@@ -27,7 +27,6 @@ const {
 
 const deploy = async args => {
   const { conf, packageJson } = loadConfig("dynamic");
-  console.log(packageJson);
   if (!conf) {
     throw NO_DYNAMIC_CONFIG;
   }
@@ -93,14 +92,14 @@ const createStack = async (env, packageJson, conf, envConfig) => {
   const functions = await getFunctions(conf);
   const stats = await buildFunctions(conf, functions);
   const functionsInfo = await zipWebpackOutput(stats);
-  console.log("fInfo", functionsInfo);
-  return;
   spinner.succeed();
 
   spinner.start("Uploading lambda packages to S3");
-  addS3Keys(env, functionsInfo);
+  await addS3Keys(env, functionsInfo);
   const uploadInfo = {};
-  functionsInfo.forEach(i => (uploadInfo[i.zipFile] = uploadInfo[i.s3Key]));
+  Object.keys(functionsInfo).forEach(key => {
+    uploadInfo[functionsInfo[key].zipFile] = functionsInfo[key].s3Key;
+  });
   await uploadFilesToS3(AWS, conf.bucket, uploadInfo);
   spinner.succeed();
 
