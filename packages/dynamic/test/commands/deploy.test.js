@@ -30,14 +30,14 @@ jest.mock("@designsystemsinternational/cli-utils", () => ({
   })
 }));
 
-// Tests
-// ---------------------------------------------------------------
-
 const resetMock = func => {
   func.mockReset().mockReturnValue({
     promise: jest.fn().mockResolvedValue({})
   });
 };
+
+// Tests
+// ---------------------------------------------------------------
 
 describe("deploy", () => {
   beforeEach(() => {
@@ -69,15 +69,50 @@ describe("deploy", () => {
       });
       inquirer.prompt
         .mockResolvedValueOnce({ confirm: true })
-        .mockResolvedValueOnce({ stackName: "stack-test" });
+        .mockResolvedValueOnce({ stackName: "stack-test" })
+        .mockResolvedValueOnce({ testParam: "test-value" });
 
       await deploy();
+
+      // Test that inquirer got the questions from parameters
       // test that the files are created
       // normal
       // zip
       // check files were uploaded to S3
-      // test that createStack happens
-      expect(mockCreateStack.mock.calls.length).toEqual(1);
+
+      // createStack
+      const { calls } = mockCreateStack.mock;
+      expect(calls.length).toEqual(1);
+      expect(calls[0][0].StackName).toEqual("stack-test");
+      expect(calls[0][0].TemplateBody).toBeDefined();
+      expect(calls[0][0].Parameters).toBeDefined();
+      console.log(calls[0][0].Parameters);
+
+      const tmpl = JSON.parse(calls[0][0].TemplateBody);
+      expect(Object.keys(tmpl.Parameters)).toEqual([
+        "testParam",
+        "operationsS3Bucket",
+        "environment",
+        "lambdaS3Key"
+      ]);
+      expect(calls[0][0].Parameters[0]).toEqual({
+        ParameterKey: "testParam",
+        ParameterValue: "test-value"
+      });
+      expect(calls[0][0].Parameters[1]).toEqual({
+        ParameterKey: "operationsS3Bucket",
+        ParameterValue: "fake-bucket"
+      });
+      expect(calls[0][0].Parameters[2]).toEqual({
+        ParameterKey: "environment",
+        ParameterValue: "tests"
+      });
+      expect(calls[0][0].Parameters[3]).toEqual({
+        ParameterKey: "lambdaS3Key",
+        ParameterValue:
+          "functions/tests/lambda-5cdadd95e5d195a9956a5c7fc92f9135.zip"
+      });
+
       // test that waitFor happens
     });
   });
