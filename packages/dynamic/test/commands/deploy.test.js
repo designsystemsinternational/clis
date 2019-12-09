@@ -1,3 +1,5 @@
+const { existsSync } = require("fs");
+const { join } = require("path");
 const utils = require("@designsystemsinternational/cli-utils");
 const ora = require("ora");
 const inquirer = require("inquirer");
@@ -75,18 +77,39 @@ describe("deploy", () => {
       await deploy();
 
       // Test that inquirer got the questions from parameters
-      // test that the files are created
-      // normal
-      // zip
-      // check files were uploaded to S3
+      const inquirerCalls = inquirer.prompt.mock.calls;
+      expect(inquirerCalls.length).toBe(3);
+      expect(inquirerCalls[0][0][0].name).toEqual("confirm");
+      expect(inquirerCalls[1][0][0].name).toEqual("stackName");
+      expect(inquirerCalls[2][0][0].name).toEqual("testParam");
+
+      // file creation
+      expect(
+        existsSync(join(__dirname, "..", "build", "lambda", "index.js"))
+      ).toBe(true);
+      expect(existsSync(join(__dirname, "..", "build", "lambda.zip"))).toBe(
+        true
+      );
+
+      // S3 upload
+      const uploadCalls = utils.uploadFilesToS3.mock.calls;
+      expect(uploadCalls.length).toBe(1);
+      expect(uploadCalls[0][1]).toEqual("fake-bucket");
+      const uploadFiles = uploadCalls[0][2];
+      const uploadFilesKeys = Object.keys(uploadFiles);
+      expect(uploadFilesKeys[0]).toMatch(
+        "@designsystemsinternational/dynamic/test/build/lambda.zip"
+      );
+      expect(uploadFiles[uploadFilesKeys[0]]).toEqual(
+        "functions/tests/lambda-5cdadd95e5d195a9956a5c7fc92f9135.zip"
+      );
 
       // createStack
       const { calls } = mockCreateStack.mock;
-      expect(calls.length).toEqual(1);
+      expect(calls.length).toBe(1);
       expect(calls[0][0].StackName).toEqual("stack-test");
       expect(calls[0][0].TemplateBody).toBeDefined();
       expect(calls[0][0].Parameters).toBeDefined();
-      console.log(calls[0][0].Parameters);
 
       const tmpl = JSON.parse(calls[0][0].TemplateBody);
       expect(Object.keys(tmpl.Parameters)).toEqual([
@@ -95,6 +118,8 @@ describe("deploy", () => {
         "environment",
         "lambdaS3Key"
       ]);
+      expect(Object.keys(tmpl.Resources)).toEqual(["testLogGroup"]);
+      expect(Object.keys(tmpl.Outputs)).toEqual(["testOutput"]);
       expect(calls[0][0].Parameters[0]).toEqual({
         ParameterKey: "testParam",
         ParameterValue: "test-value"
@@ -112,8 +137,6 @@ describe("deploy", () => {
         ParameterValue:
           "functions/tests/lambda-5cdadd95e5d195a9956a5c7fc92f9135.zip"
       });
-
-      // test that waitFor happens
     });
   });
 
