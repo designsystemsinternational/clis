@@ -1,11 +1,22 @@
-const deploy = require("../../src/commands/deploy");
-const inquirer = require("inquirer");
 const utils = require("@designsystemsinternational/cli-utils");
+const ora = require("ora");
+const inquirer = require("inquirer");
 const { NO_DYNAMIC_CONFIG } = require("../../src/utils");
-const { mockAWS } = require("../mock");
+const { mockAWS, mockOra } = require("../mock");
+const deploy = require("../../src/commands/deploy");
 
 jest.mock("inquirer");
-jest.mock("@designsystemsinternational/cli-utils");
+jest.mock("ora", () => {
+  const start = jest
+    .fn()
+    .mockReturnValue({ start: jest.fn(), succeed: jest.fn() });
+  return jest.fn(() => ({ start }));
+});
+jest.mock("@designsystemsinternational/cli-utils", () => ({
+  ...jest.requireActual("@designsystemsinternational/cli-utils"),
+  loadConfig: jest.fn(),
+  saveConfig: jest.fn()
+}));
 
 describe("deploy", () => {
   let aws;
@@ -19,7 +30,7 @@ describe("deploy", () => {
       await expect(deploy()).rejects.toEqual(NO_DYNAMIC_CONFIG);
     });
 
-    it("should create stack if environment is not in config", async () => {
+    it.only("should create stack if environment is not in config", async () => {
       const conf = {
         buildDir: "test/build",
         cloudformationMatch: ["test/fake-package/cf.js"],

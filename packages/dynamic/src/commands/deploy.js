@@ -7,7 +7,8 @@ const {
   configDefaults,
   getFunctions,
   buildFunctions,
-  compileCloudformationTemplate
+  compileCloudformationTemplate,
+  addS3Keys
 } = require("../utils");
 const {
   getEnvironment,
@@ -18,7 +19,7 @@ const {
   getAWSWithProfile,
   paramsToInquirer,
   zipWebpackOutput,
-  uploadZips,
+  uploadFilesToS3,
   newChangesetName,
   monitorStack,
   waitForChangeset
@@ -26,6 +27,7 @@ const {
 
 const deploy = async args => {
   const { conf, packageJson } = loadConfig("dynamic");
+  console.log(packageJson);
   if (!conf) {
     throw NO_DYNAMIC_CONFIG;
   }
@@ -88,13 +90,18 @@ const createStack = async (env, packageJson, conf, envConfig) => {
   // ----------------------------------
 
   spinner.start("Preparing lambda packages");
-  const functions = await getFunctions();
-  const stats = await buildFunctions(functions, "build");
-  const zipInfo = await zipWebpackOutput(stats);
+  const functions = await getFunctions(conf);
+  const stats = await buildFunctions(conf, functions);
+  const functionsInfo = await zipWebpackOutput(stats);
+  console.log("fInfo", functionsInfo);
+  return;
   spinner.succeed();
 
   spinner.start("Uploading lambda packages to S3");
-  const s3Info = await uploadZips(AWS, conf.bucket, environment, zipInfo);
+  addS3Keys(env, functionsInfo);
+  const uploadInfo = {};
+  functionsInfo.forEach(i => (uploadInfo[i.zipFile] = uploadInfo[i.s3Key]));
+  await uploadFilesToS3(AWS, conf.bucket, uploadInfo);
   spinner.succeed();
 
   // Assign automatic parameters
@@ -110,15 +117,15 @@ const createStack = async (env, packageJson, conf, envConfig) => {
     Description: "Stack environment based on Git branch",
     Type: "String"
   };
-  parameters["environment"] = environment;
+  parameters["environment"] = env;
 
-  Object.keys(s3Info).forEach(key => {
+  Object.keys(functionsInfo).forEach(key => {
     const paramName = `${key}S3Key`;
     template.Parameters[paramName] = {
       Description: `Path to the ${key} lambda code in the operations bucket`,
       Type: "String"
     };
-    parameters[paramName] = s3Info[key].s3Key;
+    parameters[paramName] = functionsInfo[key].s3Key;
   });
 
   // Create stack
@@ -150,7 +157,7 @@ const createStack = async (env, packageJson, conf, envConfig) => {
     conf.environments = {};
   }
 
-  conf.environments[environment] = {
+  conf.environments[env] = {
     stackName
   };
   saveConfig(conf);
@@ -186,13 +193,13 @@ const updateFunction = async (stackName, environment, functionName, conf) => {
   // ----------------------------------
 
   spinner.start("Preparing lambda package");
-  const functions = await getFunctions(functionName);
-  const stats = await buildFunctions(functions, "build");
+  const functions = await getFunctions(conf, functionName);
+  const stats = await buildFunctions(conf, functions);
   const zipInfo = await zipWebpackOutput(stats);
   spinner.succeed();
 
   spinner.start("Uploading lambda package to S3");
-  const s3Info = await uploadZips(AWS, conf.bucket, environment, zipInfo);
+  const s3Info = await uploadFilesToS3(AWS, conf.bucket, environment, zipInfo);
   spinner.succeed();
 
   const parameters = stack.Parameters.map(p => {
@@ -272,7 +279,7 @@ const updateStack = async (stackName, environment, conf) => {
 
   spinner.start("Preparing lambda packages");
   const functions = await getFunctions();
-  const stats = await buildFunctions(functions, "build");
+  const stats = await buildFunctions(conf, functions);
   const zipInfo = await zipWebpackOutput(stats);
   spinner.succeed();
 

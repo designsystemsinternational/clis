@@ -4,6 +4,7 @@ const webpack = require("webpack");
 const defaultConfig = require("./default.webpack.config");
 const chalk = require("chalk");
 const micromatch = require("micromatch");
+const md5File = require("md5-file/promise");
 
 // Constants
 // ---------------------------------------------------
@@ -23,18 +24,17 @@ const configDefaults = {
 // Lambda utils
 // ---------------------------------------------------
 
-// This will return every file in /functions not named cf.js
-// We do this to not have a config file where you declare your functions, but it
-// requires the repo to not have two functions named the same AND not have utils
-// files inside of the /functions folder. Let's reconsider after using for a while.
-const getFunctions = async name => {
-  const files = await recursiveReadDir(join(process.cwd(), "functions"), [
+const getFunctions = async (conf, name) => {
+  const cwd = process.cwd();
+  const allFiles = await recursiveReadDir(cwd, [
     "node_modules",
-    "cf.js"
+    ".git",
+    "package.json"
   ]);
-  const functions = files.map(f => ({
+  const relFiles = allFiles.map(f => relative(cwd, f));
+  const functions = micromatch(relFiles, conf.lambdaMatch).map(f => ({
     name: basename(f, ".js"),
-    path: f
+    path: join(cwd, f)
   }));
   if (name) {
     return functions.filter(f => f.name === name);
@@ -43,11 +43,11 @@ const getFunctions = async name => {
   }
 };
 
-const buildFunctions = async (functions, buildFolder) => {
+const buildFunctions = async (conf, functions) => {
   const entries = {};
   functions.forEach(f => (entries[f.name] = f.path));
   return new Promise((resolve, reject) => {
-    webpack(defaultConfig(entries, buildFolder), (err, stats) => {
+    webpack(defaultConfig(entries, conf), (err, stats) => {
       if (err || stats.hasErrors()) {
         console.error("Webpack build had errors:", stats.toJson("minimal"));
         reject(err || stats.hasErrors());
@@ -58,11 +58,17 @@ const buildFunctions = async (functions, buildFolder) => {
   });
 };
 
+const addS3Keys = async (env, functionsInfo) => {
+  const keys = Object.keys(functionsInfo);
+  for (let i = 0; i < keys.length; i++) {
+    const hash = await md5File(functionsInfo[key].orgFile);
+    functionsInfo[key].s3Key = `functions/${env}/${key}-${hash}.zip`;
+  }
+};
+
 // Cloudformation utils
 // ---------------------------------------------------
 
-// Recursively search for cf.js files and compile into one
-// template object. Throws error if two attributes are the same.
 const compileCloudformationTemplate = async conf => {
   const cwd = process.cwd();
   const allFiles = await recursiveReadDir(cwd, [
@@ -100,5 +106,6 @@ module.exports = {
   configDefaults,
   compileCloudformationTemplate,
   getFunctions,
-  buildFunctions
+  buildFunctions,
+  addS3Keys
 };
