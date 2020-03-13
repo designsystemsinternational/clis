@@ -4,18 +4,13 @@ const {
   loadConfig,
   saveConfig,
   awsRegions,
-  checkS3BucketExists
+  checkS3BucketExists,
+  getAWSWithProfile
 } = require("@designsystemsinternational/cli-utils");
+const { NO_PACKAGE_NAME } = require("../utils");
 
 const init = async args => {
-  const { name, conf } = loadConfig("dynamic");
-  if (!name) {
-    console.error(
-      chalk.red(
-        `Your package.json file must have a name in order to use dynamic`
-      )
-    );
-  }
+  const { conf, packageJson } = loadConfig("dynamic");
 
   // General questions
   // ----------------------------------
@@ -39,7 +34,7 @@ const init = async args => {
       type: "input",
       name: "bucket",
       message: `Which bucket name would you like to use for the lambda ZIP files?`,
-      default: `${name}-operations`
+      default: packageJson.name ? `${packageJson.name}-operations` : undefined
     }
   ]);
 

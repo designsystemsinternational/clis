@@ -9,6 +9,9 @@ const md5File = require("md5-file/promise");
 // Constants
 // ---------------------------------------------------
 
+const NO_PACKAGE_NAME =
+  "No name found in package.json. Please add a package name and re-run this command";
+
 const NO_DYNAMIC_CONFIG =
   "No dynamic config found. Please run the init command to set up this package";
 
@@ -103,6 +106,7 @@ const compileCloudformationTemplate = async conf => {
 };
 
 module.exports = {
+  NO_PACKAGE_NAME,
   NO_DYNAMIC_CONFIG,
   configDefaults,
   compileCloudformationTemplate,

@@ -140,7 +140,8 @@ const createStack = async (env, packageJson, conf, envConf) => {
   conf.environments[env] = {
     stackName
   };
-  saveConfig(conf);
+
+  saveConfig("dynamic", conf);
 };
 
 // Update Function

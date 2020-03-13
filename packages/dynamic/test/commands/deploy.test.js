@@ -109,7 +109,8 @@ describe("deploy", () => {
       // Config save
       const saveCalls = utils.saveConfig.mock.calls;
       expect(saveCalls.length).toBe(1);
-      expect(saveCalls[0][0].environments).toEqual({
+      expect(saveCalls[0][0]).toEqual("dynamic");
+      expect(saveCalls[0][1].environments).toEqual({
         test: { stackName: "stack-test" }
       });
     });

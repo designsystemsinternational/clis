@@ -1,7 +1,7 @@
 const mockOra = mod => {
   const start = jest
     .fn()
-    .mockReturnValue({ start: jest.fn(), succeed: jest.fn() });
+    .mockReturnValue({ start: jest.fn(), succeed: jest.fn(), fail: jest.fn() });
   jest.doMock("ora", () => jest.fn().mockReturnValue({ start }));
 };
 
@@ -12,6 +12,11 @@ const mockUtils = mod => {
   jest.spyOn(mod, "uploadFilesToS3").mockReturnValue(true);
   jest.spyOn(mod, "monitorStack").mockReturnValue(true);
   jest.spyOn(mod, "waitForChangeset").mockReturnValue(true);
+  jest.spyOn(mod, "checkS3BucketExists");
+
+  const mockS3 = {
+    createBucket: jest.fn().mockReturnValue({ promise: jest.fn() })
+  };
 
   const mockCloudformation = {
     createStack: jest.fn().mockReturnValue({ promise: jest.fn() }),
@@ -37,10 +42,11 @@ const mockUtils = mod => {
   };
 
   jest.spyOn(mod, "getAWSWithProfile").mockReturnValue({
-    CloudFormation: jest.fn(() => mockCloudformation)
+    CloudFormation: jest.fn(() => mockCloudformation),
+    S3: jest.fn(() => mockS3)
   });
 
-  return { mockCloudformation };
+  return { mockCloudformation, mockS3 };
 };
 
 const mockInquirer = mod => {
