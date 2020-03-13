@@ -7,7 +7,7 @@ const {
   getFunctions,
   buildFunctions,
   compileCloudformationTemplate,
-  addS3Keys
+  addS3KeyValues
 } = require("../utils");
 const {
   getEnvironment,
@@ -95,7 +95,7 @@ const createStack = async (env, packageJson, conf, envConf) => {
   spinner.succeed();
 
   spinner.start("Uploading lambda packages to S3");
-  await addS3Keys(env, functionsInfo);
+  await addS3KeyValues(env, functionsInfo);
   const uploadInfo = {};
   Object.keys(functionsInfo).forEach(key => {
     uploadInfo[functionsInfo[key].zipFile] = functionsInfo[key].s3Key;
@@ -185,7 +185,7 @@ const updateFunction = async (
   spinner.succeed();
 
   spinner.start("Uploading lambda package to S3");
-  await addS3Keys(env, functionsInfo);
+  await addS3KeyValues(env, functionsInfo);
   const uploadInfo = {};
   Object.keys(functionsInfo).forEach(key => {
     uploadInfo[functionsInfo[key].zipFile] = functionsInfo[key].s3Key;
@@ -197,7 +197,7 @@ const updateFunction = async (
     if (p.ParameterKey === `${functionName}S3Key`) {
       return {
         ParameterKey: p.ParameterKey,
-        ParameterValue: s3Info[functionName].s3Key
+        ParameterValue: functionsInfo[functionName].s3Key
       };
     } else {
       return {
@@ -289,7 +289,7 @@ const updateStack = async (env, packageJson, conf, envConf) => {
   // ----------------------------------
 
   spinner.start("Uploading lambda packages to S3");
-  await addS3Keys(env, functionsInfo);
+  await addS3KeyValues(env, functionsInfo);
   const uploadInfo = {};
   Object.keys(functionsInfo).forEach(key => {
     uploadInfo[functionsInfo[key].zipFile] = functionsInfo[key].s3Key;

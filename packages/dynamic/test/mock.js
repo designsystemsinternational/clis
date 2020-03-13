@@ -17,6 +17,22 @@ const mockUtils = mod => {
     createStack: jest.fn().mockReturnValue({ promise: jest.fn() }),
     createChangeSet: jest.fn().mockReturnValue({ promise: jest.fn() }),
     executeChangeSet: jest.fn().mockReturnValue({ promise: jest.fn() }),
+    describeStacks: jest.fn().mockReturnValue({
+      promise: jest.fn(() => {
+        return {
+          Stacks: [
+            {
+              Parameters: [
+                { ParameterKey: "testParam" },
+                { ParameterKey: "operationsS3Bucket" },
+                { ParameterKey: "environment" },
+                { ParameterKey: "lambdaS3Key" }
+              ]
+            }
+          ]
+        };
+      })
+    }),
     waitFor: jest.fn().mockReturnValue({ promise: jest.fn() })
   };
 
