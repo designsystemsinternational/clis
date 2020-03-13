@@ -1,5 +1,4 @@
 const inquirer = require("inquirer");
-const gitBranch = require("git-branch");
 const chalk = require("chalk");
 const ora = require("ora");
 const {
@@ -27,27 +26,28 @@ const {
 
 const deploy = async args => {
   const { conf, packageJson } = loadConfig("dynamic");
+
   if (!conf) {
     throw NO_DYNAMIC_CONFIG;
   }
   const confWithDefaults = Object.assign({}, configDefaults, conf);
 
   const env = await getEnvironment();
-  const envConfig = getEnvironmentConfig(confWithDefaults, env);
+  const envConf = getEnvironmentConfig(confWithDefaults, env);
 
-  if (!envConfig) {
-    await createStack(env, packageJson, confWithDefaults, envConfig);
-  } else if (args[3]) {
-    await updateFunction(stackName, environment, args[3], confWithDefaults);
+  if (!envConf) {
+    await createStack(env, packageJson, confWithDefaults, envConf);
+  } else if (args && args[3]) {
+    await updateFunction(env, packageJson, confWithDefaults, envConf, args[3]);
   } else {
-    await updateStack(stackName, environment, confWithDefaults);
+    await updateStack(env, packageJson, confWithDefaults, envConf);
   }
 };
 
 // Create Stack
 // ---------------------------------------------------------------------
 
-const createStack = async (env, packageJson, conf, envConfig) => {
+const createStack = async (env, packageJson, conf, envConf) => {
   const init = await inquirer.prompt([
     {
       type: "confirm",
@@ -106,26 +106,7 @@ const createStack = async (env, packageJson, conf, envConfig) => {
   // Assign automatic parameters
   // ----------------------------------
 
-  template.Parameters["operationsS3Bucket"] = {
-    Description: "Bucket that holds the lambda deployment zip files",
-    Type: "String"
-  };
-  parameters["operationsS3Bucket"] = conf.bucket;
-
-  template.Parameters["environment"] = {
-    Description: "Stack environment based on Git branch",
-    Type: "String"
-  };
-  parameters["environment"] = env;
-
-  Object.keys(functionsInfo).forEach(key => {
-    const paramName = `${key}S3Key`;
-    template.Parameters[paramName] = {
-      Description: `Path to the ${key} lambda code in the operations bucket`,
-      Type: "String"
-    };
-    parameters[paramName] = functionsInfo[key].s3Key;
-  });
+  addAutomaticParameterValues(parameters, template, conf, env, functionsInfo);
 
   // Create stack
   // ----------------------------------
@@ -165,7 +146,13 @@ const createStack = async (env, packageJson, conf, envConfig) => {
 // Update Function
 // ---------------------------------------------------------------------
 
-const updateFunction = async (stackName, environment, functionName, conf) => {
+const updateFunction = async (
+  env,
+  packageJson,
+  conf,
+  envConf,
+  functionName
+) => {
   const AWS = getAWSWithProfile(conf.profile, conf.region);
   const cloudformation = new AWS.CloudFormation();
   const functionKey = `${functionName}S3Key`;
@@ -175,7 +162,7 @@ const updateFunction = async (stackName, environment, functionName, conf) => {
 
   const spinner = ora("Getting Cloudformation parameters").start();
   const res = await cloudformation
-    .describeStacks({ StackName: stackName })
+    .describeStacks({ StackName: envConf.stackName })
     .promise();
   const stack = res.Stacks[0];
   spinner.succeed();
@@ -183,7 +170,7 @@ const updateFunction = async (stackName, environment, functionName, conf) => {
   // You can only update a function if it already exists in the stack
   if (!stack.Parameters.find(p => p.ParameterKey === functionKey)) {
     console.error(
-      chalk.red("Function does not exist. You must run a full deploy first.")
+      chalk.red("Function does not exist. Please run a full deploy.")
     );
     return;
   }
@@ -194,11 +181,16 @@ const updateFunction = async (stackName, environment, functionName, conf) => {
   spinner.start("Preparing lambda package");
   const functions = await getFunctions(conf, functionName);
   const stats = await buildFunctions(conf, functions);
-  const zipInfo = await zipWebpackOutput(stats);
+  const functionsInfo = await zipWebpackOutput(stats);
   spinner.succeed();
 
   spinner.start("Uploading lambda package to S3");
-  const s3Info = await uploadFilesToS3(AWS, conf.bucket, environment, zipInfo);
+  await addS3Keys(env, functionsInfo);
+  const uploadInfo = {};
+  Object.keys(functionsInfo).forEach(key => {
+    uploadInfo[functionsInfo[key].zipFile] = functionsInfo[key].s3Key;
+  });
+  await uploadFilesToS3(AWS, conf.bucket, uploadInfo);
   spinner.succeed();
 
   const parameters = stack.Parameters.map(p => {
@@ -227,7 +219,7 @@ const updateFunction = async (stackName, environment, functionName, conf) => {
     .createChangeSet({
       UsePreviousTemplate: true,
       ChangeSetName: changesetName,
-      StackName: stackName,
+      StackName: envConf.stackName,
       Parameters: parameters,
       Capabilities: ["CAPABILITY_NAMED_IAM"]
     })
@@ -238,7 +230,7 @@ const updateFunction = async (stackName, environment, functionName, conf) => {
 
   await waitForChangeset(
     cloudformation,
-    stackName,
+    envConf.stackName,
     changesetName,
     "Status",
     "CREATE_COMPLETE"
@@ -249,12 +241,12 @@ const updateFunction = async (stackName, environment, functionName, conf) => {
 
   const executed = await cloudformation
     .executeChangeSet({
-      StackName: stackName,
+      StackName: envConf.stackName,
       ChangeSetName: changesetName
     })
     .promise();
 
-  await monitorStack(AWS, stackName);
+  await monitorStack(AWS, envConf.stackName);
 
   spinner.succeed();
 };
@@ -262,7 +254,7 @@ const updateFunction = async (stackName, environment, functionName, conf) => {
 // Update Stack
 // ---------------------------------------------------------------------
 
-const updateStack = async (stackName, environment, conf) => {
+const updateStack = async (env, packageJson, conf, envConf) => {
   const AWS = getAWSWithProfile(conf.profile, conf.region);
   const cloudformation = new AWS.CloudFormation();
 
@@ -270,16 +262,16 @@ const updateStack = async (stackName, environment, conf) => {
   // ----------------------------------
 
   const spinner = ora("Compiling Cloudformation template").start();
-  const template = await compileCloudformationTemplate();
+  const template = await compileCloudformationTemplate(conf);
   spinner.succeed();
 
   // Build lambdas
   // ----------------------------------
 
   spinner.start("Preparing lambda packages");
-  const functions = await getFunctions();
+  const functions = await getFunctions(conf);
   const stats = await buildFunctions(conf, functions);
-  const zipInfo = await zipWebpackOutput(stats);
+  const functionsInfo = await zipWebpackOutput(stats);
   spinner.succeed();
 
   // Ask for params
@@ -297,32 +289,18 @@ const updateStack = async (stackName, environment, conf) => {
   // ----------------------------------
 
   spinner.start("Uploading lambda packages to S3");
-  const s3Info = await uploadZips(AWS, conf.bucket, environment, zipInfo);
+  await addS3Keys(env, functionsInfo);
+  const uploadInfo = {};
+  Object.keys(functionsInfo).forEach(key => {
+    uploadInfo[functionsInfo[key].zipFile] = functionsInfo[key].s3Key;
+  });
+  await uploadFilesToS3(AWS, conf.bucket, uploadInfo);
   spinner.succeed();
 
   // Assign automatic parameters
   // ----------------------------------
 
-  template.Parameters["operationsS3Bucket"] = {
-    Description: "Bucket that holds the lambda deployment zip files",
-    Type: "String"
-  };
-  parameters["operationsS3Bucket"] = conf.bucket;
-
-  template.Parameters["environment"] = {
-    Description: "Stack environment based on Git branch",
-    Type: "String"
-  };
-  parameters["environment"] = environment;
-
-  Object.keys(s3Info).forEach(key => {
-    const paramName = `${key}S3Key`;
-    template.Parameters[paramName] = {
-      Description: `Path to the ${key} lambda code in the operations bucket`,
-      Type: "String"
-    };
-    parameters[paramName] = s3Info[key].s3Key;
-  });
+  addAutomaticParameterValues(parameters, template, conf, env, functionsInfo);
 
   // Create and execute changeset
   // ----------------------------------
@@ -350,7 +328,7 @@ const updateStack = async (stackName, environment, conf) => {
     .createChangeSet({
       TemplateBody: JSON.stringify(template),
       ChangeSetName: changesetName,
-      StackName: stackName,
+      StackName: envConf.stackName,
       Parameters: paramsWithPrevious,
       Capabilities: ["CAPABILITY_NAMED_IAM"]
     })
@@ -361,7 +339,7 @@ const updateStack = async (stackName, environment, conf) => {
 
   await waitForChangeset(
     cloudformation,
-    stackName,
+    envConf.stackName,
     changesetName,
     "Status",
     "CREATE_COMPLETE"
@@ -372,14 +350,46 @@ const updateStack = async (stackName, environment, conf) => {
 
   const executed = await cloudformation
     .executeChangeSet({
-      StackName: stackName,
+      StackName: envConf.stackName,
       ChangeSetName: changesetName
     })
     .promise();
 
-  await monitorStack(AWS, stackName);
+  await monitorStack(AWS, envConf.stackName);
 
   spinner.succeed();
+};
+
+// Helpers
+// ---------------------------------------------------------------------
+
+const addAutomaticParameterValues = (
+  parameters,
+  template,
+  conf,
+  env,
+  functionsInfo
+) => {
+  template.Parameters["operationsS3Bucket"] = {
+    Description: "Bucket that holds the lambda deployment zip files",
+    Type: "String"
+  };
+  parameters["operationsS3Bucket"] = conf.bucket;
+
+  template.Parameters["environment"] = {
+    Description: "Stack environment based on Git branch",
+    Type: "String"
+  };
+  parameters["environment"] = env;
+
+  Object.keys(functionsInfo).forEach(key => {
+    const paramName = `${key}S3Key`;
+    template.Parameters[paramName] = {
+      Description: `Path to the ${key} lambda code in the operations bucket`,
+      Type: "String"
+    };
+    parameters[paramName] = functionsInfo[key].s3Key;
+  });
 };
 
 module.exports = deploy;

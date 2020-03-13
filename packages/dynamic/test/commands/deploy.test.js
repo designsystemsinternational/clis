@@ -4,56 +4,25 @@ const utils = require("@designsystemsinternational/cli-utils");
 const ora = require("ora");
 const inquirer = require("inquirer");
 const { NO_DYNAMIC_CONFIG } = require("../../src/utils");
-const deploy = require("../../src/commands/deploy");
-
-// Mocks
-// ---------------------------------------------------------------
-
-jest.mock("inquirer");
-jest.mock("ora", () => {
-  const start = jest
-    .fn()
-    .mockReturnValue({ start: jest.fn(), succeed: jest.fn() });
-  return jest.fn(() => ({ start }));
-});
-
-const mockCreateStack = jest.fn();
-const mockWaitFor = jest.fn();
-jest.mock("@designsystemsinternational/cli-utils", () => ({
-  ...jest.requireActual("@designsystemsinternational/cli-utils"),
-  loadConfig: jest.fn(),
-  saveConfig: jest.fn(),
-  uploadFilesToS3: jest.fn(),
-  getAWSWithProfile: () => ({
-    CloudFormation: jest.fn(() => ({
-      createStack: mockCreateStack,
-      waitFor: mockWaitFor
-    }))
-  })
-}));
-
-const resetMock = func => {
-  func.mockReset().mockReturnValue({
-    promise: jest.fn().mockResolvedValue({})
-  });
-};
-
-// Tests
-// ---------------------------------------------------------------
+const { mockOra, mockUtils, mockInquirer } = require("../mock");
 
 describe("deploy", () => {
+  let cloudformation;
   beforeEach(() => {
-    resetMock(mockCreateStack);
-    resetMock(mockWaitFor);
+    const mockAws = mockUtils(utils);
+    cloudformation = mockAws.mockCloudformation;
+    mockOra(ora);
+    mockInquirer(inquirer);
   });
 
   describe("create stack", () => {
     it("should raise error if no dynamic config", async () => {
+      const deploy = require("../../src/commands/deploy");
       utils.loadConfig.mockReturnValue({ name: "fake-package" });
       await expect(deploy()).rejects.toEqual(NO_DYNAMIC_CONFIG);
     });
 
-    it.only("should create stack if environment is not in config", async () => {
+    it("should create stack if environment is not in config", async () => {
       const conf = {
         buildDir: "test/build",
         cloudformationMatch: ["test/fake-package/cf.js"],
@@ -74,6 +43,7 @@ describe("deploy", () => {
         .mockResolvedValueOnce({ stackName: "stack-test" })
         .mockResolvedValueOnce({ testParam: "test-value" });
 
+      const deploy = require("../../src/commands/deploy");
       await deploy();
 
       // Test that inquirer got the questions from parameters
@@ -84,28 +54,24 @@ describe("deploy", () => {
       expect(inquirerCalls[2][0][0].name).toEqual("testParam");
 
       // file creation
-      expect(
-        existsSync(join(__dirname, "..", "build", "lambda", "index.js"))
-      ).toBe(true);
-      expect(existsSync(join(__dirname, "..", "build", "lambda.zip"))).toBe(
-        true
-      );
+      expect(lambdaExists("index.js")).toBe(true);
+      expect(zipExists("lambda.zip")).toBe(true);
 
       // S3 upload
-      const uploadCalls = utils.uploadFilesToS3.mock.calls;
-      expect(uploadCalls.length).toBe(1);
-      expect(uploadCalls[0][1]).toEqual("fake-bucket");
-      const uploadFiles = uploadCalls[0][2];
+      const uploads = utils.uploadFilesToS3.mock.calls;
+      expect(uploads.length).toBe(1);
+      expect(uploads[0][1]).toEqual("fake-bucket");
+      const uploadFiles = uploads[0][2];
       const uploadFilesKeys = Object.keys(uploadFiles);
       expect(uploadFilesKeys[0]).toMatch(
         "@designsystemsinternational/dynamic/test/build/lambda.zip"
       );
       expect(uploadFiles[uploadFilesKeys[0]]).toEqual(
-        "functions/tests/lambda-5cdadd95e5d195a9956a5c7fc92f9135.zip"
+        `functions/test/lambda-5cdadd95e5d195a9956a5c7fc92f9135.zip`
       );
 
       // createStack
-      const { calls } = mockCreateStack.mock;
+      const { calls } = cloudformation.createStack.mock;
       expect(calls.length).toBe(1);
       expect(calls[0][0].StackName).toEqual("stack-test");
       expect(calls[0][0].TemplateBody).toBeDefined();
@@ -120,25 +86,125 @@ describe("deploy", () => {
       ]);
       expect(Object.keys(tmpl.Resources)).toEqual(["testLogGroup"]);
       expect(Object.keys(tmpl.Outputs)).toEqual(["testOutput"]);
-      expect(calls[0][0].Parameters[0]).toEqual({
-        ParameterKey: "testParam",
-        ParameterValue: "test-value"
-      });
-      expect(calls[0][0].Parameters[1]).toEqual({
-        ParameterKey: "operationsS3Bucket",
-        ParameterValue: "fake-bucket"
-      });
-      expect(calls[0][0].Parameters[2]).toEqual({
-        ParameterKey: "environment",
-        ParameterValue: "tests"
-      });
-      expect(calls[0][0].Parameters[3]).toEqual({
-        ParameterKey: "lambdaS3Key",
-        ParameterValue:
-          "functions/tests/lambda-5cdadd95e5d195a9956a5c7fc92f9135.zip"
+      expect(calls[0][0].Parameters).toEqual([
+        {
+          ParameterKey: "testParam",
+          ParameterValue: "test-value"
+        },
+        {
+          ParameterKey: "operationsS3Bucket",
+          ParameterValue: "fake-bucket"
+        },
+        {
+          ParameterKey: "environment",
+          ParameterValue: "test"
+        },
+        {
+          ParameterKey: "lambdaS3Key",
+          ParameterValue:
+            "functions/test/lambda-5cdadd95e5d195a9956a5c7fc92f9135.zip"
+        }
+      ]);
+
+      // Config save
+      const saveCalls = utils.saveConfig.mock.calls;
+      expect(saveCalls.length).toBe(1);
+      expect(saveCalls[0][0].environments).toEqual({
+        test: { stackName: "stack-test" }
       });
     });
   });
 
-  describe("update stack", () => {});
+  describe("update stack", () => {
+    it("should update stack if environment is in config", async () => {
+      const conf = {
+        buildDir: "test/build",
+        cloudformationMatch: ["test/fake-package/cf.js"],
+        lambdaMatch: ["test/fake-package/lambda.js"],
+        profile: "fake-profile",
+        region: "fake-region",
+        bucket: "fake-bucket",
+        environments: {
+          test: {
+            stackName: "stack-test"
+          }
+        }
+      };
+      utils.loadConfig.mockReturnValue({
+        conf,
+        packageJson: {
+          name: "fake-package",
+          dynamic: conf
+        }
+      });
+      inquirer.prompt.mockResolvedValueOnce({ testParam: "test-value" });
+
+      const deploy = require("../../src/commands/deploy");
+      await deploy();
+
+      // Test that inquirer got the questions from parameters
+      const inquirerCalls = inquirer.prompt.mock.calls;
+      expect(inquirerCalls.length).toBe(1);
+      expect(inquirerCalls[0][0][0].name).toEqual("testParam");
+
+      // file creation
+      expect(lambdaExists("index.js")).toBe(true);
+      expect(zipExists("lambda.zip")).toBe(true);
+
+      // S3 upload
+      const uploads = utils.uploadFilesToS3.mock.calls;
+      expect(uploads.length).toBe(1);
+      expect(uploads[0][1]).toEqual("fake-bucket");
+      const uploadFiles = uploads[0][2];
+      const uploadFilesKeys = Object.keys(uploadFiles);
+      expect(uploadFilesKeys[0]).toMatch(
+        "@designsystemsinternational/dynamic/test/build/lambda.zip"
+      );
+      expect(uploadFiles[uploadFilesKeys[0]]).toEqual(
+        `functions/test/lambda-5cdadd95e5d195a9956a5c7fc92f9135.zip`
+      );
+
+      // createChangeSet
+      const { calls } = cloudformation.createChangeSet.mock;
+      expect(calls.length).toBe(1);
+      expect(calls[0][0].StackName).toEqual("stack-test");
+      expect(calls[0][0].ChangeSetName).toBeDefined();
+      expect(calls[0][0].TemplateBody).toBeDefined();
+      expect(calls[0][0].Parameters).toBeDefined();
+
+      const tmpl = JSON.parse(calls[0][0].TemplateBody);
+      expect(Object.keys(tmpl.Parameters)).toEqual([
+        "testParam",
+        "operationsS3Bucket",
+        "environment",
+        "lambdaS3Key"
+      ]);
+      expect(Object.keys(tmpl.Resources)).toEqual(["testLogGroup"]);
+      expect(Object.keys(tmpl.Outputs)).toEqual(["testOutput"]);
+      expect(calls[0][0].Parameters).toEqual([
+        {
+          ParameterKey: "testParam",
+          ParameterValue: "test-value"
+        },
+        {
+          ParameterKey: "operationsS3Bucket",
+          ParameterValue: "fake-bucket"
+        },
+        {
+          ParameterKey: "environment",
+          ParameterValue: "test"
+        },
+        {
+          ParameterKey: "lambdaS3Key",
+          ParameterValue:
+            "functions/test/lambda-5cdadd95e5d195a9956a5c7fc92f9135.zip"
+        }
+      ]);
+    });
+  });
 });
+
+const lambdaExists = filename =>
+  existsSync(join(__dirname, "..", "build", "lambda", filename));
+const zipExists = filename =>
+  existsSync(join(__dirname, "..", "build", filename));

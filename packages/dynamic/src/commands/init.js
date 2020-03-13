@@ -8,7 +8,7 @@ const {
 } = require("@designsystemsinternational/cli-utils");
 
 const init = async args => {
-  const { name, conf } = loadConfig();
+  const { name, conf } = loadConfig("dynamic");
   if (!name) {
     console.error(
       chalk.red(
@@ -66,7 +66,7 @@ const init = async args => {
 
   spinner.succeed("package.json file updated!");
 
-  saveConfig(Object.assign(conf || {}, aws));
+  saveConfig("dynamic", Object.assign(conf || {}, aws));
 };
 
 module.exports = init;
