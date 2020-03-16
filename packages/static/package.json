@@ -1,12 +1,14 @@
 {
   "name": "@designsystemsinternational/static",
-  "version": "2.0.1",
+  "version": "2.1.1",
   "description": "A simple, opinionated command-line tool to deploy a static website to S3 and Cloudfront with Cloudformation",
   "repository": {
     "type": "git",
     "url": "git+ssh://git@github.com/designsystemsinternational/static.git"
   },
-  "scripts": {},
+  "scripts": {
+    "test": "jest --runInBand"
+  },
   "author": {
     "name": "Rune Skjoldborg Madsen",
     "email": "i@designsystems.international",
@@ -19,13 +21,23 @@
       "url": "https://designsystems.international"
     }
   ],
+  "bin": {
+    "static": "src/cli.js"
+  },
   "license": "ISC",
   "dependencies": {
+    "@designsystemsinternational/cli-utils": "^0.2.9",
     "aws-sdk": "^2.333.0",
+    "cli-table3": "^0.5.1",
     "execa": "^1.0.0",
-    "inquirer": "^6.2.2"
+    "inquirer": "^6.2.2",
+    "ora": "^4.0.3"
   },
-  "bin": {
-    "static": "cli.js"
+  "devDependencies": {
+    "jest": "^24.9.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "clearMocks": true
   }
 }

@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.1.1
+
+- Refactored code to use `@designsystemsinternational/cli-utils`
+- Added tests
+
 ## 2.0.1
 
 - Fixing labels of US East regions
