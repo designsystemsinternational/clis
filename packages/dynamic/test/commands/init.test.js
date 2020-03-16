@@ -3,7 +3,6 @@ const { join } = require("path");
 const utils = require("@designsystemsinternational/cli-utils");
 const ora = require("ora");
 const inquirer = require("inquirer");
-const { NO_PACKAGE_NAME } = require("../../src/utils");
 const { mockOra, mockUtils, mockInquirer } = require("../mock");
 
 describe("init", () => {

@@ -107,12 +107,11 @@ describe("deploy", () => {
       ]);
 
       // Config save
-      const saveCalls = utils.saveConfig.mock.calls;
+      const saveCalls = utils.saveEnvironmentConfig.mock.calls;
       expect(saveCalls.length).toBe(1);
       expect(saveCalls[0][0]).toEqual("dynamic");
-      expect(saveCalls[0][1].environments).toEqual({
-        test: { stackName: "stack-test" }
-      });
+      expect(saveCalls[0][1]).toEqual("test");
+      expect(saveCalls[0][2]).toEqual({ stack: "stack-test" });
     });
   });
 
@@ -127,7 +126,7 @@ describe("deploy", () => {
         bucket: "fake-bucket",
         environments: {
           test: {
-            stackName: "stack-test"
+            stack: "stack-test"
           }
         }
       };
@@ -215,7 +214,7 @@ describe("deploy", () => {
         bucket: "fake-bucket",
         environments: {
           test: {
-            stackName: "stack-test"
+            stack: "stack-test"
           }
         }
       };

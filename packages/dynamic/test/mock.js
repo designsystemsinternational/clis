@@ -8,6 +8,7 @@ const mockOra = mod => {
 const mockUtils = mod => {
   jest.spyOn(mod, "loadConfig");
   jest.spyOn(mod, "saveConfig").mockReturnValue(true);
+  jest.spyOn(mod, "saveEnvironmentConfig").mockReturnValue(true);
   jest.spyOn(mod, "getEnvironment").mockReturnValue("test");
   jest.spyOn(mod, "uploadFilesToS3").mockReturnValue(true);
   jest.spyOn(mod, "monitorStack").mockReturnValue(true);

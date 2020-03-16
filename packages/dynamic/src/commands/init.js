@@ -7,7 +7,6 @@ const {
   checkS3BucketExists,
   getAWSWithProfile
 } = require("@designsystemsinternational/cli-utils");
-const { NO_PACKAGE_NAME } = require("../utils");
 
 const init = async args => {
   const { conf, packageJson } = loadConfig("dynamic");
@@ -17,13 +16,13 @@ const init = async args => {
 
   const aws = await inquirer.prompt([
     {
-      type: "input",
       name: "profile",
+      type: "input",
       message: `Which AWS profile would you like to use for this project?`
     },
     {
-      type: "list",
       name: "region",
+      type: "list",
       message: `Which AWS region would you like to use for this project?`,
       choices: Object.keys(awsRegions).map(k => ({
         name: awsRegions[k],
@@ -31,8 +30,8 @@ const init = async args => {
       }))
     },
     {
-      type: "input",
       name: "bucket",
+      type: "input",
       message: `Which bucket name would you like to use for the lambda ZIP files?`,
       default: packageJson.name ? `${packageJson.name}-operations` : undefined
     }

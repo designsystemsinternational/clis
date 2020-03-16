@@ -12,9 +12,8 @@ const {
 const {
   getEnvironment,
   getEnvironmentConfig,
-  getStackName,
+  saveEnvironmentConfig,
   loadConfig,
-  saveConfig,
   getAWSWithProfile,
   paramsToInquirer,
   zipWebpackOutput,
@@ -24,6 +23,9 @@ const {
   waitForChangeset
 } = require("@designsystemsinternational/cli-utils");
 
+// Main
+// ---------------------------------------------------------------------
+
 const deploy = async args => {
   const { conf, packageJson } = loadConfig("dynamic");
 
@@ -31,7 +33,6 @@ const deploy = async args => {
     throw NO_DYNAMIC_CONFIG;
   }
   const confWithDefaults = Object.assign({}, configDefaults, conf);
-
   const env = await getEnvironment();
   const envConf = getEnvironmentConfig(confWithDefaults, env);
 
@@ -133,15 +134,9 @@ const createStack = async (env, packageJson, conf, envConf) => {
 
   spinner.succeed();
 
-  if (!conf.environments) {
-    conf.environments = {};
-  }
-
-  conf.environments[env] = {
-    stackName
-  };
-
-  saveConfig("dynamic", conf);
+  saveEnvironmentConfig("dynamic", env, {
+    stack: stackName
+  });
 };
 
 // Update Function
@@ -163,7 +158,7 @@ const updateFunction = async (
 
   const spinner = ora("Getting Cloudformation parameters").start();
   const res = await cloudformation
-    .describeStacks({ StackName: envConf.stackName })
+    .describeStacks({ StackName: envConf.stack })
     .promise();
   const stack = res.Stacks[0];
   spinner.succeed();
@@ -220,7 +215,7 @@ const updateFunction = async (
     .createChangeSet({
       UsePreviousTemplate: true,
       ChangeSetName: changesetName,
-      StackName: envConf.stackName,
+      StackName: envConf.stack,
       Parameters: parameters,
       Capabilities: ["CAPABILITY_NAMED_IAM"]
     })
@@ -231,7 +226,7 @@ const updateFunction = async (
 
   await waitForChangeset(
     cloudformation,
-    envConf.stackName,
+    envConf.stack,
     changesetName,
     "Status",
     "CREATE_COMPLETE"
@@ -242,12 +237,12 @@ const updateFunction = async (
 
   const executed = await cloudformation
     .executeChangeSet({
-      StackName: envConf.stackName,
+      StackName: envConf.stack,
       ChangeSetName: changesetName
     })
     .promise();
 
-  await monitorStack(AWS, envConf.stackName);
+  await monitorStack(AWS, envConf.stack);
 
   spinner.succeed();
 };
@@ -329,7 +324,7 @@ const updateStack = async (env, packageJson, conf, envConf) => {
     .createChangeSet({
       TemplateBody: JSON.stringify(template),
       ChangeSetName: changesetName,
-      StackName: envConf.stackName,
+      StackName: envConf.stack,
       Parameters: paramsWithPrevious,
       Capabilities: ["CAPABILITY_NAMED_IAM"]
     })
@@ -340,7 +335,7 @@ const updateStack = async (env, packageJson, conf, envConf) => {
 
   await waitForChangeset(
     cloudformation,
-    envConf.stackName,
+    envConf.stack,
     changesetName,
     "Status",
     "CREATE_COMPLETE"
@@ -351,12 +346,12 @@ const updateStack = async (env, packageJson, conf, envConf) => {
 
   const executed = await cloudformation
     .executeChangeSet({
-      StackName: envConf.stackName,
+      StackName: envConf.stack,
       ChangeSetName: changesetName
     })
     .promise();
 
-  await monitorStack(AWS, envConf.stackName);
+  await monitorStack(AWS, envConf.stack);
 
   spinner.succeed();
 };
