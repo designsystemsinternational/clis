@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.1.2
+
+- Added `static show outputs`
+
 ## 2.1.1
 
 - Refactored code to use `@designsystemsinternational/cli-utils`

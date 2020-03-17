@@ -33,10 +33,9 @@ To upload a site, run the `deploy` command. If this is the first time you are ru
 $ static deploy
 ```
 
-## Destroying
+## Commands
 
-You can delete the resources for a site by calling the `destroy`. This will delete all files in the environment S3 bucket as well as the resources and CloudFormation stack.
-
-```
-$ static destroy
-```
+- `static init`
+- `static deploy`
+- `static destroy`. Delete all resources and environment config.
+- `static show outputs`. Shows the outputs for the current environment.
