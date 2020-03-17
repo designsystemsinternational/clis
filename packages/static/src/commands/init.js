@@ -51,5 +51,5 @@ const init = async () => {
   saveConfig("static", answers);
   spinner.succeed();
 };
-
+init.description = "Initializes a project";
 module.exports = init;

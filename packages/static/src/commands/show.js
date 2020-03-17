@@ -1,5 +1,6 @@
 const ora = require("ora");
 const Table = require("cli-table3");
+const chalk = require("chalk");
 const {
   getEnvironment,
   getStackName,
@@ -7,15 +8,27 @@ const {
   getEnvironmentConfig,
   getAWSWithProfile
 } = require("@designsystemsinternational/cli-utils");
+const { NO_STATIC_CONFIG_OR_ENV_CONFIG } = require("../utils");
 
 const show = async args => {
   const { conf } = loadConfig("static");
   const env = await getEnvironment();
   const envConfig = getEnvironmentConfig(conf, env);
+
+  if (!conf || !envConf) {
+    throw NO_STATIC_CONFIG_OR_ENV_CONFIG;
+  }
+
+  const commands = ["outputs"];
+
   if (args[3] === "outputs") {
     await showOutputs(conf, env, envConfig);
   } else {
-    console.error(chalk.red(`Wrong command`));
+    console.error(
+      chalk.red(`Wrong command`),
+      "\nAvailable commands: ",
+      chalk.bold("\nshow " + commands.join("\nshow "))
+    );
   }
 };
 
@@ -31,14 +44,15 @@ const showOutputs = async (conf, env, envConfig) => {
   spinner.succeed();
 
   const table = new Table({
-    head: ["Key", "Value", "Description"]
+    head: ["Type", "URL"]
   });
 
   stack.Outputs.forEach(o =>
-    table.push([o.OutputKey, o.OutputValue, o.Description])
+    table.push([o.OutputKey, chalk.bold(o.OutputValue) + "\n" + o.Description])
   );
-
   console.log(table.toString());
 };
 
+show.description =
+  "Shows available information. \n'show outputs' lists exsiting distribution urls";
 module.exports = show;

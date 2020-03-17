@@ -25,9 +25,7 @@ const destroy = async args => {
     {
       type: "confirm",
       name: "confirm",
-      message: `Warning! This will delete all files and resources in the ${
-        envConf.stack
-      } stack. Continue?`
+      message: `Warning! This will delete all files and resources in the ${envConf.stack} stack. Continue?`
     }
   ]);
 
@@ -65,4 +63,5 @@ const destroy = async args => {
   console.log("Done!");
 };
 
+destroy.description = "Destroys an existing distribution";
 module.exports = destroy;
