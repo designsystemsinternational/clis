@@ -7,7 +7,6 @@ const readDir = require("recursive-readdir");
 const fs = require("fs-extra");
 const path = require("path");
 const ora = require("ora");
-const ejs = require("ejs");
 const shell = require("shelljs");
 
 const templateDir = path.join(__dirname, "template");
@@ -18,23 +17,10 @@ const execute = (cmd, cwd, silent = true) => {
   });
 };
 
-const createFiles = async answers => {
-  const templateFiles = await readDir(templateDir, ["node_modules"]);
-  for (const filePath of templateFiles) {
-    const filePathRel = path.relative(templateDir, filePath);
-    const filePathNew = path.join(answers.slug, filePathRel);
-    const data = await new Promise(resolve => {
-      ejs.renderFile(filePath, answers, (e, file) => resolve(file));
-    });
-    await fs.outputFile(filePathNew, data);
-  }
-};
-
 const prompt = async () => {
   const blue = chalk.bgHex("#0000AF").white;
   const red = chalk.bgHex("#D70000").white;
   const white = chalk.bgWhite.hex("#121212");
-
   console.log(blue("IONAL") + red("DESIGN") + white("SY"));
   console.log(white("STEMS") + blue("INTERNAT"));
 
@@ -56,21 +42,87 @@ const prompt = async () => {
       name: "namespace",
       message: "What is the namespace?",
       default: "@designsystemsinternational"
+    },
+    {
+      type: "confirm",
+      name: "includeTests",
+      message: "Would you like to include tests?",
+      default: true
     }
   ];
   const answers = await inquirer.prompt(questions);
 
-  // Create template files
-  const filesPromise = createFiles(answers);
-  ora.promise(filesPromise, { text: "Creating project files" });
-  await filesPromise;
+  // Move static template files
+  // ----------------------------------------------
+
+  const spinner = ora("Creating files").start();
+  const ignore = ["package.json", "index.html", "node_modules"];
+
+  // Remove all files in test folder if needed
+  if (!answers.includeTests) {
+    const ignoreTest = (file, stats) => {
+      const relative = path.relative(templateDir, file);
+      return relative.substring(0, 4) === "test";
+    };
+    ignore.push(ignoreTest);
+  }
+
+  const templateFiles = await readDir(templateDir, ignore);
+  for (const oldPath of templateFiles) {
+    const relative = path.relative(templateDir, oldPath);
+    const newPath = path.join(answers.slug, relative);
+    await fs.copy(oldPath, newPath);
+  }
+
+  // package.json
+  // ----------------------------------------------
+
+  const packageJson = require(path.join(templateDir, "package.json"));
+  packageJson.name = answers.slug;
+
+  // Remove test dependencies
+  if (!answers.includeTests) {
+    delete packageJson.jest;
+    delete packageJson.scripts.test;
+    const devDependencies = [
+      "babel-jest",
+      "enzyme",
+      "enzyme-adapter-react-16",
+      "jest",
+      "jest-environment-enzyme",
+      "jest-enzyme"
+    ];
+    devDependencies.forEach(dep => {
+      delete packageJson.devDependencies[dep];
+    });
+  }
+
+  await fs.outputFile(
+    path.join(answers.slug, "package.json"),
+    JSON.stringify(packageJson, null, 2)
+  );
+
+  // index.html
+  // ----------------------------------------------
+
+  const indexHtml = fs
+    .readFileSync(path.join(templateDir, "src", "index.html"))
+    .toString()
+    .replace("My Project", answers.name);
+  await fs.outputFile(path.join(answers.slug, "src", "index.html"), indexHtml);
+
+  spinner.succeed();
 
   // npm install
-  const installPromise = execute("npm install", answers.slug);
-  ora.promise(installPromise, { text: "Installing npm packages" });
-  await installPromise;
+  // ----------------------------------------------
 
-  // Success outro logging
+  spinner.start("Installing npm packages");
+  await execute("npm install", answers.slug);
+  spinner.succeed();
+
+  // Done!
+  // ----------------------------------------------
+
   console.log("");
   console.log(blue("Success!"));
   console.log("");

@@ -1,6 +1,6 @@
 {
   "name": "@designsystemsinternational/scaffold",
-  "version": "1.2.0",
+  "version": "2.0.0",
   "description": "Command-line tool to generate a sensible Javascript project scaffold",
   "repository": "github:designsystemsinternational/scaffold",
   "scripts": {
@@ -24,7 +24,6 @@
   },
   "dependencies": {
     "chalk": "^4.0.0",
-    "ejs": "^3.0.2",
     "fs-extra": "^9.0.0",
     "inquirer": "^7.1.0",
     "ora": "^4.0.3",
