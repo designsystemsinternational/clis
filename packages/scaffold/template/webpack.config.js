@@ -10,11 +10,12 @@ const TerserPlugin = require('terser-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 
 module.exports = async (env, argv) => {
-	const isProduction = argv.mode == 'production';
+	const mode = argv.mode === 'production' ? 'production' : 'development';
+	const isProduction = mode === 'production';
 
 	const envVars = Object.assign(
 		{
-			NODE_ENV: isProduction ? 'production' : 'development'
+			'process.env.NODE_ENV': mode
 		},
 		dotenv.parsed
 	);
@@ -148,6 +149,7 @@ Copied "${url}" to clipboard.
 	}
 
 	return {
+		mode,
 		devtool: isProduction ? 'source-map' : 'eval-source-map',
 		entry: { app: './src/index.js' },
 		output: {
