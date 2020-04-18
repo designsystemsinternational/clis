@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.1.4
+
+- `htmlCache` is now also used for `.json` files so deploys work with Gatsby.
+
 ## 2.1.2
 
 - Added `static show outputs`

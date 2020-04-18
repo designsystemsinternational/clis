@@ -1,6 +1,6 @@
 {
   "name": "@designsystemsinternational/static",
-  "version": "2.1.3",
+  "version": "2.1.4",
   "description": "A simple, opinionated command-line tool to deploy a static website to S3 and Cloudfront with Cloudformation",
   "repository": {
     "type": "git",

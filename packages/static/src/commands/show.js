@@ -15,7 +15,7 @@ const show = async args => {
   const env = await getEnvironment();
   const envConfig = getEnvironmentConfig(conf, env);
 
-  if (!conf || !envConf) {
+  if (!conf || !envConfig) {
     throw NO_STATIC_CONFIG_OR_ENV_CONFIG;
   }
 

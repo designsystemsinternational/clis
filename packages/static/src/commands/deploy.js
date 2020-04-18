@@ -179,6 +179,8 @@ const uploadFiles = async (env, conf, packageJson, envConf) => {
       conf.region,
       "--exclude",
       "*.html",
+      "--exclude",
+      "*.json",
       "--acl",
       "public-read",
       "--cache-control",
@@ -189,7 +191,7 @@ const uploadFiles = async (env, conf, packageJson, envConf) => {
     }
   );
 
-  // Sync HTML
+  // Sync HTML and JSON
   await execa(
     "aws",
     [
@@ -205,6 +207,8 @@ const uploadFiles = async (env, conf, packageJson, envConf) => {
       "*",
       "--include",
       "*.html",
+      "--include",
+      "*.json",
       "--acl",
       "public-read",
       "--cache-control",
