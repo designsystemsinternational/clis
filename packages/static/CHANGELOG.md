@@ -1,6 +1,6 @@
 # Changelog
 
-## 2.1.4
+## 2.1.5
 
 - `htmlCache` is now also used for `.json` files so deploys work with Gatsby.
 
