@@ -63,5 +63,5 @@ const destroy = async args => {
   console.log("Done!");
 };
 
-destroy.description = "Destroys an existing distribution";
+destroy.description = "Destroys current distribution";
 module.exports = destroy;

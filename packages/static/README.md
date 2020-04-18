@@ -35,7 +35,9 @@ $ static deploy
 
 ## Commands
 
-- `static init`
-- `static deploy`
+- `static init`. Initialize a new project.
+- `static deploy`. Deploy a distribution, creating it if needed.
 - `static destroy`. Delete all resources and environment config.
 - `static show outputs`. Shows the outputs for the current environment.
+- `static help`. Shows available commands.
+- `static version`. Shows current version of the package.

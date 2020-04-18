@@ -222,5 +222,6 @@ const uploadFiles = async (env, conf, packageJson, envConf) => {
   console.log("Deployed!");
 };
 
-deploy.description = "Deploys a distribution, creating it if needed";
+deploy.description =
+  "Deploys a distribution based on the current Git branch, \ncreating it if needed";
 module.exports = deploy;

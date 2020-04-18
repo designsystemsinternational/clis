@@ -17,8 +17,6 @@ if (map.hasOwnProperty(cmd)) {
       console.error(e);
       process.exit(1);
     });
-} else if (cmd == "help") {
-  help(map);
 } else {
-  console.error("Command not supported");
+  help(map);
 }
