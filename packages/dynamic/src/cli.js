@@ -4,7 +4,8 @@ const chalk = require("chalk");
 const init = require("./commands/init");
 const deploy = require("./commands/deploy");
 const show = require("./commands/show");
-const map = { init, deploy, show };
+const generate = require("./commands/generate");
+const map = { init, deploy, show, generate };
 const cmd = process.argv[2];
 
 if (map.hasOwnProperty(cmd)) {

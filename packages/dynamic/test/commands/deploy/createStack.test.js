@@ -19,10 +19,10 @@ describe("createStack", () => {
     beforeEach(() => {
       conf = {
         buildDir: "test/build",
-        cloudformationMatch: ["test/fake-package/**/cf.js"],
+        cloudformationMatch: ["test/fake-package/**/*cf.js"],
         lambdaMatch: [
           "test/fake-package/**/*.js",
-          "!test/fake-package/**/cf.js"
+          "!test/fake-package/**/*cf.js"
         ],
         profile: "fake-profile",
         region: "fake-region",

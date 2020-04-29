@@ -16,8 +16,8 @@ const NO_DYNAMIC_CONFIG =
 // ---------------------------------------------------
 
 const configDefaults = {
-  cloudformationMatch: ["functions/**/cf.js"],
-  lambdaMatch: ["functions/**/*.js", "!functions/**/cf.js"],
+  cloudformationMatch: ["functions/**/*cf.js"],
+  lambdaMatch: ["functions/**/*.js", "!functions/**/*cf.js"],
   buildDir: "build"
 };
 
