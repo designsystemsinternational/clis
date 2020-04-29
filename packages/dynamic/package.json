@@ -1,6 +1,6 @@
 {
   "name": "@designsystemsinternational/dynamic",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "A simple command-line tool to deploy Cloudformation applications to AWS",
   "repository": {
     "type": "git",
@@ -23,21 +23,19 @@
   ],
   "license": "ISC",
   "dependencies": {
-    "@designsystemsinternational/cli-utils": "^0.2.8",
-    "aws-sdk": "^2.580.0",
-    "chalk": "^3.0.0",
+    "@designsystemsinternational/cli-utils": "^0.2.9",
+    "aws-sdk": "^2.665.0",
+    "chalk": "^4.0.0",
     "clean-webpack-plugin": "^3.0.0",
-    "cli-table3": "^0.5.1",
+    "cli-table3": "^0.6.0",
     "ejs": "^3.1.2",
     "fs-extra": "^9.0.0",
-    "i": "^0.3.6",
-    "inquirer": "^7.0.0",
-    "md5-file": "^4.0.0",
+    "inquirer": "^7.1.0",
+    "md5-file": "^5.0.0",
     "micromatch": "^4.0.2",
-    "npm": "^6.13.1",
-    "ora": "^4.0.3",
+    "ora": "^4.0.4",
     "recursive-readdir": "^2.2.2",
-    "webpack": "^4.41.2"
+    "webpack": "^4.43.0"
   },
   "bin": {
     "dynamic": "src/cli.js"

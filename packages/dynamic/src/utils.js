@@ -4,7 +4,7 @@ const webpack = require("webpack");
 const defaultConfig = require("./default.webpack.config");
 const chalk = require("chalk");
 const micromatch = require("micromatch");
-const md5File = require("md5-file/promise");
+const md5File = require("md5-file");
 
 // Constants
 // ---------------------------------------------------
