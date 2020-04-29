@@ -7,7 +7,7 @@
     "url": "git+ssh://git@github.com/designsystemsinternational/dynamic.git"
   },
   "scripts": {
-    "test": "jest --runInBand"
+    "test": "jest --runInBand --detectOpenHandles"
   },
   "author": {
     "name": "Rune Skjoldborg Madsen",

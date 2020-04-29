@@ -276,9 +276,3 @@ describe("deploy", () => {
     });
   });
 });
-
-const lambdaExists = filename =>
-  existsSync(join(__dirname, "..", "build", "lambda", filename));
-
-const zipExists = filename =>
-  existsSync(join(__dirname, "..", "build", filename));
