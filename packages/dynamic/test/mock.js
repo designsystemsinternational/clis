@@ -32,7 +32,8 @@ const mockUtils = mod => {
                 { ParameterKey: "testParam" },
                 { ParameterKey: "operationsS3Bucket" },
                 { ParameterKey: "environment" },
-                { ParameterKey: "lambdaS3Key" }
+                { ParameterKey: "lambdaS3Key" },
+                { ParameterKey: "showUserS3Key" }
               ]
             }
           ]

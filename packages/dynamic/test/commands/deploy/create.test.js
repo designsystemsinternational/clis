@@ -5,7 +5,7 @@ const { NO_DYNAMIC_CONFIG } = require("../../../src/utils");
 const { lambdaExists, zipExists } = require("../../utils");
 const { mockOra, mockUtils, mockInquirer } = require("../../mock");
 
-describe("createStack", () => {
+describe("create", () => {
   let cloudformation;
   beforeEach(() => {
     const mockAws = mockUtils(utils);
@@ -41,7 +41,7 @@ describe("createStack", () => {
         .mockResolvedValueOnce({ testParam: "test-value" });
     });
 
-    it("runs lambas through webpack", async () => {
+    it("compiles lambdas with webpack", async () => {
       const deploy = require("../../../src/commands/deploy");
       await deploy();
       expect(lambdaExists("lambda")).toBe(true);
