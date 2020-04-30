@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.3
+
+- Defaults to ignoring test files
+
 ## 0.2.2
 
 - Updated packages to newest versions
