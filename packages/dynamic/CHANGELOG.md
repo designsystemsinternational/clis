@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.4
+
+- Adding `DependsOn` to route generator
+- Correctly adding path to lambda permission in route generator
+
 ## 0.2.3
 
 - Defaults to ignoring test files

@@ -21,12 +21,23 @@ const route = async () => {
       default: "functions/helloWorld.js"
     },
     {
+      name: "method",
+      type: "input",
+      message: `HTTP method for endpoint`,
+      default: "GET"
+    },
+    {
       name: "route",
       type: "input",
       message: `HTTP route for endpoint`,
-      default: "GET /hello"
+      default: "/hello"
     }
   ]);
+
+  // Make sure we route starts with forward slash
+  if (!answers.route.startsWith("/")) {
+    answers.route = "/" + answers.route;
+  }
 
   answers.name = path.basename(answers.path, ".js");
   const rootDir = path.dirname(answers.path).split(path.sep)[0];
