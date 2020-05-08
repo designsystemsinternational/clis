@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.1.6
+
+- You can now run `static` without an AWS profile
+
 ## 2.1.5
 
 - `htmlCache` is now also used for `.json` files so deploys work with Gatsby.
