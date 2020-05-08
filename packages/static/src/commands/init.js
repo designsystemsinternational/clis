@@ -13,7 +13,7 @@ const init = async () => {
       name: "profile",
       type: "input",
       message: "Name of the AWS profile you want to use",
-      default: "default"
+      default: "none"
     },
     {
       name: "region",
@@ -46,6 +46,10 @@ const init = async () => {
       default: "npm run build"
     }
   ]);
+
+  if (answers.profile === "none" || answers.profile === "") {
+    delete answers.profile;
+  }
 
   const spinner = ora("Saving config file").start();
   saveConfig("static", answers);
