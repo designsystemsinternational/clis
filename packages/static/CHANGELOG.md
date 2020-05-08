@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.1.7
+
+- `static` now uses `yargs` which produces better documentation
+- The `deploy` and `destroy` commands can now be used with a `--env somename` to ignore the Git branch and force the environment. Helpful in GitHub actions where `git branch` does not return anything.
+
 ## 2.1.6
 
 - You can now run `static` without an AWS profile

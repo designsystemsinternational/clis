@@ -33,11 +33,16 @@ To upload a site, run the `deploy` command. If this is the first time you are ru
 $ static deploy
 ```
 
+You can optionally run the command with a `--env` parameter to ignore the Git branch name and set the environment name directly. This is helpful for e.g. GitHub actions or other CI servers that return `null` for the `git branch` command.
+
+```
+$ static deploy --env somename
+```
+
 ## Commands
 
 - `static init`. Initialize a new project.
 - `static deploy`. Deploy a distribution, creating it if needed.
 - `static destroy`. Delete all resources and environment config.
 - `static show outputs`. Shows the outputs for the current environment.
-- `static help`. Shows available commands.
-- `static version`. Shows current version of the package.
+- `static --help`. Shows available commands and other documentation.

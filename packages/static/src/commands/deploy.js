@@ -36,6 +36,7 @@ const deploy = async args => {
 
 const createStack = async (env, conf, packageJson) => {
   const AWS = getAWSWithProfile(conf.profile, conf.region);
+  console.log("Creating new environment:", env);
 
   const initAnswers = await inquirer.prompt([
     {
@@ -159,6 +160,8 @@ const createStack = async (env, conf, packageJson) => {
 // ---------------------------------------------------------------------
 
 const uploadFiles = async (env, conf, packageJson, envConf) => {
+  console.log("Updating environment", env);
+
   if (conf.shouldRunBuildCommand) {
     await execa.shell(conf.buildCommand, {
       stdout: "inherit"
