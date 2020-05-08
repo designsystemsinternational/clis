@@ -165,59 +165,50 @@ const uploadFiles = async (env, conf, packageJson, envConf) => {
     });
   }
 
-  // Sync assets
-  await execa(
-    "aws",
-    [
-      "s3",
-      "sync",
-      `./${conf.buildDir}`,
-      `s3://${envConf.bucket}`,
-      "--profile",
-      conf.profile,
-      "--region",
-      conf.region,
-      "--exclude",
-      "*.html",
-      "--exclude",
-      "*.json",
-      "--acl",
-      "public-read",
-      "--cache-control",
-      `max-age=${envConf.assetsCache}`
-    ],
-    {
-      stdout: "inherit"
-    }
-  );
+  // Sync static immutable files
+  const staticOpts = [
+    "s3",
+    "sync",
+    `./${conf.buildDir}`,
+    `s3://${envConf.bucket}`,
+    "--region",
+    conf.region,
+    "--exclude",
+    "*.html",
+    "--exclude",
+    "*.json",
+    "--acl",
+    "public-read",
+    "--cache-control",
+    `max-age=${envConf.assetsCache}`
+  ];
 
-  // Sync HTML and JSON
-  await execa(
-    "aws",
-    [
-      "s3",
-      "sync",
-      `./${conf.buildDir}`,
-      `s3://${envConf.bucket}`,
-      "--profile",
-      conf.profile,
-      "--region",
-      conf.region,
-      "--exclude",
-      "*",
-      "--include",
-      "*.html",
-      "--include",
-      "*.json",
-      "--acl",
-      "public-read",
-      "--cache-control",
-      `max-age=${envConf.htmlCache}`
-    ],
-    {
-      stdout: "inherit"
-    }
-  );
+  const dynamicOpts = [
+    "s3",
+    "sync",
+    `./${conf.buildDir}`,
+    `s3://${envConf.bucket}`,
+    "--region",
+    conf.region,
+    "--exclude",
+    "*",
+    "--include",
+    "*.html",
+    "--include",
+    "*.json",
+    "--acl",
+    "public-read",
+    "--cache-control",
+    `max-age=${envConf.htmlCache}`
+  ];
+
+  if (conf.profile) {
+    staticOpts.push("--profile", conf.profile);
+    dynamicOpts.push("--profile", conf.profile);
+  }
+
+  await execa("aws", staticOpts, { stdout: "inherit" });
+  await execa("aws", dynamicOpts, { stdout: "inherit" });
 
   console.log("Deployed!");
 };
