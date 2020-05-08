@@ -1,3 +1,4 @@
+const pack = require("../../package.json");
 const ora = require("ora");
 const Table = require("cli-table3");
 const chalk = require("chalk");
@@ -21,14 +22,8 @@ const show = async args => {
 
   const commands = ["outputs"];
 
-  if (args[3] === "outputs") {
+  if (args.key === "outputs") {
     await showOutputs(conf, env, envConfig);
-  } else {
-    console.error(
-      chalk.red(`Wrong command`),
-      "\nAvailable commands: ",
-      chalk.bold("\nshow " + commands.join("\nshow "))
-    );
   }
 };
 

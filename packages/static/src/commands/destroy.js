@@ -13,7 +13,7 @@ const { NO_STATIC_CONFIG_OR_ENV_CONFIG } = require("../utils");
 
 const destroy = async args => {
   const { conf, packageJson } = loadConfig("static");
-  const env = await getEnvironment();
+  const env = args.env || (await getEnvironment());
   const envConf = getEnvironmentConfig(conf, env);
   if (!conf || !envConf) {
     throw NO_STATIC_CONFIG_OR_ENV_CONFIG;
@@ -63,5 +63,4 @@ const destroy = async args => {
   console.log("Done!");
 };
 
-destroy.description = "Destroys current distribution";
 module.exports = destroy;

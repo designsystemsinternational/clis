@@ -4,19 +4,38 @@ const init = require("./commands/init");
 const deploy = require("./commands/deploy");
 const destroy = require("./commands/destroy");
 const show = require("./commands/show");
-const version = require("./commands/version");
-const help = require("./commands/help");
 
-const map = { init, deploy, destroy, show, version };
+const env = {
+  describe: "Force environment name by ignoring Git branch",
+  requiresArg: true
+};
 
-const cmd = process.argv[2];
-if (map.hasOwnProperty(cmd)) {
-  map[cmd](process.argv)
-    .then(() => {})
-    .catch(e => {
-      console.error(e);
-      process.exit(1);
-    });
-} else {
-  help(map);
-}
+require("yargs")
+  .scriptName("static")
+  .usage("$0 <cmd> [args]")
+  .command("init", "Initializes a project", {}, init)
+  .command(
+    "deploy",
+    "Deploys an environment based on the current Git branch, creating it if needed",
+    { env },
+    deploy
+  )
+  .command(
+    "destroy",
+    "Deletes an environment and all its resources",
+    { env },
+    destroy
+  )
+  .command(
+    "show <key>",
+    "Show repo information",
+    yargs => {
+      yargs.positional("key", {
+        describe: "Name of data you want to show",
+        default: "outputs",
+        choices: ["outputs"]
+      });
+    },
+    show
+  )
+  .help().argv;

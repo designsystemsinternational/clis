@@ -22,7 +22,7 @@ const deploy = async args => {
   if (!conf) {
     throw NO_STATIC_CONFIG;
   }
-  const env = await getEnvironment();
+  const env = args.env || (await getEnvironment());
   const envConf = getEnvironmentConfig(conf, env);
   if (!envConf) {
     await createStack(env, conf, packageJson);
@@ -213,6 +213,4 @@ const uploadFiles = async (env, conf, packageJson, envConf) => {
   console.log("Deployed!");
 };
 
-deploy.description =
-  "Deploys a distribution based on the current Git branch, \ncreating it if needed";
 module.exports = deploy;

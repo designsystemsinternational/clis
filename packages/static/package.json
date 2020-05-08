@@ -32,7 +32,8 @@
     "cli-table3": "^0.5.1",
     "execa": "^1.0.0",
     "inquirer": "^6.2.2",
-    "ora": "^4.0.3"
+    "ora": "^4.0.3",
+    "yargs": "^15.3.1"
   },
   "devDependencies": {
     "jest": "^24.9.0"
