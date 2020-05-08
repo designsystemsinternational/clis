@@ -59,10 +59,11 @@ const deleteEnvironmentConfig = (cli, env) => {
 // ---------------------------------------------------
 
 const getAWSWithProfile = (profile, region) => {
-  AWS.config.update({
-    region,
-    credentials: new AWS.SharedIniFileCredentials({ profile })
-  });
+  const opts = { region };
+  if (profile) {
+    opts.credentials = new AWS.SharedIniFileCredentials({ profile });
+  }
+  AWS.config.update(opts);
   return AWS;
 };
 
@@ -258,9 +259,7 @@ const monitorStack = async (AWS, stackName, onEvent = () => {}) => {
           ) {
             console.error("Operation failed!");
             return reject(
-              `An error occurred: ${stackLatestError.LogicalResourceId} - ${
-                stackLatestError.ResourceStatusReason
-              }.`
+              `An error occurred: ${stackLatestError.LogicalResourceId} - ${stackLatestError.ResourceStatusReason}.`
             );
           }
 
