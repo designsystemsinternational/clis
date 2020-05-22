@@ -4,6 +4,7 @@ const init = require("./commands/init");
 const deploy = require("./commands/deploy");
 const destroy = require("./commands/destroy");
 const show = require("./commands/show");
+const open = require("./commands/open");
 
 const env = {
   describe: "Force environment name by ignoring Git branch",
@@ -37,5 +38,11 @@ require("yargs")
       });
     },
     show
+  )
+  .command(
+    "open [key]",
+    "Opens a url from the `show outputs` command, using [key] to find a partial match.",
+    { env },
+    open
   )
   .help().argv;
