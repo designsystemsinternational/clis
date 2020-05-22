@@ -7,13 +7,13 @@ const {
   getEnvironmentConfig,
   getAWSWithProfile,
   monitorStack,
-  deleteEnvironmentConfig
+  deleteEnvironmentConfig,
 } = require("@designsystemsinternational/cli-utils");
 const { NO_STATIC_CONFIG_OR_ENV_CONFIG } = require("../utils");
 
-const destroy = async args => {
+const destroy = async (args) => {
   const { conf, packageJson } = loadConfig("static");
-  const env = args.env || (await getEnvironment());
+  const env = args && args.env ? args.env : await getEnvironment();
   const envConf = getEnvironmentConfig(conf, env);
   if (!conf || !envConf) {
     throw NO_STATIC_CONFIG_OR_ENV_CONFIG;
@@ -25,8 +25,8 @@ const destroy = async args => {
     {
       type: "confirm",
       name: "confirm",
-      message: `Warning! This will delete all files and resources in the ${envConf.stack} stack. Continue?`
-    }
+      message: `Warning! This will delete all files and resources in the ${envConf.stack} stack. Continue?`,
+    },
   ]);
 
   if (!answers.confirm) {
@@ -44,10 +44,10 @@ const destroy = async args => {
       conf.profile,
       "--region",
       conf.region,
-      "--recursive"
+      "--recursive",
     ],
     {
-      stdout: "inherit"
+      stdout: "inherit",
     }
   );
 

@@ -8,7 +8,7 @@ const {
   getEnvironmentConfig,
   saveEnvironmentConfig,
   getAWSWithProfile,
-  monitorStack
+  monitorStack,
 } = require("@designsystemsinternational/cli-utils");
 const { NO_STATIC_CONFIG } = require("../utils");
 const s3Template = require("../cloudformation/s3.json");
@@ -17,12 +17,12 @@ const cloudfrontTemplate = require("../cloudformation/cloudfront.json");
 // Main
 // ---------------------------------------------------------------------
 
-const deploy = async args => {
+const deploy = async (args) => {
   const { conf, packageJson } = loadConfig("static");
   if (!conf) {
     throw NO_STATIC_CONFIG;
   }
-  const env = args.env || (await getEnvironment());
+  const env = args && args.env ? args.env : await getEnvironment();
   const envConf = getEnvironmentConfig(conf, env);
   if (!envConf) {
     await createStack(env, conf, packageJson);
@@ -43,26 +43,26 @@ const createStack = async (env, conf, packageJson) => {
       type: "input",
       name: "stackName",
       message: `Name of the new Cloudformation stack`,
-      default: `${packageJson.name}-${env}`
+      default: `${packageJson.name}-${env}`,
     },
     {
       type: "confirm",
       name: "createCloudfront",
       message: "Do you want to set up a Cloudfront distribution?",
-      default: true
+      default: true,
     },
     {
       type: "input",
       name: "htmlCache",
       message: "Cache time for HTML files (in seconds)",
-      default: "300"
+      default: "300",
     },
     {
       type: "input",
       name: "assetsCache",
       message: "Cache time for all other assets (in seconds)",
-      default: "31536000"
-    }
+      default: "31536000",
+    },
   ]);
 
   // We don't prompt for these Cloudformation params,
@@ -73,7 +73,7 @@ const createStack = async (env, conf, packageJson) => {
   // If a parameter is also in dontAsk, this default will
   // be passed directly to CloudFormation.
   const dynamicDefaults = {
-    S3BucketName: initAnswers.stackName
+    S3BucketName: initAnswers.stackName,
   };
 
   // Combine cloudformation templates if needed
@@ -90,15 +90,15 @@ const createStack = async (env, conf, packageJson) => {
 
   // Add questions based on Cloudformation parameters
   const templateQuestions = Object.keys(createTemplate.Parameters)
-    .filter(key => !dontAsk.includes(key))
-    .map(key => {
+    .filter((key) => !dontAsk.includes(key))
+    .map((key) => {
       const obj = createTemplate.Parameters[key];
       return {
         name: key,
         type: obj.AllowedValues ? "list" : "input",
         message: obj.Description,
         default: dynamicDefaults[key] || obj.Default,
-        choices: obj.AllowedValues
+        choices: obj.AllowedValues,
       };
     });
 
@@ -111,18 +111,18 @@ const createStack = async (env, conf, packageJson) => {
   const create = await cloudformation
     .createStack({
       StackName: initAnswers.stackName,
-      Parameters: Object.keys(parameters).map(key => ({
+      Parameters: Object.keys(parameters).map((key) => ({
         ParameterKey: key,
-        ParameterValue: parameters[key].toString()
+        ParameterValue: parameters[key].toString(),
       })),
       TemplateBody: JSON.stringify(createTemplate),
-      Capabilities: ["CAPABILITY_NAMED_IAM"]
+      Capabilities: ["CAPABILITY_NAMED_IAM"],
     })
     .promise();
 
   const created = await cloudformation
     .waitFor("stackCreateComplete", {
-      StackName: initAnswers.stackName
+      StackName: initAnswers.stackName,
     })
     .promise();
 
@@ -133,7 +133,7 @@ const createStack = async (env, conf, packageJson) => {
     stack: initAnswers.stackName,
     bucket: parameters.S3BucketName,
     htmlCache: initAnswers.htmlCache,
-    assetsCache: initAnswers.assetsCache
+    assetsCache: initAnswers.assetsCache,
   });
   spinner.succeed();
 
@@ -145,10 +145,10 @@ const createStack = async (env, conf, packageJson) => {
     .promise();
 
   const table = new Table({
-    head: ["Key", "Value", "Description"]
+    head: ["Key", "Value", "Description"],
   });
 
-  stacks.Stacks[0].Outputs.forEach(o =>
+  stacks.Stacks[0].Outputs.forEach((o) =>
     table.push([o.OutputKey, o.OutputValue, o.Description])
   );
 
@@ -164,7 +164,7 @@ const uploadFiles = async (env, conf, packageJson, envConf) => {
 
   if (conf.shouldRunBuildCommand) {
     await execa.shell(conf.buildCommand, {
-      stdout: "inherit"
+      stdout: "inherit",
     });
   }
 
@@ -183,7 +183,7 @@ const uploadFiles = async (env, conf, packageJson, envConf) => {
     "--acl",
     "public-read",
     "--cache-control",
-    `max-age=${envConf.assetsCache}`
+    `max-age=${envConf.assetsCache}`,
   ];
 
   const dynamicOpts = [
@@ -202,7 +202,7 @@ const uploadFiles = async (env, conf, packageJson, envConf) => {
     "--acl",
     "public-read",
     "--cache-control",
-    `max-age=${envConf.htmlCache}`
+    `max-age=${envConf.htmlCache}`,
   ];
 
   if (conf.profile) {
