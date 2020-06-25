@@ -1,6 +1,6 @@
 {
   "name": "@designsystemsinternational/dynamic",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "A simple command-line tool to deploy Cloudformation applications to AWS",
   "repository": {
     "type": "git",

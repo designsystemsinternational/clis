@@ -7,7 +7,8 @@ module.exports = {
         ProtocolType: "HTTP",
         CorsConfiguration: {
           AllowMethods: ["*"],
-          AllowOrigins: ["*"]
+          AllowOrigins: ["*"],
+          AllowHeaders: ["*"]
         }
       }
     },
