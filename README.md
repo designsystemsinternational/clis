@@ -2,9 +2,9 @@
 
 This is a monorepo with all the command-line tools we use at Design Systems International. They are:
 
-- [scaffold](packages/scaffold/Readme.md) Something
-- [static](packages/static/Readme.md) Something
-- [dynamic](packages/dynamic/Readme.md) Something
+- [scaffold](packages/scaffold/README.md) Something
+- [static](packages/static/README.md) Something
+- [dynamic](packages/dynamic/README.md) Something
 
 The repo is managed via [lerna](https://github.com/lerna/lerna).
 
