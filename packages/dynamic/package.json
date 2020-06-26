@@ -23,8 +23,8 @@
   ],
   "license": "ISC",
   "dependencies": {
-    "@designsystemsinternational/cli-utils": "^0.2.9",
-    "aws-sdk": "^2.665.0",
+    "@designsystemsinternational/cli-utils": "0.2.10",
+    "aws-sdk": "^2.705.0",
     "chalk": "^4.0.0",
     "clean-webpack-plugin": "^3.0.0",
     "cli-table3": "^0.6.0",
@@ -39,9 +39,6 @@
   },
   "bin": {
     "dynamic": "src/cli.js"
-  },
-  "devDependencies": {
-    "jest": "^24.9.0"
   },
   "jest": {
     "testEnvironment": "node",
