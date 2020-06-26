@@ -37,6 +37,9 @@
     "recursive-readdir": "^2.2.2",
     "webpack": "^4.43.0"
   },
+  "devDependencies": {
+    "jest": "^24.9.0"
+  },
   "bin": {
     "dynamic": "src/cli.js"
   },

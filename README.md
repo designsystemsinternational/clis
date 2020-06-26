@@ -6,6 +6,12 @@ This monorepo is managed via [lerna](https://github.com/lerna/lerna) in order to
 
 Instead of doing `npm install`, run `lerna bootstrap`.
 
+## Test
+
+To run tests of a single package, run `npm run test` from the package folder.
+
+To run all tests, run `lerna run test`.
+
 ## Publish
 
 Run `lerna publish`
