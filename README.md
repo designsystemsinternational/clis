@@ -2,9 +2,9 @@
 
 This is a monorepo with all the command-line tools we use at Design Systems International. They are:
 
-- [scaffold](packages/scaffold/README.md) Something
-- [static](packages/static/README.md) Something
-- [dynamic](packages/dynamic/README.md) Something
+- [scaffold](packages/scaffold) A tool to generate a sensible React project scaffold.
+- [static](packages/static) A tool to deploy a static website to S3 and CloudFront via CloudFormation.
+- [dynamic](packages/dynamic) A tool to deploy dynamic applications to AWS via CloudFormation.
 
 The repo is managed via [lerna](https://github.com/lerna/lerna).
 
