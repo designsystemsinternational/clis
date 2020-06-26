@@ -12,17 +12,15 @@ The repo is managed via [lerna](https://github.com/lerna/lerna).
 
 To get started, clone this repo.
 
-Then run, `lerna bootstrap --hoist`. This will symlink all the dependencies together and run `npm i` inside each package.
-
-If you want to run `npm i` for a single package later, run `lerna bootstrap --hoist --scope dynamic`.
-
-Running `npm i` inside a package folder will not work.
+Then run, `npm run bootstrap`. This will symlink all the dependencies together and run `npm i` inside each package. Running `npm i` inside a package folder will not work.
 
 ## Test
 
-To run tests of a single package, run `npm run test` from the package folder.
+To run all tests, run `npm run test` from the root folder.
 
-To run all tests, run `lerna run test`.
+To run tests for a single pacakge, run `npm run test` from the package folder.
+
+To run only a single test file, run `npm run test -t 'my.test.js'`.
 
 ## Publish
 
