@@ -19,23 +19,23 @@ describe("updateFunction", () => {
       cloudformationMatch: ["test/fake-package/**/*cf.js"],
       lambdaMatch: [
         "test/fake-package/**/*.js",
-        "!test/fake-package/**/*cf.js"
+        "!test/fake-package/**/*cf.js",
       ],
       profile: "fake-profile",
       region: "fake-region",
       bucket: "fake-bucket",
       environments: {
         test: {
-          stack: "stack-test"
-        }
-      }
+          stack: "stack-test",
+        },
+      },
     };
     utils.loadConfig.mockReturnValue({
       conf,
       packageJson: {
         name: "fake-package",
-        dynamic: conf
-      }
+        dynamic: conf,
+      },
     });
   });
 
@@ -58,9 +58,7 @@ describe("updateFunction", () => {
     const uploadFiles = uploads[0][2];
     const uploadFilesKeys = Object.keys(uploadFiles);
     expect(uploadFilesKeys.length).toBe(1);
-    expect(uploadFilesKeys[0]).toMatch(
-      "@designsystemsinternational/dynamic/test/build/lambda.zip"
-    );
+    expect(uploadFilesKeys[0]).toMatch("dynamic/test/build/lambda.zip");
     expect(uploadFiles[uploadFilesKeys[0]]).toEqual(
       `functions/test/lambda-5cdadd95e5d195a9956a5c7fc92f9135.zip`
     );
@@ -79,25 +77,25 @@ describe("updateFunction", () => {
     expect(calls[0][0].Parameters).toEqual([
       {
         ParameterKey: "testParam",
-        UsePreviousValue: true
+        UsePreviousValue: true,
       },
       {
         ParameterKey: "operationsS3Bucket",
-        UsePreviousValue: true
+        UsePreviousValue: true,
       },
       {
         ParameterKey: "environment",
-        UsePreviousValue: true
+        UsePreviousValue: true,
       },
       {
         ParameterKey: "lambdaS3Key",
         ParameterValue:
-          "functions/test/lambda-5cdadd95e5d195a9956a5c7fc92f9135.zip"
+          "functions/test/lambda-5cdadd95e5d195a9956a5c7fc92f9135.zip",
       },
       {
         ParameterKey: "showUserS3Key",
-        UsePreviousValue: true
-      }
+        UsePreviousValue: true,
+      },
     ]);
   });
 });
