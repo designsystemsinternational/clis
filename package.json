@@ -3,11 +3,5 @@
   "private": true,
   "devDependencies": {
     "lerna": "^3.22.1"
-  },
-  "dependencies": {
-    "@designsystemsinternational/cli-utils": "file:packages/cli-utils",
-    "@designsystemsinternational/dynamic": "file:packages/dynamic",
-    "@designsystemsinternational/scaffold": "file:packages/scaffold",
-    "@designsystemsinternational/static": "file:packages/static"
   }
 }

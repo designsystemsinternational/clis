@@ -4,7 +4,7 @@ This monorepo is managed via [lerna](https://github.com/lerna/lerna) in order to
 
 ## Development
 
-Instead of doing `npm install`, run `lerna bootstrap`.
+Instead of doing `npm install`, run `lerna bootstrap --hoist`.
 
 ## Test
 
