@@ -1,10 +1,10 @@
-# CLI's by Design Systems International
+# Command line tools by Design Systems International
 
 This is a monorepo with all the command-line tools we use at Design Systems International. They are:
 
-- [scaffold](packages/scaffold) Something
-- [static](packages/static) Something
-- [dynamic](packages/dynamic) Something
+- [scaffold](packages/scaffold/Readme.md) Something
+- [static](packages/static/Readme.md) Something
+- [dynamic](packages/dynamic/Readme.md) Something
 
 The repo is managed via [lerna](https://github.com/lerna/lerna).
 
