@@ -1,6 +1,6 @@
 {
   "name": "@designsystemsinternational/cli-utils",
-  "version": "0.2.10",
+  "version": "1.0.1",
   "description": "Shared utility functions for scaffold, static, and dynamic",
   "repository": {
     "type": "git",
