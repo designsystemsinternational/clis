@@ -5,18 +5,14 @@ const {
   getStackName,
   loadConfig,
   getEnvironmentConfig,
-  getAWSWithProfile
+  getAWSWithProfile,
 } = require("@designsystemsinternational/cli-utils");
 
-const show = async args => {
+const show = async (args) => {
   const { conf } = loadConfig("dynamic");
   const env = await getEnvironment();
   const envConfig = getEnvironmentConfig(conf, env);
-  if (args[3] === "outputs") {
-    await showOutputs(conf, env, envConfig);
-  } else {
-    console.error(chalk.red(`Wrong command`));
-  }
+  await showOutputs(conf, env, envConfig);
 };
 
 const showOutputs = async (conf, env, envConfig) => {
@@ -31,10 +27,10 @@ const showOutputs = async (conf, env, envConfig) => {
   spinner.succeed();
 
   const table = new Table({
-    head: ["Key", "Value", "Description"]
+    head: ["Key", "Value", "Description"],
   });
 
-  stack.Outputs.forEach(o =>
+  stack.Outputs.forEach((o) =>
     table.push([o.OutputKey, o.OutputValue, o.Description])
   );
 

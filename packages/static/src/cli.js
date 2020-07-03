@@ -7,42 +7,41 @@ const show = require("./commands/show");
 const open = require("./commands/open");
 
 const env = {
-  describe: "Force environment name by ignoring Git branch",
-  requiresArg: true
+  describe: "Ignore current Git branch and use this environment instead",
+  requiresArg: true,
+  type: "string",
 };
 
 require("yargs")
   .scriptName("static")
   .usage("$0 <cmd> [args]")
-  .command("init", "Initializes a project", {}, init)
+  .command("init", "Creates a static config file in package.json", {}, init)
   .command(
     "deploy",
-    "Deploys an environment based on the current Git branch, creating it if needed",
-    { env },
+    "Deploys the website",
+    (yargs) => {
+      yargs.option("env", env);
+    },
     deploy
   )
   .command(
     "destroy",
-    "Deletes an environment and all its resources",
-    { env },
+    "Deletes the website and all its resources",
+    (yargs) => {
+      yargs.option("env", env);
+    },
     destroy
   )
+  .command("show outputs", "Show information about website resources", {}, show)
   .command(
-    "show <key>",
-    "Show repo information",
-    yargs => {
-      yargs.positional("key", {
-        describe: "Name of data you want to show",
-        default: "outputs",
-        choices: ["outputs"]
+    "open <search>",
+    "Shortcut to open a url from the `show outputs` command",
+    (yargs) => {
+      yargs.positional("search", {
+        describe: "Partial search key to find URL. Try `S3` or `Cloudfront` ",
+        type: "string",
       });
     },
-    show
-  )
-  .command(
-    "open [key]",
-    "Opens a url from the `show outputs` command, using [key] to find a partial match.",
-    { env },
     open
   )
   .help().argv;

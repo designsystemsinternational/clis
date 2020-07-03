@@ -6,7 +6,7 @@ const {
   readTemplateFile,
   requireTemplateFile,
   renderTemplateFile,
-  mergeCfs
+  mergeCfs,
 } = require("../templates/utils");
 
 // Generate a route
@@ -18,20 +18,20 @@ const route = async () => {
       name: "path",
       type: "input",
       message: `Path to new route file`,
-      default: "functions/helloWorld.js"
+      default: "functions/helloWorld.js",
     },
     {
       name: "method",
       type: "input",
       message: `HTTP method for endpoint`,
-      default: "GET"
+      default: "GET",
     },
     {
       name: "route",
       type: "input",
       message: `HTTP route for endpoint`,
-      default: "/hello"
-    }
+      default: "/hello",
+    },
   ]);
 
   // Make sure we route starts with forward slash
@@ -65,16 +65,11 @@ const route = async () => {
 };
 
 const map = {
-  route
+  route,
 };
 
-const generate = async args => {
-  const template = args[3];
-  if (map.hasOwnProperty(template)) {
-    await map[template](args);
-  } else {
-    console.error(`Generator not supported: ${template}`);
-  }
+const generate = async (args) => {
+  await map[template](args);
 };
 
 module.exports = generate;

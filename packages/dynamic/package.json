@@ -1,7 +1,7 @@
 {
   "name": "@designsystemsinternational/dynamic",
   "version": "1.0.1",
-  "description": "A simple command-line tool to deploy Cloudformation applications to AWS",
+  "description": "A simple command-line tool to deploy CloudFormation applications to AWS",
   "repository": {
     "type": "git",
     "url": "git+ssh://git@github.com/designsystemsinternational/dynamic.git"
@@ -35,7 +35,8 @@
     "micromatch": "^4.0.2",
     "ora": "^4.0.4",
     "recursive-readdir": "^2.2.2",
-    "webpack": "^4.43.0"
+    "webpack": "^4.43.0",
+    "yargs": "^15.3.1"
   },
   "devDependencies": {
     "jest": "^24.9.0"

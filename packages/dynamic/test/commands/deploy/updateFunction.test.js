@@ -41,7 +41,7 @@ describe("updateFunction", () => {
 
   it("compiles lambda with webpack", async () => {
     const deploy = require("../../../src/commands/deploy");
-    await deploy(["", "", "", "lambda"]);
+    await deploy({ function: "lambda" });
     expect(lambdaExists("lambda")).toBe(true);
     expect(zipExists("lambda.zip")).toBe(true);
     expect(lambdaExists("showUser")).toBe(false);
@@ -50,7 +50,7 @@ describe("updateFunction", () => {
 
   it("uploads file to S3", async () => {
     const deploy = require("../../../src/commands/deploy");
-    await deploy(["", "", "", "lambda"]);
+    await deploy({ function: "lambda" });
 
     const uploads = utils.uploadFilesToS3.mock.calls;
     expect(uploads.length).toBe(1);
@@ -66,7 +66,7 @@ describe("updateFunction", () => {
 
   it("runs createChangeSet", async () => {
     const deploy = require("../../../src/commands/deploy");
-    await deploy(["", "", "", "lambda"]);
+    await deploy({ function: "lambda" });
     const { calls } = cloudformation.createChangeSet.mock;
     expect(calls.length).toBe(1);
     expect(calls[0][0].UsePreviousTemplate).toEqual(true);
