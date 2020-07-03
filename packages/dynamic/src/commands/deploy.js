@@ -7,7 +7,7 @@ const {
   getFunctions,
   buildFunctions,
   compileCloudformationTemplate,
-  addS3KeyValues
+  addS3KeyValues,
 } = require("../utils");
 const {
   getEnvironment,
@@ -20,26 +20,31 @@ const {
   uploadFilesToS3,
   newChangesetName,
   monitorStack,
-  waitForChangeset
+  waitForChangeset,
 } = require("@designsystemsinternational/cli-utils");
 
 // Main
 // ---------------------------------------------------------------------
 
-const deploy = async args => {
+const deploy = async (args) => {
   const { conf, packageJson } = loadConfig("dynamic");
-
   if (!conf) {
     throw NO_DYNAMIC_CONFIG;
   }
   const confWithDefaults = Object.assign({}, configDefaults, conf);
-  const env = await getEnvironment();
+  const env = args && args.env ? args.env : await getEnvironment();
   const envConf = getEnvironmentConfig(confWithDefaults, env);
 
   if (!envConf) {
     await createStack(env, packageJson, confWithDefaults, envConf);
-  } else if (args && args[3]) {
-    await updateFunction(env, packageJson, confWithDefaults, envConf, args[3]);
+  } else if (args && args.function) {
+    await updateFunction(
+      env,
+      packageJson,
+      confWithDefaults,
+      envConf,
+      args.function
+    );
   } else {
     await updateStack(env, packageJson, confWithDefaults, envConf);
   }
@@ -53,8 +58,8 @@ const createStack = async (env, packageJson, conf, envConf) => {
     {
       type: "confirm",
       name: "confirm",
-      message: `This will create a new ${env} environment. Proceed?`
-    }
+      message: `This will create a new ${env} environment. Proceed?`,
+    },
   ]);
 
   if (!init.confirm) {
@@ -67,8 +72,8 @@ const createStack = async (env, packageJson, conf, envConf) => {
       type: "input",
       name: "stackName",
       message: `Name of the new Cloudformation stack`,
-      default: `${packageJson.name}-${env}`
-    }
+      default: `${packageJson.name}-${env}`,
+    },
   ]);
 
   const AWS = getAWSWithProfile(conf.profile, conf.region);
@@ -98,7 +103,7 @@ const createStack = async (env, packageJson, conf, envConf) => {
   spinner.start("Uploading lambda packages to S3");
   await addS3KeyValues(env, functionsInfo);
   const uploadInfo = {};
-  Object.keys(functionsInfo).forEach(key => {
+  Object.keys(functionsInfo).forEach((key) => {
     uploadInfo[functionsInfo[key].zipFile] = functionsInfo[key].s3Key;
   });
   await uploadFilesToS3(AWS, conf.bucket, uploadInfo);
@@ -118,24 +123,24 @@ const createStack = async (env, packageJson, conf, envConf) => {
     .createStack({
       StackName: stackName,
       TemplateBody: JSON.stringify(template),
-      Parameters: Object.keys(parameters).map(key => ({
+      Parameters: Object.keys(parameters).map((key) => ({
         ParameterKey: key,
-        ParameterValue: parameters[key].toString()
+        ParameterValue: parameters[key].toString(),
       })),
-      Capabilities: ["CAPABILITY_NAMED_IAM"]
+      Capabilities: ["CAPABILITY_NAMED_IAM"],
     })
     .promise();
 
   const created = await cloudformation
     .waitFor("stackCreateComplete", {
-      StackName: stackName
+      StackName: stackName,
     })
     .promise();
 
   spinner.succeed();
 
   saveEnvironmentConfig("dynamic", env, {
-    stack: stackName
+    stack: stackName,
   });
 };
 
@@ -164,7 +169,7 @@ const updateFunction = async (
   spinner.succeed();
 
   // You can only update a function if it already exists in the stack
-  if (!stack.Parameters.find(p => p.ParameterKey === functionKey)) {
+  if (!stack.Parameters.find((p) => p.ParameterKey === functionKey)) {
     console.error(
       chalk.red("Function does not exist. Please run a full deploy.")
     );
@@ -183,22 +188,22 @@ const updateFunction = async (
   spinner.start("Uploading lambda package to S3");
   await addS3KeyValues(env, functionsInfo);
   const uploadInfo = {};
-  Object.keys(functionsInfo).forEach(key => {
+  Object.keys(functionsInfo).forEach((key) => {
     uploadInfo[functionsInfo[key].zipFile] = functionsInfo[key].s3Key;
   });
   await uploadFilesToS3(AWS, conf.bucket, uploadInfo);
   spinner.succeed();
 
-  const parameters = stack.Parameters.map(p => {
+  const parameters = stack.Parameters.map((p) => {
     if (p.ParameterKey === `${functionName}S3Key`) {
       return {
         ParameterKey: p.ParameterKey,
-        ParameterValue: functionsInfo[functionName].s3Key
+        ParameterValue: functionsInfo[functionName].s3Key,
       };
     } else {
       return {
         ParameterKey: p.ParameterKey,
-        UsePreviousValue: true
+        UsePreviousValue: true,
       };
     }
     p.ParameterKey;
@@ -217,7 +222,7 @@ const updateFunction = async (
       ChangeSetName: changesetName,
       StackName: envConf.stack,
       Parameters: parameters,
-      Capabilities: ["CAPABILITY_NAMED_IAM"]
+      Capabilities: ["CAPABILITY_NAMED_IAM"],
     })
     .promise();
 
@@ -238,7 +243,7 @@ const updateFunction = async (
   const executed = await cloudformation
     .executeChangeSet({
       StackName: envConf.stack,
-      ChangeSetName: changesetName
+      ChangeSetName: changesetName,
     })
     .promise();
 
@@ -287,7 +292,7 @@ const updateStack = async (env, packageJson, conf, envConf) => {
   spinner.start("Uploading lambda packages to S3");
   await addS3KeyValues(env, functionsInfo);
   const uploadInfo = {};
-  Object.keys(functionsInfo).forEach(key => {
+  Object.keys(functionsInfo).forEach((key) => {
     uploadInfo[functionsInfo[key].zipFile] = functionsInfo[key].s3Key;
   });
   await uploadFilesToS3(AWS, conf.bucket, uploadInfo);
@@ -301,17 +306,17 @@ const updateStack = async (env, packageJson, conf, envConf) => {
   // Create and execute changeset
   // ----------------------------------
 
-  const paramsWithPrevious = Object.keys(parameters).map(key => {
+  const paramsWithPrevious = Object.keys(parameters).map((key) => {
     const ParameterValue = parameters[key].toString();
     if (ParameterValue === "Use Previous") {
       return {
         ParameterKey: key,
-        UsePreviousValue: true
+        UsePreviousValue: true,
       };
     } else {
       return {
         ParameterKey: key,
-        ParameterValue
+        ParameterValue,
       };
     }
   });
@@ -326,7 +331,7 @@ const updateStack = async (env, packageJson, conf, envConf) => {
       ChangeSetName: changesetName,
       StackName: envConf.stack,
       Parameters: paramsWithPrevious,
-      Capabilities: ["CAPABILITY_NAMED_IAM"]
+      Capabilities: ["CAPABILITY_NAMED_IAM"],
     })
     .promise();
 
@@ -347,7 +352,7 @@ const updateStack = async (env, packageJson, conf, envConf) => {
   const executed = await cloudformation
     .executeChangeSet({
       StackName: envConf.stack,
-      ChangeSetName: changesetName
+      ChangeSetName: changesetName,
     })
     .promise();
 
@@ -368,21 +373,21 @@ const addAutomaticParameterValues = (
 ) => {
   template.Parameters["operationsS3Bucket"] = {
     Description: "Bucket that holds the lambda deployment zip files",
-    Type: "String"
+    Type: "String",
   };
   parameters["operationsS3Bucket"] = conf.bucket;
 
   template.Parameters["environment"] = {
     Description: "Stack environment based on Git branch",
-    Type: "String"
+    Type: "String",
   };
   parameters["environment"] = env;
 
-  Object.keys(functionsInfo).forEach(key => {
+  Object.keys(functionsInfo).forEach((key) => {
     const paramName = `${key}S3Key`;
     template.Parameters[paramName] = {
       Description: `Path to the ${key} lambda code in the operations bucket`,
-      Type: "String"
+      Type: "String",
     };
     parameters[paramName] = functionsInfo[key].s3Key;
   });
