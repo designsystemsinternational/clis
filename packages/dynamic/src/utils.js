@@ -6,12 +6,6 @@ const chalk = require("chalk");
 const micromatch = require("micromatch");
 const md5File = require("md5-file");
 
-// Constants
-// ---------------------------------------------------
-
-const NO_DYNAMIC_CONFIG =
-  "No dynamic config found. Please run the init command to set up this package";
-
 // Config defaults
 // ---------------------------------------------------
 
@@ -103,7 +97,6 @@ const compileCloudformationTemplate = async conf => {
 };
 
 module.exports = {
-  NO_DYNAMIC_CONFIG,
   configDefaults,
   compileCloudformationTemplate,
   getFunctions,

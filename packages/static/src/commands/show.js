@@ -7,17 +7,24 @@ const {
   getStackName,
   loadConfig,
   getEnvironmentConfig,
-  getAWSWithProfile
+  getAWSWithProfile,
 } = require("@designsystemsinternational/cli-utils");
-const { NO_STATIC_CONFIG_OR_ENV_CONFIG } = require("../utils");
+const {
+  ACTION_NO_CONFIG,
+  ACTION_NO_ENV,
+} = require("@designsystemsinternational/cli-utils/src/constants");
 
-const show = async args => {
+const show = async (args) => {
   const { conf } = loadConfig("static");
   const env = await getEnvironment();
   const envConfig = getEnvironmentConfig(conf, env);
 
-  if (!conf || !envConfig) {
-    throw NO_STATIC_CONFIG_OR_ENV_CONFIG;
+  if (!conf) {
+    throw ACTION_NO_ENV;
+  }
+
+  if (!envConfig) {
+    throw ACTION_NO_ENV;
   }
 
   const commands = ["outputs"];
@@ -39,10 +46,10 @@ const showOutputs = async (conf, env, envConfig) => {
   spinner.succeed();
 
   const table = new Table({
-    head: ["Type", "URL"]
+    head: ["Type", "URL"],
   });
 
-  stack.Outputs.forEach(o =>
+  stack.Outputs.forEach((o) =>
     table.push([o.OutputKey, chalk.bold(o.OutputValue) + "\n" + o.Description])
   );
   console.log(table.toString());

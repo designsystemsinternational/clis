@@ -5,11 +5,17 @@ const {
   saveConfig,
   awsRegions,
   checkS3BucketExists,
-  getAWSWithProfile
+  getAWSWithProfile,
 } = require("@designsystemsinternational/cli-utils");
+const {
+  INIT_WITH_CONFIG,
+} = require("@designsystemsinternational/cli-utils/src/constants");
 
-const init = async args => {
+const init = async (args) => {
   const { conf, packageJson } = loadConfig("dynamic");
+  if (conf) {
+    throw INIT_WITH_CONFIG;
+  }
 
   // General questions
   // ----------------------------------
@@ -18,23 +24,23 @@ const init = async args => {
     {
       name: "profile",
       type: "input",
-      message: `Which AWS profile would you like to use for this project?`
+      message: `Which AWS profile would you like to use for this project?`,
     },
     {
       name: "region",
       type: "list",
       message: `Which AWS region would you like to use for this project?`,
-      choices: Object.keys(awsRegions).map(k => ({
+      choices: Object.keys(awsRegions).map((k) => ({
         name: awsRegions[k],
-        value: k
-      }))
+        value: k,
+      })),
     },
     {
       name: "bucket",
       type: "input",
       message: `Which bucket name would you like to use for the lambda ZIP files?`,
-      default: packageJson.name ? `${packageJson.name}-operations` : undefined
-    }
+      default: packageJson.name ? `${packageJson.name}-operations` : undefined,
+    },
   ]);
 
   const AWS = getAWSWithProfile(aws.profile, aws.region);

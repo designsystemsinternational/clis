@@ -1,7 +1,6 @@
 const utils = require("@designsystemsinternational/cli-utils");
 const ora = require("ora");
 const inquirer = require("inquirer");
-const { NO_DYNAMIC_CONFIG } = require("../../../src/utils");
 const { lambdaExists, zipExists } = require("../../utils");
 const { mockOra, mockUtils, mockInquirer } = require("../../mock");
 
@@ -130,14 +129,6 @@ describe("create", () => {
       expect(saveCalls[0][0]).toEqual("dynamic");
       expect(saveCalls[0][1]).toEqual("test");
       expect(saveCalls[0][2]).toEqual({ stack: "stack-test" });
-    });
-  });
-
-  describe("error", () => {
-    it("fails if no dynamic config", async () => {
-      utils.loadConfig.mockReturnValue({ name: "fake-package" });
-      const deploy = require("../../../src/commands/deploy");
-      await expect(deploy()).rejects.toEqual(NO_DYNAMIC_CONFIG);
     });
   });
 });

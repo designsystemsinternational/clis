@@ -10,7 +10,9 @@ const {
   getAWSWithProfile,
   monitorStack,
 } = require("@designsystemsinternational/cli-utils");
-const { NO_STATIC_CONFIG } = require("../utils");
+const {
+  ACTION_NO_CONFIG,
+} = require("@designsystemsinternational/cli-utils/src/constants");
 const s3Template = require("../cloudformation/s3.json");
 const cloudfrontTemplate = require("../cloudformation/cloudfront.json");
 
@@ -20,7 +22,7 @@ const cloudfrontTemplate = require("../cloudformation/cloudfront.json");
 const deploy = async (args) => {
   const { conf, packageJson } = loadConfig("static");
   if (!conf) {
-    throw NO_STATIC_CONFIG;
+    throw ACTION_NO_CONFIG;
   }
   const env = args && args.env ? args.env : await getEnvironment();
   const envConf = getEnvironmentConfig(conf, env);

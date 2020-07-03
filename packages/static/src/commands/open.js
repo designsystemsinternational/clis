@@ -8,18 +8,26 @@ const {
   getStackName,
   loadConfig,
   getEnvironmentConfig,
-  getAWSWithProfile
+  getAWSWithProfile,
 } = require("@designsystemsinternational/cli-utils");
-const { NO_STATIC_CONFIG_OR_ENV_CONFIG } = require("../utils");
+const {
+  ACTION_NO_CONFIG,
+  ACTION_NO_ENV,
+} = require("@designsystemsinternational/cli-utils/src/constants");
 
-const open = async args => {
+const open = async (args) => {
   const { conf } = loadConfig("static");
   const env = await getEnvironment();
   const envConfig = getEnvironmentConfig(conf, env);
 
-  if (!conf || !envConfig) {
-    throw NO_STATIC_CONFIG_OR_ENV_CONFIG;
+  if (!conf) {
+    throw ACTION_NO_ENV;
   }
+
+  if (!envConfig) {
+    throw ACTION_NO_ENV;
+  }
+
   const AWS = getAWSWithProfile(conf.profile, conf.region);
   const cloudformation = new AWS.CloudFormation();
 
@@ -31,7 +39,7 @@ const open = async args => {
   spinner.succeed();
 
   // looks for a (case insensitive) partial match
-  const match = stack.Outputs.find(o =>
+  const match = stack.Outputs.find((o) =>
     o.OutputKey.toLowerCase().includes((args.key || "").toLowerCase())
   );
 
@@ -42,11 +50,11 @@ const open = async args => {
         type: "list",
         name: "OutputValue",
         message: `Pick a url to open`,
-        choices: stack.Outputs.map(o => ({
+        choices: stack.Outputs.map((o) => ({
           name: `${o.OutputKey} (${o.OutputValue})`,
-          value: o.OutputValue
-        }))
-      }
+          value: o.OutputValue,
+        })),
+      },
     ]));
 
   const url = /^https?:\/\//.test(chosen.OutputValue)

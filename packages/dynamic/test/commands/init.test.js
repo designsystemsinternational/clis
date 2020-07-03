@@ -4,6 +4,9 @@ const utils = require("@designsystemsinternational/cli-utils");
 const ora = require("ora");
 const inquirer = require("inquirer");
 const { mockOra, mockUtils, mockInquirer } = require("../mock");
+const {
+  INIT_WITH_CONFIG
+} = require("@designsystemsinternational/cli-utils/src/constants");
 
 describe("init", () => {
   let cloudformation, s3;
@@ -15,7 +18,7 @@ describe("init", () => {
     mockInquirer(inquirer);
   });
 
-  it.only("should set up config and create S3 bucket", async () => {
+  it("saved config and creates S3 bucket", async () => {
     utils.loadConfig.mockReturnValue({
       conf: null,
       packageJson: {
@@ -45,5 +48,17 @@ describe("init", () => {
       region: "us-east-1",
       bucket: "test-operations"
     });
+  });
+
+  it("fails if repo already has dynamic config", async () => {
+    utils.loadConfig.mockReturnValue({
+      conf: {},
+      packageJson: {
+        name: "fake-package",
+        dynamic: {}
+      }
+    });
+    const init = require("../../src/commands/init");
+    await expect(init()).rejects.toEqual(INIT_WITH_CONFIG);
   });
 });

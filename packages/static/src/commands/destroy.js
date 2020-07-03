@@ -9,14 +9,22 @@ const {
   monitorStack,
   deleteEnvironmentConfig,
 } = require("@designsystemsinternational/cli-utils");
-const { NO_STATIC_CONFIG_OR_ENV_CONFIG } = require("../utils");
+const {
+  ACTION_NO_CONFIG,
+  ACTION_NO_ENV,
+} = require("@designsystemsinternational/cli-utils/src/constants");
 
 const destroy = async (args) => {
   const { conf, packageJson } = loadConfig("static");
   const env = args && args.env ? args.env : await getEnvironment();
-  const envConf = getEnvironmentConfig(conf, env);
-  if (!conf || !envConf) {
-    throw NO_STATIC_CONFIG_OR_ENV_CONFIG;
+  const envConfig = getEnvironmentConfig(conf, env);
+
+  if (!conf) {
+    throw ACTION_NO_ENV;
+  }
+
+  if (!envConfig) {
+    throw ACTION_NO_ENV;
   }
 
   const AWS = getAWSWithProfile(conf.profile, conf.region);
@@ -25,7 +33,7 @@ const destroy = async (args) => {
     {
       type: "confirm",
       name: "confirm",
-      message: `Warning! This will delete all files and resources in the ${envConf.stack} stack. Continue?`,
+      message: `Warning! This will delete all files and resources in the ${envConfig.stack} stack. Continue?`,
     },
   ]);
 
@@ -39,7 +47,7 @@ const destroy = async (args) => {
     [
       "s3",
       "rm",
-      `s3://${envConf.bucket}`,
+      `s3://${envConfig.bucket}`,
       "--profile",
       conf.profile,
       "--region",
@@ -53,10 +61,10 @@ const destroy = async (args) => {
 
   // Cloudformation!
   const cloudformation = new AWS.CloudFormation();
-  await cloudformation.deleteStack({ StackName: envConf.stack }).promise();
+  await cloudformation.deleteStack({ StackName: envConfig.stack }).promise();
 
   // Listen for changes to cloudformation
-  await monitorStack(AWS, envConf.stack);
+  await monitorStack(AWS, envConfig.stack);
 
   deleteEnvironmentConfig("static", env);
 
