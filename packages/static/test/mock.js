@@ -5,7 +5,7 @@ const mockOra = () => {
   jest.doMock("ora", () => jest.fn().mockReturnValue({ start }));
 };
 
-const mockInquirer = mod => {
+const mockInquirer = (mod) => {
   jest.spyOn(mod, "prompt");
 };
 
@@ -13,7 +13,7 @@ const mockExeca = () => {
   jest.doMock("execa", () => jest.fn().mockReturnValue(() => {}));
 };
 
-const mockUtils = mod => {
+const mockUtils = (mod) => {
   jest.spyOn(mod, "loadConfig");
   jest.spyOn(mod, "saveConfig").mockReturnValue(true);
   jest.spyOn(mod, "saveEnvironmentConfig").mockReturnValue(true);
@@ -25,12 +25,12 @@ const mockUtils = mod => {
   jest.spyOn(mod, "checkS3BucketExists");
 
   const mockS3 = {
-    createBucket: jest.fn().mockReturnValue({ promise: jest.fn() })
+    createBucket: jest.fn().mockReturnValue({ promise: jest.fn() }),
   };
 
   const mockCloudformation = {
     createStack: jest.fn().mockReturnValue({
-      promise: jest.fn().mockReturnValue({ StackId: 1 })
+      promise: jest.fn().mockReturnValue({ StackId: 1 }),
     }),
     deleteStack: jest.fn().mockReturnValue({ promise: jest.fn() }),
     createChangeSet: jest.fn().mockReturnValue({ promise: jest.fn() }),
@@ -40,18 +40,18 @@ const mockUtils = mod => {
         return {
           Stacks: [
             {
-              Outputs: [{ OutputKey: "a", OutputValue: "b", Description: "c" }]
-            }
-          ]
+              Outputs: [{ OutputKey: "a", OutputValue: "b", Description: "c" }],
+            },
+          ],
         };
-      })
+      }),
     }),
-    waitFor: jest.fn().mockReturnValue({ promise: jest.fn() })
+    waitFor: jest.fn().mockReturnValue({ promise: jest.fn() }),
   };
 
   jest.spyOn(mod, "getAWSWithProfile").mockReturnValue({
     CloudFormation: jest.fn(() => mockCloudformation),
-    S3: jest.fn(() => mockS3)
+    S3: jest.fn(() => mockS3),
   });
 
   return { mockCloudformation, mockS3 };
@@ -61,5 +61,5 @@ module.exports = {
   mockOra,
   mockUtils,
   mockInquirer,
-  mockExeca
+  mockExeca,
 };
