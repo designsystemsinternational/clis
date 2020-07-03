@@ -38,12 +38,16 @@ const mockUtils = (mod, ret = {}) => {
     .spyOn(mod, "uploadFilesToS3")
     .mockReturnValue(val(ret, "uploadFilesToS3", true));
   jest
+    .spyOn(mod, "emptyS3Bucket")
+    .mockReturnValue(val(ret, "emptyS3Bucket", true));
+  jest
     .spyOn(mod, "monitorStack")
     .mockReturnValue(val(ret, "monitorStack", true));
   jest
     .spyOn(mod, "waitForChangeset")
     .mockReturnValue(val(ret, "waitForChangeset", true));
   jest.spyOn(mod, "checkS3BucketExists");
+  jest.spyOn(mod, "logTable").mockReturnValue(val(ret, "logTable", true));
 
   const mockS3 = {
     createBucket: func(ret.createBucket)

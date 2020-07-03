@@ -1,4 +1,5 @@
 const { join, basename } = require("path");
+const Table = require("cli-table3");
 const {
   readFileSync,
   writeFileSync,
@@ -152,6 +153,25 @@ const uploadFilesToS3 = async (AWS, bucket, files) => {
     uploadFileToS3(AWS, bucket, key, files[key])
   );
   await Promise.all(promises);
+};
+
+const emptyS3Bucket = async (AWS, bucket, prefix) => {
+  const s3 = new AWS.S3();
+  const listParams = { Bucket: bucket };
+  if (prefix) {
+    listParams.Prefix = prefix;
+  }
+  const objects = await s3.listObjectsV2(listParams).promise();
+  if (objects.Contents.length === 0) return;
+
+  await s3
+    .deleteObjects({
+      Bucket: bucket,
+      Delete: { Objects: objects.Contents.map(({ Key }) => ({ Key })) }
+    })
+    .promise();
+
+  if (objects.IsTruncated) await emptyS3Bucket(bucket, prefix);
 };
 
 // Cloudformation utils
@@ -325,10 +345,16 @@ const timeout = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 const newChangesetName = () => {
   const now = new Date();
-  return `deploy-${now.getFullYear()}-${now.getMonth() +
-    1}-${now.getDate()}-${now.getHours()}-${now.getMinutes()}-${now.getSeconds()}`;
+  return `deploy-${now.getFullYear()}-${
+    now.getMonth() + 1
+  }-${now.getDate()}-${now.getHours()}-${now.getMinutes()}-${now.getSeconds()}`;
 };
-``;
+
+const logTable = (head, rows) => {
+  const table = new Table({ head });
+  rows.forEach(row => table.push(row));
+  console.log(table.toString());
+};
 
 module.exports = {
   loadConfig,
@@ -343,8 +369,10 @@ module.exports = {
   zipWebpackOutput,
   uploadFileToS3,
   uploadFilesToS3,
+  emptyS3Bucket,
   monitorStack,
   paramsToInquirer,
   newChangesetName,
-  waitForChangeset
+  waitForChangeset,
+  logTable
 };

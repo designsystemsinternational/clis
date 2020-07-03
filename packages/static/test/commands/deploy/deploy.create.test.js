@@ -15,7 +15,7 @@ const {
 } = require("@designsystemsinternational/cli-utils/test/expectations");
 
 describe("deploy", () => {
-  let aws, cloudformation, conf;
+  let aws;
   beforeEach(() => {
     aws = mockUtils(utils, {
       loadConfig: {
@@ -36,7 +36,6 @@ describe("deploy", () => {
         ],
       },
     });
-    cloudformation = aws.mockCloudformation;
     mockOra();
     mockInquirer(inquirer);
     mockExeca();

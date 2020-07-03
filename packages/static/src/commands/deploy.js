@@ -1,6 +1,5 @@
 const execa = require("execa");
 const ora = require("ora");
-const Table = require("cli-table3");
 const inquirer = require("inquirer");
 const {
   loadConfig,
@@ -9,6 +8,7 @@ const {
   saveEnvironmentConfig,
   getAWSWithProfile,
   monitorStack,
+  logTable,
 } = require("@designsystemsinternational/cli-utils");
 const {
   ACTION_NO_CONFIG,
@@ -146,15 +146,15 @@ const createStack = async (env, conf, packageJson) => {
     .describeStacks({ StackName: initAnswers.stackName })
     .promise();
 
-  const table = new Table({
-    head: ["Key", "Value", "Description"],
-  });
-
-  stacks.Stacks[0].Outputs.forEach((o) =>
-    table.push([o.OutputKey, o.OutputValue, o.Description])
+  logTable(
+    ["Key", "Value", "Description"],
+    stacks.Stacks[0].Outputs.map((o) => [
+      o.OutputKey,
+      o.OutputValue,
+      o.Description,
+    ])
   );
 
-  console.log(table.toString());
   console.log("Now run deploy again to upload the files");
 };
 

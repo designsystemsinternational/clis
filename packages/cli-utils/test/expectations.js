@@ -6,16 +6,37 @@ const expectSaveEnvironmentConfig = (utils, cli, env, conf) => {
   expect(calls[0][2]).toEqual(conf);
 };
 
-const expectCreateStack = (aws, stackName, templateBody) => {
+const expectDeleteEnvironmentConfig = (utils, cli, env) => {
+  const saveCalls = utils.deleteEnvironmentConfig.mock.calls;
+  expect(saveCalls.length).toBe(1);
+  expect(saveCalls[0]).toEqual([cli, env]);
+};
+
+const expectEmptyS3Bucket = (utils, bucket) => {
+  const saveCalls = utils.emptyS3Bucket.mock.calls;
+  expect(saveCalls.length).toBe(1);
+  expect(saveCalls[0][1]).toEqual(bucket);
+};
+
+const expectCreateStack = (aws, stackName) => {
   const { calls } = aws.mockCloudformation.createStack.mock;
   expect(calls.length).toBe(1);
-  const call = calls[0];
-  expect(call[0].StackName).toEqual(stackName);
-  const tmpl = JSON.parse(call[0].TemplateBody);
-  return [call, tmpl];
+  expect(calls[0][0].StackName).toEqual(stackName);
+  const tmpl = JSON.parse(calls[0][0].TemplateBody);
+  return [calls[0], tmpl];
+};
+
+const expectDeleteStack = (aws, stackName) => {
+  const { calls } = aws.mockCloudformation.deleteStack.mock;
+  expect(calls.length).toBe(1);
+  expect(calls[0][0].StackName).toEqual(stackName);
+  return calls[0];
 };
 
 module.exports = {
   expectSaveEnvironmentConfig,
-  expectCreateStack
+  expectDeleteEnvironmentConfig,
+  expectEmptyS3Bucket,
+  expectCreateStack,
+  expectDeleteStack
 };
