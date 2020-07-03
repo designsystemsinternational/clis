@@ -11,7 +11,8 @@ const expectCreateStack = (aws, stackName, templateBody) => {
   expect(calls.length).toBe(1);
   const call = calls[0];
   expect(call[0].StackName).toEqual(stackName);
-  return call;
+  const tmpl = JSON.parse(call[0].TemplateBody);
+  return [call, tmpl];
 };
 
 module.exports = {

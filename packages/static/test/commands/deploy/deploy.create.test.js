@@ -36,7 +36,6 @@ describe("deploy", () => {
         ],
       },
     });
-    console.log(aws.mockCloudformation.createStack);
     cloudformation = aws.mockCloudformation;
     mockOra();
     mockInquirer(inquirer);
@@ -68,7 +67,7 @@ describe("deploy", () => {
       });
     });
 
-    it.only("runs createStack", async () => {
+    it("runs createStack", async () => {
       inquirer.prompt
         .mockResolvedValueOnce({
           stackName: "stack-test",
@@ -85,8 +84,7 @@ describe("deploy", () => {
       const deploy = require("../../../src/commands/deploy");
       await deploy();
 
-      const call = expectCreateStack(aws, "stack-test");
-      const tmpl = JSON.parse(call[0].TemplateBody);
+      const [call, tmpl] = expectCreateStack(aws, "stack-test");
       expect(Object.keys(tmpl.Resources)).toEqual([
         "S3Bucket",
         "CloudfrontDistribution",
@@ -125,8 +123,7 @@ describe("deploy", () => {
       const deploy = require("../../../src/commands/deploy");
       await deploy();
 
-      const { calls } = cloudformation.createStack.mock;
-      const tmpl = JSON.parse(calls[0][0].TemplateBody);
+      const [call, tmpl] = expectCreateStack(aws, "stack-test");
       expect(Object.keys(tmpl.Resources)).toEqual(["S3Bucket"]);
       expect(Object.keys(tmpl.Outputs)).toEqual(["S3URL"]);
     });
