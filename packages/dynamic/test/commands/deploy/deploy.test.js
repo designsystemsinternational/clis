@@ -2,7 +2,9 @@ const utils = require("@designsystemsinternational/cli-utils");
 const {
   ACTION_NO_CONFIG
 } = require("@designsystemsinternational/cli-utils/src/constants");
-const { mockUtils } = require("../../mock");
+const {
+  mockUtils
+} = require("@designsystemsinternational/cli-utils/test/mock");
 
 describe("deploy", () => {
   describe("error", () => {

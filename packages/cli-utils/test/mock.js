@@ -38,6 +38,9 @@ const mockUtils = (mod, ret = {}) => {
     .spyOn(mod, "uploadFilesToS3")
     .mockReturnValue(val(ret, "uploadFilesToS3", true));
   jest
+    .spyOn(mod, "uploadDirToS3")
+    .mockReturnValue(val(ret, "uploadDirToS3", true));
+  jest
     .spyOn(mod, "emptyS3Bucket")
     .mockReturnValue(val(ret, "emptyS3Bucket", true));
   jest
@@ -50,7 +53,9 @@ const mockUtils = (mod, ret = {}) => {
   jest.spyOn(mod, "logTable").mockReturnValue(val(ret, "logTable", true));
 
   const mockS3 = {
-    createBucket: func(ret.createBucket)
+    createBucket: func(ret.createBucket),
+    listObjects: func(val(ret, "listObjects", { data: { Contents: [] } })),
+    putObject: func(val(ret, "putObject", { data: {} }))
   };
 
   const mockCloudformation = {
@@ -58,7 +63,7 @@ const mockUtils = (mod, ret = {}) => {
     deleteStack: func(val(ret, "deleteStack")),
     createChangeSet: func(val(ret, "createChangeSet")),
     executeChangeSet: func(val(ret, "executeChangeSet")),
-    describeStacks: func(val(ret, "describeStacks")),
+    describeStacks: func(val(ret, "describeStacks", { Stacks: [] })),
     waitFor: func(val(ret, "waitFor"))
   };
 

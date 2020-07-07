@@ -1,3 +1,10 @@
+const expectSaveConfig = (utils, cli, conf) => {
+  const { calls } = utils.saveConfig.mock;
+  expect(calls.length).toBe(1);
+  expect(calls[0][0]).toEqual(cli);
+  expect(calls[0][1]).toEqual(conf);
+};
+
 const expectSaveEnvironmentConfig = (utils, cli, env, conf) => {
   const { calls } = utils.saveEnvironmentConfig.mock;
   expect(calls.length).toBe(1);
@@ -34,6 +41,7 @@ const expectDeleteStack = (aws, stackName) => {
 };
 
 module.exports = {
+  expectSaveConfig,
   expectSaveEnvironmentConfig,
   expectDeleteEnvironmentConfig,
   expectEmptyS3Bucket,

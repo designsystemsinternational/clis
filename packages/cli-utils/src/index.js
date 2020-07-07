@@ -9,6 +9,8 @@ const {
 const archiver = require("archiver");
 const gitBranch = require("git-branch");
 const AWS = require("aws-sdk");
+const s3 = require("s3");
+const micromatch = require("micromatch");
 
 // Config file
 // ---------------------------------------------------
@@ -154,6 +156,48 @@ const uploadFilesToS3 = async (AWS, bucket, files) => {
   );
   await Promise.all(promises);
 };
+
+// A function to upload an entire directory to S3.
+// fileParams allows you to specify S3 params for certain files:
+// fileParams = [
+// { match: '*.json', params: { CacheControl: 'public' } }
+// { match: '*.html', params: { CacheControl: 'max-age=500' } }
+//]
+const uploadDirToS3 = async (AWS, localDir, bucket, fileParams) =>
+  new Promise((resolve, reject) => {
+    const getS3Params = (localFile, stat, callback) => {
+      const params = {
+        ACL: "public-read",
+        CacheControl: "no-store"
+      };
+      if (Array.isArray(fileParams)) {
+        const file = fileParams.find(p =>
+          micromatch.isMatch(localFile, p.match)
+        );
+        if (file && file.params) {
+          Object.assign(params, file.params);
+        }
+      }
+      // Pass null for params to not upload this file
+      callback(null, params);
+    };
+    const s3Client = new AWS.S3();
+    const client = s3.createClient({ s3Client });
+    const uploader = client.uploadDir({
+      localDir,
+      getS3Params,
+      s3Params: { Bucket: bucket }
+    });
+    uploader.on("error", err => {
+      reject(err.stack);
+    });
+    uploader.on("progress", () => {
+      console.log("progress", uploader.progressAmount, uploader.progressTotal);
+    });
+    uploader.on("end", () => {
+      resolve();
+    });
+  });
 
 const emptyS3Bucket = async (AWS, bucket, prefix) => {
   const s3 = new AWS.S3();
@@ -369,6 +413,7 @@ module.exports = {
   zipWebpackOutput,
   uploadFileToS3,
   uploadFilesToS3,
+  uploadDirToS3,
   emptyS3Bucket,
   monitorStack,
   paramsToInquirer,
