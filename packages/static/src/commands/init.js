@@ -9,21 +9,6 @@ const {
   INIT_WITH_CONFIG
 } = require("@designsystemsinternational/cli-utils/src/constants");
 
-const defaultFileParams = [
-  {
-    match: ["!*.html", "!*.json"],
-    params: {
-      CacheControl: "public, max-age=31536000, immutable"
-    }
-  },
-  {
-    match: ["*.html", "*.json"],
-    params: {
-      CacheControl: "public, max-age=300"
-    }
-  }
-];
-
 const init = async () => {
   const { conf, packageJson } = loadConfig("static");
   if (conf) {
@@ -74,10 +59,7 @@ const init = async () => {
   }
 
   const spinner = ora("Saving config file").start();
-  saveConfig(
-    "static",
-    Object.assign({}, { fileParams: defaultFileParams }, answers)
-  );
+  saveConfig("static", answers);
   spinner.succeed();
 };
 

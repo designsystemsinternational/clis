@@ -16,6 +16,7 @@ const {
 } = require("@designsystemsinternational/cli-utils/src/constants");
 const s3Template = require("../cloudformation/s3.json");
 const cloudfrontTemplate = require("../cloudformation/cloudfront.json");
+const { defaultFileParams } = require("../utils");
 
 // Main
 // ---------------------------------------------------------------------
@@ -53,18 +54,6 @@ const createStack = async (env, conf, packageJson) => {
       name: "createCloudfront",
       message: "Do you want to set up a Cloudfront distribution?",
       default: true
-    },
-    {
-      type: "input",
-      name: "htmlCache",
-      message: "Cache time for HTML files (in seconds)",
-      default: "300"
-    },
-    {
-      type: "input",
-      name: "assetsCache",
-      message: "Cache time for all other assets (in seconds)",
-      default: "31536000"
     }
   ]);
 
@@ -135,8 +124,7 @@ const createStack = async (env, conf, packageJson) => {
   saveEnvironmentConfig("static", env, {
     stack: initAnswers.stackName,
     bucket: parameters.S3BucketName,
-    htmlCache: initAnswers.htmlCache,
-    assetsCache: initAnswers.assetsCache
+    fileParams: defaultFileParams
   });
   spinner.succeed();
 

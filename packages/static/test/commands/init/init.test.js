@@ -46,21 +46,7 @@ describe("init", () => {
       buildDir: "build",
       shouldRunBuildCommand: true,
       buildCommand: "npm run build",
-      bucket: "test-operations",
-      fileParams: [
-        {
-          match: ["!*.html", "!*.json"],
-          params: {
-            CacheControl: "public, max-age=31536000, immutable"
-          }
-        },
-        {
-          match: ["*.html", "*.json"],
-          params: {
-            CacheControl: "public, max-age=300"
-          }
-        }
-      ]
+      bucket: "test-operations"
     });
   });
 

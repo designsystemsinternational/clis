@@ -7,12 +7,13 @@ const {
   mockOra,
   mockUtils,
   mockInquirer,
-  mockExeca,
+  mockExeca
 } = require("@designsystemsinternational/cli-utils/test/mock");
 const {
   expectSaveEnvironmentConfig,
-  expectCreateStack,
+  expectCreateStack
 } = require("@designsystemsinternational/cli-utils/test/expectations");
+const { defaultFileParams } = require("../../../src/utils");
 
 describe("deploy", () => {
   let aws;
@@ -22,19 +23,19 @@ describe("deploy", () => {
         conf: {
           profile: "fake-profile",
           region: "fake-region",
-          buildDir: "test/build",
+          buildDir: "test/build"
         },
         packageJson: {
-          name: "fake-package",
-        },
+          name: "fake-package"
+        }
       },
       describeStacks: {
         Stacks: [
           {
-            Outputs: [{ OutputKey: "a", OutputValue: "b", Description: "c" }],
-          },
-        ],
-      },
+            Outputs: [{ OutputKey: "a", OutputValue: "b", Description: "c" }]
+          }
+        ]
+      }
     });
     mockOra();
     mockInquirer(inquirer);
@@ -46,14 +47,12 @@ describe("deploy", () => {
       inquirer.prompt
         .mockResolvedValueOnce({
           stackName: "stack-test",
-          createCloudfront: true,
-          htmlCache: "300",
-          assetsCache: "31536000",
+          createCloudfront: true
         })
         .mockResolvedValueOnce({
           S3BucketName: "test-bucket",
           IndexPage: "index.html",
-          ErrorPage: "index.html",
+          ErrorPage: "index.html"
         });
 
       const deploy = require("../../../src/commands/deploy");
@@ -61,8 +60,7 @@ describe("deploy", () => {
       expectSaveEnvironmentConfig(utils, "static", "test", {
         stack: "stack-test",
         bucket: "test-bucket",
-        htmlCache: "300",
-        assetsCache: "31536000",
+        fileParams: defaultFileParams
       });
     });
 
@@ -70,14 +68,12 @@ describe("deploy", () => {
       inquirer.prompt
         .mockResolvedValueOnce({
           stackName: "stack-test",
-          createCloudfront: true,
-          htmlCache: "300",
-          assetsCache: "31536000",
+          createCloudfront: true
         })
         .mockResolvedValueOnce({
           S3BucketName: "test-bucket",
           IndexPage: "index.html",
-          ErrorPage: "index.html",
+          ErrorPage: "index.html"
         });
 
       const deploy = require("../../../src/commands/deploy");
@@ -86,22 +82,22 @@ describe("deploy", () => {
       const [call, tmpl] = expectCreateStack(aws, "stack-test");
       expect(Object.keys(tmpl.Resources)).toEqual([
         "S3Bucket",
-        "CloudfrontDistribution",
+        "CloudfrontDistribution"
       ]);
       expect(Object.keys(tmpl.Outputs)).toEqual(["S3URL", "CloudfrontURL"]);
       expect(call[0].Parameters).toEqual([
         {
           ParameterKey: "S3BucketName",
-          ParameterValue: "test-bucket",
+          ParameterValue: "test-bucket"
         },
         {
           ParameterKey: "IndexPage",
-          ParameterValue: "index.html",
+          ParameterValue: "index.html"
         },
         {
           ParameterKey: "ErrorPage",
-          ParameterValue: "index.html",
-        },
+          ParameterValue: "index.html"
+        }
       ]);
     });
 
@@ -109,14 +105,12 @@ describe("deploy", () => {
       inquirer.prompt
         .mockResolvedValueOnce({
           stackName: "stack-test",
-          createCloudfront: false,
-          htmlCache: "300",
-          assetsCache: "31536000",
+          createCloudfront: false
         })
         .mockResolvedValueOnce({
           S3BucketName: "test-bucket",
           IndexPage: "index.html",
-          ErrorPage: "index.html",
+          ErrorPage: "index.html"
         });
 
       const deploy = require("../../../src/commands/deploy");

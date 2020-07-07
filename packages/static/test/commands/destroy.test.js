@@ -8,12 +8,12 @@ const {
   mockOra,
   mockUtils,
   mockInquirer,
-  mockExeca,
+  mockExeca
 } = require("@designsystemsinternational/cli-utils/test/mock");
 const {
   expectDeleteStack,
   expectDeleteEnvironmentConfig,
-  expectEmptyS3Bucket,
+  expectEmptyS3Bucket
 } = require("@designsystemsinternational/cli-utils/test/expectations");
 
 describe("destroy", () => {
@@ -28,16 +28,14 @@ describe("destroy", () => {
           environments: {
             test: {
               stack: "stack-test",
-              bucket: "bucket-test",
-              htmlCache: "300",
-              assetsCache: "31536000",
-            },
-          },
+              bucket: "bucket-test"
+            }
+          }
         },
         packageJson: {
-          name: "fake-package",
-        },
-      },
+          name: "fake-package"
+        }
+      }
     });
     mockOra();
     mockInquirer(inquirer);
