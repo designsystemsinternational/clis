@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.0.0
+
+- The package no longer relies on `aws-cli`. S3 `sync` and emptying of bucket is now done in pure Node.
+- We now show an error message if user runs `init` in a repo with a config
+- `htmlCache` and `assetsCache` is now replaced with a `fileParams` key that makes it possible to control all metadata for different types of files for S3.
+- Show confirm dialog before uploading files on `deploy`
+- Show spinner on `deploy` and `destroy`
+
 ## 2.1.7
 
 - `static` now uses `yargs` which produces better documentation
