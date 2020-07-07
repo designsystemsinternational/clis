@@ -22,7 +22,7 @@ describe("init", () => {
     mockInquirer(inquirer);
   });
 
-  it("saves config", async () => {
+  it("saves config with default asset s3Params", async () => {
     utils.loadConfig.mockReturnValue({
       conf: null,
       packageJson: {
@@ -46,7 +46,21 @@ describe("init", () => {
       buildDir: "build",
       shouldRunBuildCommand: true,
       buildCommand: "npm run build",
-      bucket: "test-operations"
+      bucket: "test-operations",
+      fileParams: [
+        {
+          match: ["!*.html", "!*.json"],
+          params: {
+            CacheControl: "public, max-age=31536000, immutable"
+          }
+        },
+        {
+          match: ["*.html", "*.json"],
+          params: {
+            CacheControl: "public, max-age=300"
+          }
+        }
+      ]
     });
   });
 

@@ -186,13 +186,16 @@ const uploadDirToS3 = async (AWS, localDir, bucket, fileParams) =>
     const uploader = client.uploadDir({
       localDir,
       getS3Params,
-      s3Params: { Bucket: bucket }
+      s3Params: { Bucket: bucket, Prefix: "" }
     });
     uploader.on("error", err => {
       reject(err.stack);
     });
     uploader.on("progress", () => {
       console.log("progress", uploader.progressAmount, uploader.progressTotal);
+    });
+    uploader.on("fileUploadStart", (localFilePath, s3Key) => {
+      console.log("file upload start", localFilePath, s3Key);
     });
     uploader.on("end", () => {
       resolve();
