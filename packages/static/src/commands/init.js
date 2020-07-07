@@ -3,10 +3,10 @@ const ora = require("ora");
 const {
   loadConfig,
   saveConfig,
-  awsRegions,
+  awsRegions
 } = require("@designsystemsinternational/cli-utils");
 const {
-  INIT_WITH_CONFIG,
+  INIT_WITH_CONFIG
 } = require("@designsystemsinternational/cli-utils/src/constants");
 
 const init = async () => {
@@ -20,38 +20,38 @@ const init = async () => {
       name: "profile",
       type: "input",
       message: "Name of the AWS profile you want to use",
-      default: "none",
+      default: "none"
     },
     {
       name: "region",
       type: "list",
       message: "Name of AWS region for the S3 bucket",
-      choices: Object.keys(awsRegions).map((k) => ({
+      choices: Object.keys(awsRegions).map(k => ({
         name: awsRegions[k],
-        value: k,
-      })),
+        value: k
+      }))
     },
     {
       name: "buildDir",
       type: "input",
       message: "Path to your build folder",
-      default: "dist",
+      default: "dist"
     },
     {
       name: "shouldRunBuildCommand",
       type: "confirm",
       message: "Do you want to run a build command before deploying?",
-      default: true,
+      default: true
     },
     {
       name: "buildCommand",
       type: "input",
-      when: (answers) => {
+      when: answers => {
         return answers.shouldRunBuildCommand;
       },
       message: "Build command",
-      default: "npm run build",
-    },
+      default: "npm run build"
+    }
   ]);
 
   if (answers.profile === "none" || answers.profile === "") {

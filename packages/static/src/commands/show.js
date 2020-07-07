@@ -1,6 +1,5 @@
 const pack = require("../../package.json");
 const ora = require("ora");
-const Table = require("cli-table3");
 const chalk = require("chalk");
 const {
   getEnvironment,
@@ -8,6 +7,7 @@ const {
   loadConfig,
   getEnvironmentConfig,
   getAWSWithProfile,
+  logTable,
 } = require("@designsystemsinternational/cli-utils");
 const {
   ACTION_NO_CONFIG,
@@ -45,14 +45,13 @@ const showOutputs = async (conf, env, envConfig) => {
   const stack = res.Stacks[0];
   spinner.succeed();
 
-  const table = new Table({
-    head: ["Type", "URL"],
-  });
-
-  stack.Outputs.forEach((o) =>
-    table.push([o.OutputKey, chalk.bold(o.OutputValue) + "\n" + o.Description])
+  logTable(
+    ["Type", "URL"],
+    stack.Outputs.map((o) => [
+      o.OutputKey,
+      chalk.bold(o.OutputValue) + "\n" + o.Description,
+    ])
   );
-  console.log(table.toString());
 };
 
 show.description =

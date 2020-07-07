@@ -27,7 +27,7 @@ $ static init
 
 ## Deploying
 
-To upload a site, run the `deploy` command. If this is the first time you are running the command, a new environment will be set up based on your Git branch. Then, it will upload all files in the specified build folder to the environment's S3 bucket. Keep in mind that you will need to wait until the `.html` cache time has expired to see your new site via the Cloudfront distribution.
+To upload a site, run the `deploy` command. If this is the first time you are running the command, a new environment will be set up based on your Git branch. Then, it will upload all files in the specified build folder to the environment's S3 bucket.
 
 ```
 $ static deploy
@@ -38,6 +38,51 @@ You can optionally run the command with a `--env` parameter to ignore the Git br
 ```
 $ static deploy --env somename
 ```
+
+## Configuration file
+
+The static configuration file resides inside `package.json` and will automatically be created when running `static init` and updated after creating an environment with `static deploy`. It has the following keys, many of whom will be pre-populated by `static` when running `init` or `deploy`.
+
+- `profile` - Name of the AWS profile in the AWS credentials file to use
+- `region` - Region where the CloudFormation stacks will be created
+- `buildDir` - Name of the folder where the build files of the website are located
+- `shouldRunBuildCommand` - A boolean indicating whether `static` should run a build command during `static deploy`
+- `buildCommand` - The command to run to generate the website files
+- `environments` - An object with environment-specific settings
+  - `stack` - Name of the CloudFormation stack to use for this environment
+  - `bucket` - Name of the S3 bucket to use for this environment
+  - `fileParams` - An array of objects that defines extra metadata for the uploaded files. This can be used to control the cache, content type, or any other parameter allowed by S3. See below.
+
+## File params
+
+When deploying the website, the `fileParams` setting can be used to control certain S3 metadata for the files in this environment. The default `fileParams` array makes sure that `.html` and `.json` files have a faster cache expiration than other files (which are expected to be fingerprinted).
+
+```json
+{
+  "static": {
+    "environments": {
+      "production": {
+        "fileParams": [
+          {
+            "match": ["**/*.(html|json)"],
+            "params": {
+              "CacheControl": "public, max-age=300"
+            }
+          },
+          {
+            "match": ["!**/*.(html|json)"],
+            "params": {
+              "CacheControl": "public, max-age=31536000, immutable"
+            }
+          }
+        ]
+      }
+    }
+  }
+}
+```
+
+Every file will be matched against the `.match` attribute, and the first item in the array that matches will add its `.params` to the S3 `putObject` call when uploading the file.
 
 ## Commands
 

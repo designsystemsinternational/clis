@@ -1,6 +1,5 @@
 const execa = require("execa");
 const ora = require("ora");
-const Table = require("cli-table3");
 const inquirer = require("inquirer");
 const {
   loadConfig,
@@ -9,17 +8,20 @@ const {
   saveEnvironmentConfig,
   getAWSWithProfile,
   monitorStack,
+  logTable,
+  uploadDirToS3
 } = require("@designsystemsinternational/cli-utils");
 const {
-  ACTION_NO_CONFIG,
+  ACTION_NO_CONFIG
 } = require("@designsystemsinternational/cli-utils/src/constants");
 const s3Template = require("../cloudformation/s3.json");
 const cloudfrontTemplate = require("../cloudformation/cloudfront.json");
+const { defaultFileParams } = require("../utils");
 
 // Main
 // ---------------------------------------------------------------------
 
-const deploy = async (args) => {
+const deploy = async args => {
   const { conf, packageJson } = loadConfig("static");
   if (!conf) {
     throw ACTION_NO_CONFIG;
@@ -45,26 +47,14 @@ const createStack = async (env, conf, packageJson) => {
       type: "input",
       name: "stackName",
       message: `Name of the new Cloudformation stack`,
-      default: `${packageJson.name}-${env}`,
+      default: `${packageJson.name}-${env}`
     },
     {
       type: "confirm",
       name: "createCloudfront",
       message: "Do you want to set up a Cloudfront distribution?",
-      default: true,
-    },
-    {
-      type: "input",
-      name: "htmlCache",
-      message: "Cache time for HTML files (in seconds)",
-      default: "300",
-    },
-    {
-      type: "input",
-      name: "assetsCache",
-      message: "Cache time for all other assets (in seconds)",
-      default: "31536000",
-    },
+      default: true
+    }
   ]);
 
   // We don't prompt for these Cloudformation params,
@@ -75,7 +65,7 @@ const createStack = async (env, conf, packageJson) => {
   // If a parameter is also in dontAsk, this default will
   // be passed directly to CloudFormation.
   const dynamicDefaults = {
-    S3BucketName: initAnswers.stackName,
+    S3BucketName: initAnswers.stackName
   };
 
   // Combine cloudformation templates if needed
@@ -92,15 +82,15 @@ const createStack = async (env, conf, packageJson) => {
 
   // Add questions based on Cloudformation parameters
   const templateQuestions = Object.keys(createTemplate.Parameters)
-    .filter((key) => !dontAsk.includes(key))
-    .map((key) => {
+    .filter(key => !dontAsk.includes(key))
+    .map(key => {
       const obj = createTemplate.Parameters[key];
       return {
         name: key,
         type: obj.AllowedValues ? "list" : "input",
         message: obj.Description,
         default: dynamicDefaults[key] || obj.Default,
-        choices: obj.AllowedValues,
+        choices: obj.AllowedValues
       };
     });
 
@@ -113,18 +103,18 @@ const createStack = async (env, conf, packageJson) => {
   const create = await cloudformation
     .createStack({
       StackName: initAnswers.stackName,
-      Parameters: Object.keys(parameters).map((key) => ({
+      Parameters: Object.keys(parameters).map(key => ({
         ParameterKey: key,
-        ParameterValue: parameters[key].toString(),
+        ParameterValue: parameters[key].toString()
       })),
       TemplateBody: JSON.stringify(createTemplate),
-      Capabilities: ["CAPABILITY_NAMED_IAM"],
+      Capabilities: ["CAPABILITY_NAMED_IAM"]
     })
     .promise();
 
   const created = await cloudformation
     .waitFor("stackCreateComplete", {
-      StackName: initAnswers.stackName,
+      StackName: initAnswers.stackName
     })
     .promise();
 
@@ -134,8 +124,7 @@ const createStack = async (env, conf, packageJson) => {
   saveEnvironmentConfig("static", env, {
     stack: initAnswers.stackName,
     bucket: parameters.S3BucketName,
-    htmlCache: initAnswers.htmlCache,
-    assetsCache: initAnswers.assetsCache,
+    fileParams: defaultFileParams
   });
   spinner.succeed();
 
@@ -146,76 +135,55 @@ const createStack = async (env, conf, packageJson) => {
     .describeStacks({ StackName: initAnswers.stackName })
     .promise();
 
-  const table = new Table({
-    head: ["Key", "Value", "Description"],
-  });
-
-  stacks.Stacks[0].Outputs.forEach((o) =>
-    table.push([o.OutputKey, o.OutputValue, o.Description])
+  logTable(
+    ["Key", "Value", "Description"],
+    stacks.Stacks[0].Outputs.map(o => [
+      o.OutputKey,
+      o.OutputValue,
+      o.Description
+    ])
   );
 
-  console.log(table.toString());
-  console.log("Now run deploy again to upload the files");
+  console.log(
+    "The resources for the new environment has now been set up. Please run the deploy command again to upload the files. Please make sure to check the environment config in package.json before the first deploy."
+  );
 };
 
 // Upload Files
 // ---------------------------------------------------------------------
 
 const uploadFiles = async (env, conf, packageJson, envConf) => {
-  console.log("Updating environment", env);
+  const answers = await inquirer.prompt([
+    {
+      type: "confirm",
+      name: "confirm",
+      message: `This will deploy the ${env} environment. Continue?`,
+      default: `${packageJson.name}-${env}`
+    }
+  ]);
+
+  if (!answers.confirm) return;
+
+  const spinner = ora("Starting deployment").start();
 
   if (conf.shouldRunBuildCommand) {
+    spinner.text = "Running build command";
     await execa.shell(conf.buildCommand, {
-      stdout: "inherit",
+      stdout: "inherit"
     });
+    spinner.succeed();
   }
 
-  // Sync static immutable files
-  const staticOpts = [
-    "s3",
-    "sync",
-    `./${conf.buildDir}`,
-    `s3://${envConf.bucket}`,
-    "--region",
-    conf.region,
-    "--exclude",
-    "*.html",
-    "--exclude",
-    "*.json",
-    "--acl",
-    "public-read",
-    "--cache-control",
-    `max-age=${envConf.assetsCache}`,
-  ];
-
-  const dynamicOpts = [
-    "s3",
-    "sync",
-    `./${conf.buildDir}`,
-    `s3://${envConf.bucket}`,
-    "--region",
-    conf.region,
-    "--exclude",
-    "*",
-    "--include",
-    "*.html",
-    "--include",
-    "*.json",
-    "--acl",
-    "public-read",
-    "--cache-control",
-    `max-age=${envConf.htmlCache}`,
-  ];
-
-  if (conf.profile) {
-    staticOpts.push("--profile", conf.profile);
-    dynamicOpts.push("--profile", conf.profile);
-  }
-
-  await execa("aws", staticOpts, { stdout: "inherit" });
-  await execa("aws", dynamicOpts, { stdout: "inherit" });
-
-  console.log("Deployed!");
+  spinner.start("Uploading files");
+  const AWS = getAWSWithProfile(conf.profile, conf.region);
+  await uploadDirToS3(AWS, conf.buildDir, envConf.bucket, envConf.fileParams, {
+    progress: (cur, total) => {
+      if (total > 0) {
+        spinner.text = `Uploading files (${Math.round((cur / total) * 100)}%)`;
+      }
+    }
+  });
+  spinner.succeed();
 };
 
 module.exports = deploy;

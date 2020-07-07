@@ -1,65 +1,61 @@
 const utils = require("@designsystemsinternational/cli-utils");
 const inquirer = require("inquirer");
-const { mockOra, mockUtils, mockInquirer, mockExeca } = require("../../mock");
+const {
+  mockOra,
+  mockUtils,
+  mockInquirer,
+  mockExeca
+} = require("@designsystemsinternational/cli-utils/test/mock");
 
 describe("update", () => {
-  let conf;
+  let conf, fileParams;
   beforeEach(() => {
-    const mockAws = mockUtils(utils);
     mockOra();
     mockInquirer(inquirer);
-    mockExeca();
+    fileParams = [
+      {
+        match: "*.json",
+        params: {
+          ACL: "public-read"
+        }
+      },
+      {
+        match: "*.html",
+        params: {
+          CacheControl: "max-age=500"
+        }
+      }
+    ];
     conf = {
       profile: "fake-profile",
       region: "fake-region",
-      buildDir: "test/build",
+      buildDir: "test/fake-package/build",
       environments: {
         test: {
           stack: "stack-test",
           bucket: "bucket-test",
-          htmlCache: "300",
-          assetsCache: "31536000"
+          fileParams
         }
       }
     };
   });
 
-  it("uploads files if environment is in config", async () => {
-    utils.loadConfig.mockReturnValue({
-      conf,
-      packageJson: {
-        name: "fake-package",
-        static: conf
+  it("uploads files", async () => {
+    mockUtils(utils, {
+      loadConfig: {
+        conf,
+        packageJson: {
+          name: "fake-package"
+        }
       }
     });
-    const execa = require("execa");
+    inquirer.prompt.mockResolvedValueOnce({ confirm: true });
     const deploy = require("../../../src/commands/deploy");
     await deploy();
-    const { calls } = execa.mock;
-    expect(calls.length).toBe(2);
-    const hasProfile = calls.every(call =>
-      call[1].some(input => input === "--profile")
-    );
-    expect(hasProfile).toBe(true);
-  });
-
-  it("excludes profile if not set", async () => {
-    delete conf.profile;
-    utils.loadConfig.mockReturnValue({
-      conf,
-      packageJson: {
-        name: "fake-package",
-        static: conf
-      }
-    });
-    const execa = require("execa");
-    const deploy = require("../../../src/commands/deploy");
-    await deploy();
-    const { calls } = execa.mock;
-    expect(calls.length).toBe(2);
-    const hasProfile = calls.some(call =>
-      call[1].some(input => input === "--profile")
-    );
-    expect(hasProfile).toBe(false);
+    const { calls } = utils.uploadDirToS3.mock;
+    expect(calls.length).toBe(1);
+    expect(calls[0][1]).toEqual("test/fake-package/build");
+    expect(calls[0][2]).toEqual("bucket-test");
+    expect(calls[0][3]).toEqual(fileParams);
   });
 });

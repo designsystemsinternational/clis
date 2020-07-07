@@ -1,4 +1,5 @@
 const { join, basename } = require("path");
+const Table = require("cli-table3");
 const {
   readFileSync,
   writeFileSync,
@@ -8,6 +9,8 @@ const {
 const archiver = require("archiver");
 const gitBranch = require("git-branch");
 const AWS = require("aws-sdk");
+const s3 = require("@auth0/s3");
+const micromatch = require("micromatch");
 
 // Config file
 // ---------------------------------------------------
@@ -29,8 +32,12 @@ const saveConfig = (cli, conf) => {
 };
 
 const getEnvironment = async () => {
-  const branch = await gitBranch();
-  return branch === "master" ? "production" : branch;
+  try {
+    const branch = await gitBranch();
+    return branch === "master" ? "production" : branch;
+  } catch (err) {
+    throw "Git repository not found.";
+  }
 };
 
 const getEnvironmentConfig = (conf, env) => {
@@ -152,6 +159,81 @@ const uploadFilesToS3 = async (AWS, bucket, files) => {
     uploadFileToS3(AWS, bucket, key, files[key])
   );
   await Promise.all(promises);
+};
+
+// A function to upload an entire directory to S3.
+// fileParams allows you to specify S3 params for certain files:
+// fileParams = [
+// { match: '*.json', params: { CacheControl: 'public' } }
+// { match: '*.html', params: { CacheControl: 'max-age=500' } }
+//]
+const uploadDirToS3 = async (
+  AWS,
+  localDir,
+  bucket,
+  fileParams,
+  callbacks = {}
+) =>
+  new Promise((resolve, reject) => {
+    const getS3Params = (localFile, stat, callback) => {
+      const params = {
+        ACL: "public-read",
+        CacheControl: "no-store"
+      };
+      if (Array.isArray(fileParams)) {
+        const file = fileParams.find(p =>
+          micromatch.isMatch(localFile, p.match)
+        );
+        if (file && file.params) {
+          Object.assign(params, file.params);
+        }
+      }
+      // Pass null for params to not upload this file
+      callback(null, params);
+    };
+    const s3Client = new AWS.S3();
+    const client = s3.createClient({ s3Client });
+    const uploader = client.uploadDir({
+      localDir,
+      getS3Params,
+      s3Params: { Bucket: bucket, Prefix: "" }
+    });
+    uploader.on("error", err => {
+      reject(err.stack);
+    });
+    if (callbacks.progress) {
+      uploader.on("progress", () =>
+        callbacks.progress(uploader.progressAmount, uploader.progressTotal)
+      );
+    }
+    if (callbacks.fileUploadStart) {
+      uploader.on("fileUploadStart", callbacks.fileUploadStart);
+    }
+    if (callbacks.fileUploadEnd) {
+      uploader.on("fileUploadEnd", callbacks.fileUploadEnd);
+    }
+    uploader.on("end", () => {
+      resolve();
+    });
+  });
+
+const emptyS3Bucket = async (AWS, bucket, prefix) => {
+  const s3 = new AWS.S3();
+  const listParams = { Bucket: bucket };
+  if (prefix) {
+    listParams.Prefix = prefix;
+  }
+  const objects = await s3.listObjectsV2(listParams).promise();
+  if (objects.Contents.length === 0) return;
+
+  await s3
+    .deleteObjects({
+      Bucket: bucket,
+      Delete: { Objects: objects.Contents.map(({ Key }) => ({ Key })) }
+    })
+    .promise();
+
+  if (objects.IsTruncated) await emptyS3Bucket(bucket, prefix);
 };
 
 // Cloudformation utils
@@ -325,10 +407,16 @@ const timeout = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 const newChangesetName = () => {
   const now = new Date();
-  return `deploy-${now.getFullYear()}-${now.getMonth() +
-    1}-${now.getDate()}-${now.getHours()}-${now.getMinutes()}-${now.getSeconds()}`;
+  return `deploy-${now.getFullYear()}-${
+    now.getMonth() + 1
+  }-${now.getDate()}-${now.getHours()}-${now.getMinutes()}-${now.getSeconds()}`;
 };
-``;
+
+const logTable = (head, rows) => {
+  const table = new Table({ head });
+  rows.forEach(row => table.push(row));
+  console.log(table.toString());
+};
 
 module.exports = {
   loadConfig,
@@ -343,8 +431,11 @@ module.exports = {
   zipWebpackOutput,
   uploadFileToS3,
   uploadFilesToS3,
+  uploadDirToS3,
+  emptyS3Bucket,
   monitorStack,
   paramsToInquirer,
   newChangesetName,
-  waitForChangeset
+  waitForChangeset,
+  logTable
 };

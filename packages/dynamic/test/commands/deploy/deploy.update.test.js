@@ -4,7 +4,11 @@ const utils = require("@designsystemsinternational/cli-utils");
 const ora = require("ora");
 const inquirer = require("inquirer");
 const { lambdaExists, zipExists } = require("../../utils");
-const { mockOra, mockUtils, mockInquirer } = require("../../mock");
+const {
+  mockOra,
+  mockUtils,
+  mockInquirer
+} = require("@designsystemsinternational/cli-utils/test/mock");
 
 describe("update", () => {
   let cloudformation, conf;

@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.0.0
+
+- Command line tool is now using `yargs` for better help commands
+- We now show an error message if user runs `init` in a repo with a config
+
 ## 0.2.4
 
 - Adding `DependsOn` to route generator

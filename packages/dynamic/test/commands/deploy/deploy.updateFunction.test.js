@@ -4,12 +4,30 @@ const utils = require("@designsystemsinternational/cli-utils");
 const ora = require("ora");
 const inquirer = require("inquirer");
 const { lambdaExists, zipExists } = require("../../utils");
-const { mockOra, mockUtils, mockInquirer } = require("../../mock");
+const {
+  mockOra,
+  mockUtils,
+  mockInquirer
+} = require("@designsystemsinternational/cli-utils/test/mock");
 
 describe("updateFunction", () => {
   let cloudformation, conf;
   beforeEach(() => {
-    const mockAws = mockUtils(utils);
+    const mockAws = mockUtils(utils, {
+      describeStacks: {
+        Stacks: [
+          {
+            Parameters: [
+              { ParameterKey: "testParam" },
+              { ParameterKey: "operationsS3Bucket" },
+              { ParameterKey: "environment" },
+              { ParameterKey: "lambdaS3Key" },
+              { ParameterKey: "showUserS3Key" }
+            ]
+          }
+        ]
+      }
+    });
     cloudformation = mockAws.mockCloudformation;
     mockOra(ora);
     mockInquirer(inquirer);
