@@ -9,7 +9,7 @@ const {
 const archiver = require("archiver");
 const gitBranch = require("git-branch");
 const AWS = require("aws-sdk");
-const s3 = require("s3");
+const s3 = require("@auth0/s3");
 const micromatch = require("micromatch");
 
 // Config file
@@ -32,8 +32,12 @@ const saveConfig = (cli, conf) => {
 };
 
 const getEnvironment = async () => {
-  const branch = await gitBranch();
-  return branch === "master" ? "production" : branch;
+  try {
+    const branch = await gitBranch();
+    return branch === "master" ? "production" : branch;
+  } catch (err) {
+    throw "Git repository not found.";
+  }
 };
 
 const getEnvironmentConfig = (conf, env) => {
@@ -163,7 +167,13 @@ const uploadFilesToS3 = async (AWS, bucket, files) => {
 // { match: '*.json', params: { CacheControl: 'public' } }
 // { match: '*.html', params: { CacheControl: 'max-age=500' } }
 //]
-const uploadDirToS3 = async (AWS, localDir, bucket, fileParams) =>
+const uploadDirToS3 = async (
+  AWS,
+  localDir,
+  bucket,
+  fileParams,
+  callbacks = {}
+) =>
   new Promise((resolve, reject) => {
     const getS3Params = (localFile, stat, callback) => {
       const params = {
@@ -191,12 +201,17 @@ const uploadDirToS3 = async (AWS, localDir, bucket, fileParams) =>
     uploader.on("error", err => {
       reject(err.stack);
     });
-    uploader.on("progress", () => {
-      console.log("progress", uploader.progressAmount, uploader.progressTotal);
-    });
-    uploader.on("fileUploadStart", (localFilePath, s3Key) => {
-      console.log("file upload start", localFilePath, s3Key);
-    });
+    if (callbacks.progress) {
+      uploader.on("progress", () =>
+        callbacks.progress(uploader.progressAmount, uploader.progressTotal)
+      );
+    }
+    if (callbacks.fileUploadStart) {
+      uploader.on("fileUploadStart", callbacks.fileUploadStart);
+    }
+    if (callbacks.fileUploadEnd) {
+      uploader.on("fileUploadEnd", callbacks.fileUploadEnd);
+    }
     uploader.on("end", () => {
       resolve();
     });

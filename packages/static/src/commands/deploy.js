@@ -144,25 +144,46 @@ const createStack = async (env, conf, packageJson) => {
     ])
   );
 
-  console.log("Now run deploy again to upload the files");
+  console.log(
+    "The resources for the new environment has now been set up. Please run the deploy command again to upload the files. Please make sure to check the environment config in package.json before the first deploy."
+  );
 };
 
 // Upload Files
 // ---------------------------------------------------------------------
 
 const uploadFiles = async (env, conf, packageJson, envConf) => {
-  console.log("Updating environment", env);
+  const answers = await inquirer.prompt([
+    {
+      type: "confirm",
+      name: "confirm",
+      message: `This will deploy the ${env} environment. Continue?`,
+      default: `${packageJson.name}-${env}`
+    }
+  ]);
+
+  if (!answers.confirm) return;
+
+  const spinner = ora("Starting deployment").start();
 
   if (conf.shouldRunBuildCommand) {
+    spinner.text = "Running build command";
     await execa.shell(conf.buildCommand, {
       stdout: "inherit"
     });
+    spinner.succeed();
   }
 
+  spinner.start("Uploading files");
   const AWS = getAWSWithProfile(conf.profile, conf.region);
-  await uploadDirToS3(AWS, conf.buildDir, envConf.bucket, envConf.fileParams);
-
-  console.log("Deployed!");
+  await uploadDirToS3(AWS, conf.buildDir, envConf.bucket, envConf.fileParams, {
+    progress: (cur, total) => {
+      if (total > 0) {
+        spinner.text = `Uploading files (${Math.round((cur / total) * 100)}%)`;
+      }
+    }
+  });
+  spinner.succeed();
 };
 
 module.exports = deploy;

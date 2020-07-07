@@ -9,7 +9,7 @@ const open = require("./commands/open");
 const env = {
   describe: "Ignore current Git branch and use this environment instead",
   requiresArg: true,
-  type: "string",
+  type: "string"
 };
 
 require("yargs")
@@ -19,7 +19,7 @@ require("yargs")
   .command(
     "deploy",
     "Deploys the website",
-    (yargs) => {
+    yargs => {
       yargs.option("env", env);
     },
     deploy
@@ -27,7 +27,7 @@ require("yargs")
   .command(
     "destroy",
     "Deletes the website and all its resources",
-    (yargs) => {
+    yargs => {
       yargs.option("env", env);
     },
     destroy
@@ -36,10 +36,10 @@ require("yargs")
   .command(
     "open <search>",
     "Shortcut to open a url from the `show outputs` command",
-    (yargs) => {
+    yargs => {
       yargs.positional("search", {
         describe: "Partial search key to find URL. Try `S3` or `Cloudfront` ",
-        type: "string",
+        type: "string"
       });
     },
     open

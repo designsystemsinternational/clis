@@ -1,12 +1,12 @@
 const defaultFileParams = [
   {
-    match: ["!*.html", "!*.json"],
+    match: ["!**/*.(html|json)"],
     params: {
       CacheControl: "public, max-age=31536000, immutable"
     }
   },
   {
-    match: ["*.html", "*.json"],
+    match: ["**/*.(html|json)"],
     params: {
       CacheControl: "public, max-age=300"
     }

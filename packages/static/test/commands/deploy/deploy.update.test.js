@@ -49,6 +49,7 @@ describe("update", () => {
         }
       }
     });
+    inquirer.prompt.mockResolvedValueOnce({ confirm: true });
     const deploy = require("../../../src/commands/deploy");
     await deploy();
     const { calls } = utils.uploadDirToS3.mock;
