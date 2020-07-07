@@ -1,5 +1,4 @@
 const AWS = require("aws-sdk");
-const execa = require("execa");
 const ora = require("ora");
 const inquirer = require("inquirer");
 const {
@@ -9,14 +8,14 @@ const {
   getAWSWithProfile,
   monitorStack,
   deleteEnvironmentConfig,
-  emptyS3Bucket,
+  emptyS3Bucket
 } = require("@designsystemsinternational/cli-utils");
 const {
   ACTION_NO_CONFIG,
-  ACTION_NO_ENV,
+  ACTION_NO_ENV
 } = require("@designsystemsinternational/cli-utils/src/constants");
 
-const destroy = async (args) => {
+const destroy = async args => {
   const { conf, packageJson } = loadConfig("static");
   const env = args && args.env ? args.env : await getEnvironment();
   const envConfig = getEnvironmentConfig(conf, env);
@@ -35,8 +34,8 @@ const destroy = async (args) => {
     {
       type: "confirm",
       name: "confirm",
-      message: `Warning! This will delete all files and resources in the ${envConfig.stack} stack. Continue?`,
-    },
+      message: `Warning! This will delete all files and resources in the ${envConfig.stack} stack. Continue?`
+    }
   ]);
 
   if (!answers.confirm) {

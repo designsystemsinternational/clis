@@ -2,13 +2,11 @@ const { existsSync } = require("fs");
 const { join } = require("path");
 const utils = require("@designsystemsinternational/cli-utils");
 const ora = require("ora");
-const execa = require("execa");
 const inquirer = require("inquirer");
 const {
   mockOra,
   mockUtils,
-  mockInquirer,
-  mockExeca
+  mockInquirer
 } = require("@designsystemsinternational/cli-utils/test/mock");
 const {
   expectDeleteStack,
