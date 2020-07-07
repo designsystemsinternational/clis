@@ -1,14 +1,13 @@
 # Static
 
-This is a simple, opinionated command-line client that takes the pain out of deploying a static website to S3 and Cloudfront via Cloudformation. We use this at [Design Systems International](https://designsystems.international/) for deploying and managing our React applications.
+This is a simple, opinionated command-line client that takes the pain out of deploying a static website to S3 and CloudFront via CloudFormation. We use this at [Design Systems International](https://designsystems.international/) for deploying our websites.
 
 Features:
 
-- **Manage AWS resources**. The tool will create an S3 bucket and CloudFront distribution with healthy defaults such a CORS and HTTPS to serve your static website.
+- **Automated CloudFormation**. The tool will create an S3 bucket and CloudFront distribution with healthy defaults such a CORS and HTTPS to serve your static website.
 - **Multiple environments**. Deploy different versions of your website based on your Git branches. This allows you to e.g. have a `staging` and `production` environment for the same website.
-- **Project settings**. Easily customize the build folder and cache time for your website files.
-
-The tool works with the [AWS command line client](https://aws.amazon.com/cli/), so make sure that it is installed and that you have [configured it](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html) with at least a default profile. It will create a `static` key in your repository's `package.json` with information about the AWS profile and region to use.
+- **File metadata**. Easily customize the `cache-control` header for specific file types, or any other metadata supported by S3.
+- **AWS profiles**. Use a named profile in your AWS credentials file, or just use the AWS environment variables to authenticate with an AWS account.
 
 ## Setup
 
