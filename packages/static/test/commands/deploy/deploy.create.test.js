@@ -94,6 +94,32 @@ describe("deploy", () => {
       });
     });
 
+    it("uses dynamic defaults for inquirer prompt", async () => {
+      inquirer.prompt
+        .mockResolvedValueOnce({
+          stack: "stack-test",
+          createCloudfront: true
+        })
+        .mockResolvedValueOnce({
+          S3BucketName: "test-bucket",
+          IndexPage: "index.html",
+          ErrorPage: "index.html"
+        });
+
+      const deploy = require("../../../src/commands/deploy");
+      await deploy();
+
+      const { calls } = inquirer.prompt.mock;
+      expect(calls[0][0][0]).toMatchObject({
+        name: "stack",
+        default: "fake-package-test"
+      });
+      expect(calls[1][0][0]).toMatchObject({
+        name: "S3BucketName",
+        default: "stack-test"
+      });
+    });
+
     it("does not create cloudfront", async () => {
       inquirer.prompt
         .mockResolvedValueOnce({
