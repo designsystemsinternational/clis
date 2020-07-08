@@ -11,7 +11,8 @@ const {
 } = require("@designsystemsinternational/cli-utils/test/mock");
 const {
   expectSaveEnvironmentConfig,
-  expectCreateStack
+  expectCreateStack,
+  expectParameters
 } = require("@designsystemsinternational/cli-utils/test/expectations");
 const { defaultFileParams } = require("../../../src/utils");
 
@@ -46,7 +47,7 @@ describe("deploy", () => {
     it("saves environment in config", async () => {
       inquirer.prompt
         .mockResolvedValueOnce({
-          stackName: "stack-test",
+          stack: "stack-test",
           createCloudfront: true
         })
         .mockResolvedValueOnce({
@@ -67,7 +68,7 @@ describe("deploy", () => {
     it("runs createStack", async () => {
       inquirer.prompt
         .mockResolvedValueOnce({
-          stackName: "stack-test",
+          stack: "stack-test",
           createCloudfront: true
         })
         .mockResolvedValueOnce({
@@ -85,26 +86,44 @@ describe("deploy", () => {
         "CloudfrontDistribution"
       ]);
       expect(Object.keys(tmpl.Outputs)).toEqual(["S3URL", "CloudfrontURL"]);
-      expect(call[0].Parameters).toEqual([
-        {
-          ParameterKey: "S3BucketName",
-          ParameterValue: "test-bucket"
-        },
-        {
-          ParameterKey: "IndexPage",
-          ParameterValue: "index.html"
-        },
-        {
-          ParameterKey: "ErrorPage",
-          ParameterValue: "index.html"
-        }
-      ]);
+      expectParameters(call[0].Parameters, {
+        S3BucketName: "test-bucket",
+        IndexPage: "index.html",
+        ErrorPage: "index.html",
+        environment: "test"
+      });
+    });
+
+    it("uses dynamic defaults for inquirer prompt", async () => {
+      inquirer.prompt
+        .mockResolvedValueOnce({
+          stack: "stack-test",
+          createCloudfront: true
+        })
+        .mockResolvedValueOnce({
+          S3BucketName: "test-bucket",
+          IndexPage: "index.html",
+          ErrorPage: "index.html"
+        });
+
+      const deploy = require("../../../src/commands/deploy");
+      await deploy();
+
+      const { calls } = inquirer.prompt.mock;
+      expect(calls[0][0][0]).toMatchObject({
+        name: "stack",
+        default: "fake-package-test"
+      });
+      expect(calls[1][0][0]).toMatchObject({
+        name: "S3BucketName",
+        default: "stack-test"
+      });
     });
 
     it("does not create cloudfront", async () => {
       inquirer.prompt
         .mockResolvedValueOnce({
-          stackName: "stack-test",
+          stack: "stack-test",
           createCloudfront: false
         })
         .mockResolvedValueOnce({
@@ -119,6 +138,41 @@ describe("deploy", () => {
       const [call, tmpl] = expectCreateStack(aws, "stack-test");
       expect(Object.keys(tmpl.Resources)).toEqual(["S3Bucket"]);
       expect(Object.keys(tmpl.Outputs)).toEqual(["S3URL"]);
+    });
+
+    it("enables basic auth", async () => {
+      inquirer.prompt
+        .mockResolvedValueOnce({
+          stack: "stack-test",
+          auth: true
+        })
+        .mockResolvedValueOnce({
+          S3BucketName: "test-bucket",
+          IndexPage: "index.html",
+          ErrorPage: "index.html",
+          AuthUsername: "user",
+          AuthPassword: "password"
+        });
+
+      const deploy = require("../../../src/commands/deploy");
+      await deploy();
+
+      const [call, tmpl] = expectCreateStack(aws, "stack-test");
+      expect(Object.keys(tmpl.Resources)).toEqual([
+        "S3Bucket",
+        "CloudfrontDistribution",
+        "AuthLambdaRole",
+        "AuthLambda",
+        "AuthLambdaLogGroup"
+      ]);
+      expectParameters(call[0].Parameters, {
+        S3BucketName: "test-bucket",
+        IndexPage: "index.html",
+        ErrorPage: "index.html",
+        AuthUsername: "user",
+        AuthPassword: "password",
+        environment: "test"
+      });
     });
   });
 });

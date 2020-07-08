@@ -39,6 +39,7 @@
             "TargetOriginId": "s3-website-origin",
             "MaxTTL": 31536000,
             "MinTTL": 0,
+            "Compress": true,
             "ViewerProtocolPolicy": "redirect-to-https",
             "ForwardedValues": {
               "Cookies": {

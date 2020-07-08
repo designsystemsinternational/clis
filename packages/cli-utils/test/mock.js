@@ -60,6 +60,7 @@ const mockUtils = (mod, ret = {}) => {
 
   const mockCloudformation = {
     createStack: func(val(ret, "createStack", { StackId: 1 })),
+    updateStack: func(val(ret, "updateStack", { StackId: 1 })),
     deleteStack: func(val(ret, "deleteStack")),
     createChangeSet: func(val(ret, "createChangeSet")),
     executeChangeSet: func(val(ret, "executeChangeSet")),

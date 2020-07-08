@@ -6,26 +6,13 @@ const {
   mockInquirer,
   mockExeca
 } = require("@designsystemsinternational/cli-utils/test/mock");
+const { defaultFileParams } = require("../../../src/utils");
 
 describe("update", () => {
-  let conf, fileParams;
+  let conf;
   beforeEach(() => {
     mockOra();
     mockInquirer(inquirer);
-    fileParams = [
-      {
-        match: "*.json",
-        params: {
-          ACL: "public-read"
-        }
-      },
-      {
-        match: "*.html",
-        params: {
-          CacheControl: "max-age=500"
-        }
-      }
-    ];
     conf = {
       profile: "fake-profile",
       region: "fake-region",
@@ -34,7 +21,7 @@ describe("update", () => {
         test: {
           stack: "stack-test",
           bucket: "bucket-test",
-          fileParams
+          fileParams: defaultFileParams
         }
       }
     };
@@ -56,6 +43,6 @@ describe("update", () => {
     expect(calls.length).toBe(1);
     expect(calls[0][1]).toEqual("test/fake-package/build");
     expect(calls[0][2]).toEqual("bucket-test");
-    expect(calls[0][3]).toEqual(fileParams);
+    expect(calls[0][3]).toEqual(defaultFileParams);
   });
 });

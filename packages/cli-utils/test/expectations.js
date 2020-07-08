@@ -33,11 +33,27 @@ const expectCreateStack = (aws, stackName) => {
   return [calls[0], tmpl];
 };
 
+const expectUpdateStack = (aws, stackName) => {
+  const { calls } = aws.mockCloudformation.updateStack.mock;
+  expect(calls.length).toBe(1);
+  expect(calls[0][0].StackName).toEqual(stackName);
+  const tmpl = JSON.parse(calls[0][0].TemplateBody);
+  return [calls[0], tmpl];
+};
+
 const expectDeleteStack = (aws, stackName) => {
   const { calls } = aws.mockCloudformation.deleteStack.mock;
   expect(calls.length).toBe(1);
   expect(calls[0][0].StackName).toEqual(stackName);
   return calls[0];
+};
+
+const expectParameters = (actual, desired) => {
+  const desiredObj = Object.keys(desired).map(key => ({
+    ParameterKey: key,
+    ParameterValue: desired[key]
+  }));
+  expect(actual).toEqual(desiredObj);
 };
 
 module.exports = {
@@ -46,5 +62,7 @@ module.exports = {
   expectDeleteEnvironmentConfig,
   expectEmptyS3Bucket,
   expectCreateStack,
-  expectDeleteStack
+  expectUpdateStack,
+  expectDeleteStack,
+  expectParameters
 };
