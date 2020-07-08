@@ -30,6 +30,7 @@ const deploy = async (args = {}) => {
   }
   const env = args && args.env ? args.env : await getEnvironment();
   const envConf = getEnvironmentConfig(conf, env);
+
   if (!envConf || args.configure) {
     await runCloudFormation(env, conf, packageJson, envConf);
   } else {
@@ -86,7 +87,7 @@ const runCloudFormation = async (env, conf, packageJson, envConf) => {
       template.Resources.CloudfrontDistribution.Properties.DistributionConfig.DefaultCacheBehavior.LambdaFunctionAssociations = [
         {
           EventType: "viewer-request",
-          LambdaFunctionARN: { "Fn::GetAtt": ["AuthLambdaRole", "Arn"] }
+          LambdaFunctionARN: { Ref: "VersionedAuthLambda" }
         }
       ];
     }
