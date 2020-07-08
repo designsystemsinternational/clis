@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.1.0
+
+- Adding basic auth via CloudFront and Lambda Edge
+- Adding `static deploy --configure` option to re-run environment prompts
+
 ## 3.0.0
 
 - The package no longer relies on `aws-cli`. S3 `sync` and emptying of bucket is now done in pure Node.
