@@ -239,7 +239,7 @@ const emptyS3Bucket = async (AWS, bucket, prefix) => {
 // Cloudformation utils
 // ---------------------------------------------------
 
-const paramsToInquirer = (params, opts = {}) => {
+const paramsToInquirer = (params, defaults = {}) => {
   const questions = [];
   Object.keys(params).forEach(key => {
     const obj = params[key];
@@ -247,7 +247,7 @@ const paramsToInquirer = (params, opts = {}) => {
       name: key,
       type: obj.AllowedValues ? "list" : "input",
       message: obj.Description || key,
-      default: obj.Default || opts.default,
+      default: obj.Default || defaults[key],
       choices: obj.AllowedValues
     });
   });

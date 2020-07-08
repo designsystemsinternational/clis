@@ -20,7 +20,10 @@ require("yargs")
     "deploy",
     "Deploys the website",
     yargs => {
-      yargs.option("env", env);
+      yargs.option("env", env).option("configure", {
+        describe: "Reconfigure the CloudFormation stack",
+        type: "boolean"
+      });
     },
     deploy
   )

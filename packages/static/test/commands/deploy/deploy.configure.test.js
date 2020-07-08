@@ -11,7 +11,7 @@ const {
 } = require("@designsystemsinternational/cli-utils/test/mock");
 const {
   expectSaveEnvironmentConfig,
-  expectCreateStack,
+  expectUpdateStack,
   expectParameters
 } = require("@designsystemsinternational/cli-utils/test/expectations");
 const { defaultFileParams } = require("../../../src/utils");
@@ -24,7 +24,14 @@ describe("deploy", () => {
         conf: {
           profile: "fake-profile",
           region: "fake-region",
-          buildDir: "test/build"
+          buildDir: "test/build",
+          environments: {
+            test: {
+              stack: "stack-test",
+              bucket: "bucket-test",
+              fileParams: defaultFileParams
+            }
+          }
         },
         packageJson: {
           name: "fake-package"
@@ -44,60 +51,32 @@ describe("deploy", () => {
   });
 
   describe("create stack", () => {
-    it("saves environment in config", async () => {
+    it("updates the environment config", async () => {
       inquirer.prompt
         .mockResolvedValueOnce({
-          stack: "stack-test",
+          auth: false,
           createCloudfront: true
         })
         .mockResolvedValueOnce({
-          S3BucketName: "test-bucket",
+          S3BucketName: "test-bucket-changed",
           IndexPage: "index.html",
           ErrorPage: "index.html"
         });
 
       const deploy = require("../../../src/commands/deploy");
-      await deploy();
+      await deploy({ configure: true });
       expectSaveEnvironmentConfig(utils, "static", "test", {
         stack: "stack-test",
-        bucket: "test-bucket",
+        bucket: "test-bucket-changed",
         fileParams: defaultFileParams
       });
     });
 
-    it("runs createStack", async () => {
+    it("runs updateStack", async () => {
       inquirer.prompt
         .mockResolvedValueOnce({
           stack: "stack-test",
-          createCloudfront: true
-        })
-        .mockResolvedValueOnce({
-          S3BucketName: "test-bucket",
-          IndexPage: "index.html",
-          ErrorPage: "index.html"
-        });
-
-      const deploy = require("../../../src/commands/deploy");
-      await deploy();
-
-      const [call, tmpl] = expectCreateStack(aws, "stack-test");
-      expect(Object.keys(tmpl.Resources)).toEqual([
-        "S3Bucket",
-        "CloudfrontDistribution"
-      ]);
-      expect(Object.keys(tmpl.Outputs)).toEqual(["S3URL", "CloudfrontURL"]);
-      expectParameters(call[0].Parameters, {
-        S3BucketName: "test-bucket",
-        IndexPage: "index.html",
-        ErrorPage: "index.html",
-        environment: "test"
-      });
-    });
-
-    it("does not create cloudfront", async () => {
-      inquirer.prompt
-        .mockResolvedValueOnce({
-          stack: "stack-test",
+          auth: false,
           createCloudfront: false
         })
         .mockResolvedValueOnce({
@@ -107,44 +86,15 @@ describe("deploy", () => {
         });
 
       const deploy = require("../../../src/commands/deploy");
-      await deploy();
+      await deploy({ configure: true });
 
-      const [call, tmpl] = expectCreateStack(aws, "stack-test");
+      const [call, tmpl] = expectUpdateStack(aws, "stack-test");
       expect(Object.keys(tmpl.Resources)).toEqual(["S3Bucket"]);
       expect(Object.keys(tmpl.Outputs)).toEqual(["S3URL"]);
-    });
-
-    it("enables basic auth", async () => {
-      inquirer.prompt
-        .mockResolvedValueOnce({
-          stack: "stack-test",
-          auth: true
-        })
-        .mockResolvedValueOnce({
-          S3BucketName: "test-bucket",
-          IndexPage: "index.html",
-          ErrorPage: "index.html",
-          AuthUsername: "user",
-          AuthPassword: "password"
-        });
-
-      const deploy = require("../../../src/commands/deploy");
-      await deploy();
-
-      const [call, tmpl] = expectCreateStack(aws, "stack-test");
-      expect(Object.keys(tmpl.Resources)).toEqual([
-        "S3Bucket",
-        "CloudfrontDistribution",
-        "AuthLambdaRole",
-        "AuthLambda",
-        "AuthLambdaLogGroup"
-      ]);
       expectParameters(call[0].Parameters, {
         S3BucketName: "test-bucket",
         IndexPage: "index.html",
         ErrorPage: "index.html",
-        AuthUsername: "user",
-        AuthPassword: "password",
         environment: "test"
       });
     });
