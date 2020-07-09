@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.2.2
+
+- Making `search` positional optional for `open` command
+
+## 3.2.1
+
+- Fixing bug with `open` and `show`
+
 ## 3.2.0
 
 - Adding ability to have custom domains

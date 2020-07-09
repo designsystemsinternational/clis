@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.2.1
+
+- Fixing bug with `show`
+
 ## 3.2.0
 
 - Renaming `dynamic show outputs` to `dynamic show`
