@@ -35,10 +35,10 @@ require("yargs")
     },
     destroy
   )
-  .command("show outputs", "Show information about website resources", {}, show)
+  .command("show", "Show information about website resources", {}, show)
   .command(
     "open <search>",
-    "Shortcut to open a url from the `show outputs` command",
+    "Shortcut to open a url from the `show` command",
     yargs => {
       yargs.positional("search", {
         describe: "Partial search key to find URL. Try `S3` or `Cloudfront` ",

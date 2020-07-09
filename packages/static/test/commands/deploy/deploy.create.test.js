@@ -163,14 +163,59 @@ describe("deploy", () => {
         "CloudfrontDistribution",
         "AuthLambdaRole",
         "AuthLambda",
+        "VersionedAuthLambda",
         "AuthLambdaLogGroup"
       ]);
+      const cacheKeys = Object.keys(
+        tmpl.Resources.CloudfrontDistribution.Properties.DistributionConfig
+          .DefaultCacheBehavior
+      );
+      expect(cacheKeys).toContain("LambdaFunctionAssociations");
       expectParameters(call[0].Parameters, {
         S3BucketName: "test-bucket",
         IndexPage: "index.html",
         ErrorPage: "index.html",
         AuthUsername: "user",
         AuthPassword: "password",
+        environment: "test"
+      });
+    });
+
+    it("enables custom domain", async () => {
+      inquirer.prompt
+        .mockResolvedValueOnce({
+          stack: "stack-test",
+          domain: true
+        })
+        .mockResolvedValueOnce({
+          S3BucketName: "test-bucket",
+          IndexPage: "index.html",
+          ErrorPage: "index.html",
+          Domain: "test.designsystems.international",
+          HostedZoneID: "ABCDEFGH"
+        });
+
+      const deploy = require("../../../src/commands/deploy");
+      await deploy();
+
+      const [call, tmpl] = expectCreateStack(aws, "stack-test");
+      expect(Object.keys(tmpl.Resources)).toEqual([
+        "S3Bucket",
+        "CloudfrontDistribution",
+        "Route53Record",
+        "Certificate"
+      ]);
+      const distKeys = Object.keys(
+        tmpl.Resources.CloudfrontDistribution.Properties.DistributionConfig
+      );
+      expect(distKeys).toContain("Aliases");
+      expect(distKeys).toContain("ViewerCertificate");
+      expectParameters(call[0].Parameters, {
+        S3BucketName: "test-bucket",
+        IndexPage: "index.html",
+        ErrorPage: "index.html",
+        Domain: "test.designsystems.international",
+        HostedZoneID: "ABCDEFGH",
         environment: "test"
       });
     });

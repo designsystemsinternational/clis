@@ -7,14 +7,14 @@ const {
   loadConfig,
   getEnvironmentConfig,
   getAWSWithProfile,
-  logTable,
+  logTable
 } = require("@designsystemsinternational/cli-utils");
 const {
   ACTION_NO_CONFIG,
-  ACTION_NO_ENV,
+  ACTION_NO_ENV
 } = require("@designsystemsinternational/cli-utils/src/constants");
 
-const show = async (args) => {
+const show = async args => {
   const { conf } = loadConfig("static");
   const env = await getEnvironment();
   const envConfig = getEnvironmentConfig(conf, env);
@@ -27,11 +27,7 @@ const show = async (args) => {
     throw ACTION_NO_ENV;
   }
 
-  const commands = ["outputs"];
-
-  if (args.key === "outputs") {
-    await showOutputs(conf, env, envConfig);
-  }
+  await showOutputs(conf, env, envConfig);
 };
 
 const showOutputs = async (conf, env, envConfig) => {
@@ -47,13 +43,11 @@ const showOutputs = async (conf, env, envConfig) => {
 
   logTable(
     ["Type", "URL"],
-    stack.Outputs.map((o) => [
+    stack.Outputs.map(o => [
       o.OutputKey,
-      chalk.bold(o.OutputValue) + "\n" + o.Description,
+      chalk.bold(o.OutputValue) + "\n" + o.Description
     ])
   );
 };
 
-show.description =
-  "Shows available information. \n'show outputs' lists exsiting distribution urls";
 module.exports = show;

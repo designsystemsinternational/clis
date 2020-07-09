@@ -254,6 +254,15 @@ const paramsToInquirer = (params, defaults = {}) => {
   return questions;
 };
 
+const assignTemplate = (template1, template2) => {
+  if (!template1.Parameters) template1.Parameters = {};
+  if (!template1.Resources) template1.Resources = {};
+  if (!template1.Outputs) template1.Outputs = {};
+  Object.assign(template1.Parameters, template2.Parameters);
+  Object.assign(template1.Resources, template2.Resources);
+  Object.assign(template1.Outputs, template2.Outputs);
+};
+
 // Monitors stack create/update/delete
 const monitorStack = async (AWS, stackName, onEvent = () => {}) => {
   const validStatuses = [
@@ -433,6 +442,7 @@ module.exports = {
   uploadFilesToS3,
   uploadDirToS3,
   emptyS3Bucket,
+  assignTemplate,
   monitorStack,
   paramsToInquirer,
   newChangesetName,

@@ -50,7 +50,7 @@ describe("deploy", () => {
     mockExeca();
   });
 
-  describe("create stack", () => {
+  describe("--configure", () => {
     it("updates the environment config", async () => {
       inquirer.prompt
         .mockResolvedValueOnce({
