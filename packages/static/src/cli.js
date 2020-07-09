@@ -37,7 +37,7 @@ require("yargs")
   )
   .command("show", "Show information about website resources", {}, show)
   .command(
-    "open <search>",
+    "open [search]",
     "Shortcut to open a url from the `show` command",
     yargs => {
       yargs.positional("search", {
