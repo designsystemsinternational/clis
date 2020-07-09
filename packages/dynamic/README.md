@@ -59,7 +59,7 @@ After doing a full deploy, you can deploy a single lambda function by running `d
 - `dynamic deploy`. Create or update the entire stack. This will prompt you about all parameters in the template, and update the template and all the function code.
 - `dynamic deploy functionName`. Creates a CloudFormation changeset with only the update function code.
 - `dynamic generate route`. Create the files needed for a single API route.
-- `dynamic show outputs`. Shows the outputs for the current environment.
+- `dynamic show`. Shows the outputs for the current environment.
 
 ## Config file settings
 
