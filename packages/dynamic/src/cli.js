@@ -9,7 +9,7 @@ const generate = require("./commands/generate");
 const env = {
   describe: "Ignore current Git branch and use this environment instead",
   requiresArg: true,
-  type: "string",
+  type: "string"
 };
 
 require("yargs")
@@ -19,11 +19,11 @@ require("yargs")
   .command(
     "deploy [function]",
     "Deploys the application",
-    (yargs) => {
+    yargs => {
       yargs
         .positional("function", {
           describe: "Fast deployment of a single function",
-          type: "string",
+          type: "string"
         })
         .option("env", env)
         .example("$0 deploy", "Deploy the entire application")
@@ -31,15 +31,15 @@ require("yargs")
     },
     deploy
   )
-  .command("show outputs", "Show information about website resources", {}, show)
+  .command("show", "Show CloudFormation outputs", {}, show)
   .command(
     "generate <template>",
     "Generate template files for the application",
-    (yargs) => {
+    yargs => {
       yargs
         .positional("template", {
           describe: "Name of the template to generate",
-          choices: ["route"],
+          choices: ["route"]
         })
         .example(
           "$0 generate route",

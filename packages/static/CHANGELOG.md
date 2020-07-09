@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.2.0
+
+- Adding ability to have custom domains
+- Renaming `static show outputs` to `static show`
+
 ## 3.1.0
 
 - Adding basic auth via CloudFront and Lambda Edge

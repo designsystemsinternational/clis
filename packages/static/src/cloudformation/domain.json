@@ -1,0 +1,51 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+
+  "Description": "AWS CloudFormation template to set up basic auth for CloudFront distribution",
+
+  "Parameters": {
+    "Domain": {
+      "Description": "Domain of the website",
+      "Type": "String"
+    },
+    "HostedZoneID": {
+      "Description": "The ID of your hosted zone in Route 53",
+      "Type": "AWS::Route53::HostedZone::Id"
+    }
+  },
+
+  "Resources": {
+    "Route53Record": {
+      "Type": "AWS::Route53::RecordSet",
+      "Properties": {
+        "HostedZoneId": { "Ref": "HostedZoneID" },
+        "Name": { "Ref": "Domain" },
+        "Type": "A",
+        "AliasTarget": {
+          "HostedZoneId": "Z2FDTNDATAQYW2",
+          "DNSName": { "Fn::GetAtt": ["CloudfrontDistribution", "DomainName"] }
+        }
+      }
+    },
+    "Certificate": {
+      "Type": "AWS::CertificateManager::Certificate",
+      "Properties": {
+        "DomainName": { "Ref": "Domain" },
+        "ValidationMethod": "DNS",
+        "DomainValidationOptions": [
+          {
+            "DomainName": { "Ref": "Domain" },
+            "HostedZoneId": { "Ref": "HostedZoneID" }
+          }
+        ]
+      }
+    }
+  },
+
+  "Outputs": {
+    "DomainURL": {
+      "Description": "The URL of the custom domain",
+      "Value": { "Ref": "Domain" }
+    }
+  }
+}

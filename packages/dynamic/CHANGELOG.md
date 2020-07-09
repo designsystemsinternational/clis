@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.2.0
+
+- Renaming `dynamic show outputs` to `dynamic show`
+
 ## 3.0.0
 
 - Command line tool is now using `yargs` for better help commands

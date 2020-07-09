@@ -10,7 +10,8 @@ const {
   monitorStack,
   logTable,
   uploadDirToS3,
-  paramsToInquirer
+  paramsToInquirer,
+  assignTemplate
 } = require("@designsystemsinternational/cli-utils");
 const {
   ACTION_NO_CONFIG
@@ -18,6 +19,7 @@ const {
 const s3Template = require("../cloudformation/s3.json");
 const cloudfrontTemplate = require("../cloudformation/cloudfront.json");
 const authTemplate = require("../cloudformation/auth.json");
+const domainTemplate = require("../cloudformation/domain.json");
 const { defaultFileParams } = require("../utils");
 
 // Main
@@ -60,7 +62,14 @@ const runCloudFormation = async (env, conf, packageJson, envConf) => {
     },
     {
       type: "confirm",
-      when: a => !a.auth,
+      name: "domain",
+      message:
+        "Enable custom domain? (requires CloudFront distribution and hosted zone ID from Route53)",
+      default: false
+    },
+    {
+      type: "confirm",
+      when: a => !a.auth && !a.domain,
       name: "createCloudfront",
       message: "Do you want to set up a Cloudfront distribution?",
       default: true
@@ -72,24 +81,30 @@ const runCloudFormation = async (env, conf, packageJson, envConf) => {
   // Combine cloudformation templates if needed
   // We perform a somewhat deep copy to not mess up the tests.
   const template = {};
-  template.Parameters = Object.assign({}, s3Template.Parameters);
-  template.Resources = Object.assign({}, s3Template.Resources);
-  template.Outputs = Object.assign({}, s3Template.Outputs);
-  if (answers.createCloudfront || answers.auth) {
-    Object.assign(template.Parameters, cloudfrontTemplate.Parameters);
-    Object.assign(template.Resources, cloudfrontTemplate.Resources);
-    Object.assign(template.Outputs, cloudfrontTemplate.Outputs);
+  assignTemplate(template, s3Template);
+
+  if (answers.createCloudfront || answers.auth || answers.domain) {
+    assignTemplate(template, cloudfrontTemplate);
+    const {
+      DistributionConfig
+    } = template.Resources.CloudfrontDistribution.Properties;
     if (answers.auth) {
-      Object.assign(template.Parameters, authTemplate.Parameters);
-      Object.assign(template.Resources, authTemplate.Resources);
-      Object.assign(template.Outputs, authTemplate.Outputs);
+      assignTemplate(template, authTemplate);
       // We don't have any template logic, so I just inject this here.
-      template.Resources.CloudfrontDistribution.Properties.DistributionConfig.DefaultCacheBehavior.LambdaFunctionAssociations = [
+      DistributionConfig.DefaultCacheBehavior.LambdaFunctionAssociations = [
         {
           EventType: "viewer-request",
           LambdaFunctionARN: { Ref: "VersionedAuthLambda" }
         }
       ];
+    }
+    if (answers.domain) {
+      assignTemplate(template, domainTemplate);
+      DistributionConfig.Aliases = [{ Ref: "Domain" }];
+      DistributionConfig.ViewerCertificate = {
+        AcmCertificateArn: { Ref: "Certificate" },
+        SslSupportMethod: "sni-only"
+      };
     }
   }
 
