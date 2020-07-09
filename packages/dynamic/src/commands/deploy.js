@@ -69,10 +69,10 @@ const createStack = async (env, packageJson, conf, envConf) => {
     return;
   }
 
-  const { stackName } = await inquirer.prompt([
+  const { stack } = await inquirer.prompt([
     {
       type: "input",
-      name: "stackName",
+      name: "stack",
       message: `Name of the new Cloudformation stack`,
       default: `${packageJson.name}-${env}`
     }
@@ -119,11 +119,11 @@ const createStack = async (env, packageJson, conf, envConf) => {
   // Create stack
   // ----------------------------------
 
-  spinner.start(`Creating Cloudformation stack: ${stackName}`);
+  spinner.start(`Creating Cloudformation stack: ${stack}`);
   const cloudformation = new AWS.CloudFormation();
   const create = await cloudformation
     .createStack({
-      StackName: stackName,
+      StackName: stack,
       TemplateBody: JSON.stringify(template),
       Parameters: Object.keys(parameters).map(key => ({
         ParameterKey: key,
@@ -135,15 +135,13 @@ const createStack = async (env, packageJson, conf, envConf) => {
 
   const created = await cloudformation
     .waitFor("stackCreateComplete", {
-      StackName: stackName
+      StackName: stack
     })
     .promise();
 
   spinner.succeed();
 
-  saveEnvironmentConfig("dynamic", env, {
-    stack: stackName
-  });
+  saveEnvironmentConfig("dynamic", env, { stack });
 };
 
 // Update Function

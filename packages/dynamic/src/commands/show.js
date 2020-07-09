@@ -20,7 +20,7 @@ const showOutputs = async (conf, env, envConfig) => {
 
   const spinner = ora("Retrieving outputs").start();
   const res = await cloudformation
-    .describeStacks({ StackName: envConfig.stackName })
+    .describeStacks({ StackName: envConfig.stack })
     .promise();
   const stack = res.Stacks[0];
   spinner.succeed();

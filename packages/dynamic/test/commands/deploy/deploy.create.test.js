@@ -40,7 +40,7 @@ describe("create", () => {
       });
       inquirer.prompt
         .mockResolvedValueOnce({ confirm: true })
-        .mockResolvedValueOnce({ stackName: "stack-test" })
+        .mockResolvedValueOnce({ stack: "stack-test" })
         .mockResolvedValueOnce({ testParam: "test-value" });
     });
 
