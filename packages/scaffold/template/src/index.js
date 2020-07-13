@@ -6,13 +6,13 @@ import './index.css';
 
 const rootElement = document.getElementById('root');
 const app = (
-	<Router>
-		<App />
-	</Router>
+  <Router>
+    <App />
+  </Router>
 );
 
 if (rootElement.hasChildNodes()) {
-	hydrate(app, rootElement);
+  hydrate(app, rootElement);
 } else {
-	render(app, rootElement);
+  render(app, rootElement);
 }
