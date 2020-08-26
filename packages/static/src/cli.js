@@ -27,7 +27,7 @@ require("yargs")
           type: "boolean"
         })
         .option("confirm", {
-          describe: "Deploy right away without confirmation",
+          describe: "Deploy without confirmation",
           type: "boolean"
         });
     },
