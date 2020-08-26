@@ -1,6 +1,8 @@
 const execa = require("execa");
 const ora = require("ora");
 const inquirer = require("inquirer");
+const chalk = require("chalk");
+
 const {
   loadConfig,
   getEnvironment,
@@ -8,10 +10,11 @@ const {
   saveEnvironmentConfig,
   getAWSWithProfile,
   monitorStack,
-  logTable,
   uploadDirToS3,
   paramsToInquirer,
-  assignTemplate
+  assignTemplate,
+  log,
+  logTable
 } = require("@designsystemsinternational/cli-utils");
 const {
   ACTION_NO_CONFIG
@@ -34,9 +37,10 @@ const deploy = async (args = {}) => {
   const envConf = getEnvironmentConfig(conf, env);
 
   if (!envConf || args.configure) {
-    await runCloudFormation(env, conf, packageJson, envConf);
+    const newEnvConf = await runCloudFormation(env, conf, packageJson, envConf);
+    await uploadFiles(env, conf, packageJson, newEnvConf, args);
   } else {
-    await uploadFiles(env, conf, packageJson, envConf);
+    await uploadFiles(env, conf, packageJson, envConf, args);
   }
 };
 
@@ -174,11 +178,12 @@ const runCloudFormation = async (env, conf, packageJson, envConf) => {
   spinner.succeed();
 
   spinner.start("Saving environment config");
-  saveEnvironmentConfig("static", env, {
+  const newEnvConf = {
     stack,
     bucket: parameters.S3BucketName,
     fileParams: defaultFileParams
-  });
+  };
+  saveEnvironmentConfig("static", env, newEnvConf);
   spinner.succeed();
 
   // Listen for changes to cloudformation
@@ -197,23 +202,35 @@ const runCloudFormation = async (env, conf, packageJson, envConf) => {
     ])
   );
 
-  console.log(
-    "The resources for the new environment has now been set up. Please run the deploy command again to upload the files. Please make sure to check the environment config in package.json before the first deploy."
+  log(
+    `The resources for the new environment have now been set up with this configuration:
+
+${JSON.stringify(newEnvConf, null, 2)}
+
+`
   );
+
+  return newEnvConf;
 };
 
 // Upload Files
 // ---------------------------------------------------------------------
 
-const uploadFiles = async (env, conf, packageJson, envConf) => {
-  const answers = await inquirer.prompt([
-    {
-      type: "confirm",
-      name: "confirm",
-      message: `This will deploy the ${env} environment. Continue?`,
-      default: `${packageJson.name}-${env}`
-    }
-  ]);
+const uploadFiles = async (env, conf, packageJson, envConf, args) => {
+  let answers = { confirm: args.confirm };
+
+  if (!answers.confirm) {
+    answers = await inquirer.prompt([
+      {
+        type: "confirm",
+        name: "confirm",
+        message: `This will deploy the ${chalk.red(
+          env
+        )} environment. Continue?`,
+        default: `${packageJson.name}-${env}`
+      }
+    ]);
+  }
 
   if (!answers.confirm) return;
 

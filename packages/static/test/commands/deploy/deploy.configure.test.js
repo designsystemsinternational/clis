@@ -61,7 +61,8 @@ describe("deploy", () => {
           S3BucketName: "test-bucket-changed",
           IndexPage: "index.html",
           ErrorPage: "index.html"
-        });
+        })
+        .mockResolvedValueOnce({ confirm: false });
 
       const deploy = require("../../../src/commands/deploy");
       await deploy({ configure: true });
@@ -83,7 +84,8 @@ describe("deploy", () => {
           S3BucketName: "test-bucket",
           IndexPage: "index.html",
           ErrorPage: "index.html"
-        });
+        })
+        .mockResolvedValueOnce({ confirm: false });
 
       const deploy = require("../../../src/commands/deploy");
       await deploy({ configure: true });

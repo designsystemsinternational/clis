@@ -416,15 +416,20 @@ const timeout = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 const newChangesetName = () => {
   const now = new Date();
-  return `deploy-${now.getFullYear()}-${
-    now.getMonth() + 1
-  }-${now.getDate()}-${now.getHours()}-${now.getMinutes()}-${now.getSeconds()}`;
+  return `deploy-${now.getFullYear()}-${now.getMonth() +
+    1}-${now.getDate()}-${now.getHours()}-${now.getMinutes()}-${now.getSeconds()}`;
+};
+
+const log = (...args) => {
+  if (process.env.NODE_ENV !== "test") {
+    console.log(...args);
+  }
 };
 
 const logTable = (head, rows) => {
   const table = new Table({ head });
   rows.forEach(row => table.push(row));
-  console.log(table.toString());
+  log(table.toString());
 };
 
 module.exports = {
@@ -447,5 +452,6 @@ module.exports = {
   paramsToInquirer,
   newChangesetName,
   waitForChangeset,
+  log,
   logTable
 };
