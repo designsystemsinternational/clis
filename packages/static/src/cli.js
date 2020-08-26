@@ -20,10 +20,16 @@ require("yargs")
     "deploy",
     "Deploys the website",
     yargs => {
-      yargs.option("env", env).option("configure", {
-        describe: "Reconfigure the CloudFormation stack",
-        type: "boolean"
-      });
+      yargs
+        .option("env", env)
+        .option("configure", {
+          describe: "Reconfigure the CloudFormation stack",
+          type: "boolean"
+        })
+        .option("confirm", {
+          describe: "Deploy right away without confirmation",
+          type: "boolean"
+        });
     },
     deploy
   )
@@ -47,4 +53,7 @@ require("yargs")
     },
     open
   )
-  .help().argv;
+  .help()
+  .strictCommands()
+  .demandCommand(1, "")
+  .showHelpOnFail(true, "See available commands above ☝️\n").argv;
