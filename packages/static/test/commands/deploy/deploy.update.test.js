@@ -45,4 +45,22 @@ describe("update", () => {
     expect(calls[0][2]).toEqual("bucket-test");
     expect(calls[0][3]).toEqual(defaultFileParams);
   });
+
+  it("skips prompt with flag", async () => {
+    mockUtils(utils, {
+      loadConfig: {
+        conf,
+        packageJson: {
+          name: "fake-package"
+        }
+      }
+    });
+    const deploy = require("../../../src/commands/deploy");
+    await deploy({ confirm: true });
+    const { calls } = utils.uploadDirToS3.mock;
+    expect(calls.length).toBe(1);
+    expect(calls[0][1]).toEqual("test/fake-package/build");
+    expect(calls[0][2]).toEqual("bucket-test");
+    expect(calls[0][3]).toEqual(defaultFileParams);
+  });
 });
