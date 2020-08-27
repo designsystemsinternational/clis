@@ -414,6 +414,22 @@ const waitForChangeset = async (
 
 const timeout = ms => new Promise(resolve => setTimeout(resolve, ms));
 
+// ensures the name follows the AWS naming requirements
+// https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-s3-bucket-naming-requirements.html
+const formatAwsName = (name, sufix = "") => {
+  const max = sufix ? 63 - sufix.length : 63;
+  const append = sufix ? `-${sufix}` : "";
+  return (
+    name
+      .replace(/[^a-z0-9.-]/g, "-")
+      .replace(/^[^a-z0-9]/, "")
+      .replace(/-$/, "")
+      .replace(/\.+/g, ".")
+      .replace(/\.*-\.*/g, "-")
+      .slice(0, max) + append
+  );
+};
+
 const newChangesetName = () => {
   const now = new Date();
   return `deploy-${now.getFullYear()}-${now.getMonth() +
@@ -450,6 +466,7 @@ module.exports = {
   assignTemplate,
   monitorStack,
   paramsToInquirer,
+  formatAwsName,
   newChangesetName,
   waitForChangeset,
   log,
