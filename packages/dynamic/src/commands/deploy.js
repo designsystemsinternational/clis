@@ -17,6 +17,7 @@ const {
   paramsToInquirer,
   zipWebpackOutput,
   uploadFilesToS3,
+  formatAwsName,
   newChangesetName,
   monitorStack,
   waitForChangeset
@@ -74,7 +75,7 @@ const createStack = async (env, packageJson, conf, envConf) => {
       type: "input",
       name: "stack",
       message: `Name of the new Cloudformation stack`,
-      default: `${packageJson.name}-${env}`
+      default: formatAwsName(packageJson.name, env)
     }
   ]);
 

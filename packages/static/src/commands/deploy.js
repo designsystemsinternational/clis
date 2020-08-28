@@ -54,7 +54,7 @@ const runCloudFormation = async (env, conf, packageJson, envConf) => {
       type: "input",
       name: "stack",
       message: `Name of the new Cloudformation stack`,
-      default: `${packageJson.name}-${env}`,
+      default: formatAwsName(packageJson.name, env),
       when: !envConf || !envConf.stack
     },
     {
@@ -227,7 +227,7 @@ const uploadFiles = async (env, conf, packageJson, envConf, args) => {
         message: `This will deploy the ${chalk.red(
           env
         )} environment. Continue?`,
-        default: `${packageJson.name}-${env}`
+        default: formatAwsName(packageJson.name, env)
       }
     ]);
   }
