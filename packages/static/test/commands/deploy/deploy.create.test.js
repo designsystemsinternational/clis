@@ -54,8 +54,8 @@ describe("deploy", () => {
           S3BucketName: "test-bucket",
           IndexPage: "index.html",
           ErrorPage: "index.html"
-        });
-
+        })
+        .mockResolvedValueOnce({ confirm: false });
       const deploy = require("../../../src/commands/deploy");
       await deploy();
       expectSaveEnvironmentConfig(utils, "static", "test", {
@@ -75,7 +75,8 @@ describe("deploy", () => {
           S3BucketName: "test-bucket",
           IndexPage: "index.html",
           ErrorPage: "index.html"
-        });
+        })
+        .mockResolvedValueOnce({ confirm: false });
 
       const deploy = require("../../../src/commands/deploy");
       await deploy();
@@ -94,6 +95,28 @@ describe("deploy", () => {
       });
     });
 
+    it("runs uploadFiles after succeeding", async () => {
+      inquirer.prompt
+        .mockResolvedValueOnce({
+          stack: "stack-test",
+          createCloudfront: true
+        })
+        .mockResolvedValueOnce({
+          S3BucketName: "test-bucket",
+          IndexPage: "index.html",
+          ErrorPage: "index.html"
+        })
+        .mockResolvedValueOnce({ confirm: true });
+
+      const deploy = require("../../../src/commands/deploy");
+      await deploy();
+      const { calls } = utils.uploadDirToS3.mock;
+      expect(calls.length).toBe(1);
+      expect(calls[0][1]).toEqual("test/build");
+      expect(calls[0][2]).toEqual("test-bucket");
+      expect(calls[0][3]).toEqual(defaultFileParams);
+    });
+
     it("uses dynamic defaults for inquirer prompt", async () => {
       inquirer.prompt
         .mockResolvedValueOnce({
@@ -104,7 +127,8 @@ describe("deploy", () => {
           S3BucketName: "test-bucket",
           IndexPage: "index.html",
           ErrorPage: "index.html"
-        });
+        })
+        .mockResolvedValueOnce({ confirm: false });
 
       const deploy = require("../../../src/commands/deploy");
       await deploy();
@@ -130,7 +154,8 @@ describe("deploy", () => {
           S3BucketName: "test-bucket",
           IndexPage: "index.html",
           ErrorPage: "index.html"
-        });
+        })
+        .mockResolvedValueOnce({ confirm: false });
 
       const deploy = require("../../../src/commands/deploy");
       await deploy();
@@ -152,7 +177,8 @@ describe("deploy", () => {
           ErrorPage: "index.html",
           AuthUsername: "user",
           AuthPassword: "password"
-        });
+        })
+        .mockResolvedValueOnce({ confirm: false });
 
       const deploy = require("../../../src/commands/deploy");
       await deploy();
@@ -193,7 +219,8 @@ describe("deploy", () => {
           ErrorPage: "index.html",
           Domain: "test.designsystems.international",
           HostedZoneID: "ABCDEFGH"
-        });
+        })
+        .mockResolvedValueOnce({ confirm: false });
 
       const deploy = require("../../../src/commands/deploy");
       await deploy();
