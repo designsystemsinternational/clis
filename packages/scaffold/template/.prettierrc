@@ -1,9 +1,10 @@
 {
-  "singleQuote": true,
+  "singleQuote": false,
   "tabWidth": 2,
   "useTabs": false,
+  "arrowParens": "avoid",
   "jsxBracketSameLine": true,
-  "trailingComma": "es5",
+  "trailingComma": "none",
   "overrides": [
     {
       "files": ["*.css", "*.scss"],
