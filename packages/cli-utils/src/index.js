@@ -426,7 +426,7 @@ const formatAwsName = (name, _sufix = "") => {
       .replace(/[^a-z0-9-]/g, "-") // keep only lowercase alphanumeric characters and dashes
       .replace(/^[^a-z]+/, "") // start with alphabetical character
       .replace(/-+/, "-") // remove repeated dashes
-      .replace(/-$/, "") // can't end with dash
+      .replace(/-$/, "") // remove trailing dash
       .slice(0, max) + sufix
   );
 };
