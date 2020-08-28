@@ -56,7 +56,7 @@ const prompt = async () => {
   // ----------------------------------------------
 
   const spinner = ora("Creating files").start();
-  const ignore = ["package.json", "index.html", "node_modules"];
+  const ignore = ["package.json", "index.html", "node_modules", "dist"];
 
   // Remove all files in test folder if needed
   if (!answers.includeTests) {
@@ -102,14 +102,19 @@ const prompt = async () => {
     JSON.stringify(packageJson, null, 2)
   );
 
-  // index.html
+  // Project Name
   // ----------------------------------------------
 
-  const indexHtml = fs
-    .readFileSync(path.join(templateDir, "src", "index.html"))
+  const app = fs
+    .readFileSync(path.join(templateDir, "src", "App.js"), "utf8")
+    .replace("__My Project__", answers.name);
+  await fs.outputFile(path.join(answers.slug, "src", "App.js"), app);
+
+  const readme = fs
+    .readFileSync(path.join(templateDir, "README.md"))
     .toString()
-    .replace("My Project", answers.name);
-  await fs.outputFile(path.join(answers.slug, "src", "index.html"), indexHtml);
+    .replace("{{ MyProject }}", answers.name);
+  await fs.outputFile(path.join(answers.slug, "README.md"), readme);
 
   spinner.succeed();
 

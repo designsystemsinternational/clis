@@ -3,7 +3,8 @@ const webpack = require('webpack');
 const dotenv = require('dotenv').config();
 const getPort = require('get-port');
 
-const HtmlWebPackPlugin = require('html-webpack-plugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const StaticSiteGeneratorPlugin = require('static-site-generator-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
@@ -111,21 +112,27 @@ module.exports = async (env, argv) => {
       }
     : {};
 
-  const plugins = [
-    new webpack.EnvironmentPlugin(envVars),
-    new HtmlWebPackPlugin({
-      template: './src/index.html',
-      filename: './index.html',
-    }),
-  ].concat(
+  const plugins = [new webpack.EnvironmentPlugin(envVars)].concat(
     isProduction
       ? [
+          new StaticSiteGeneratorPlugin({
+            crawl: true,
+            globals: {
+              window: {},
+            },
+          }),
           new CleanWebpackPlugin(),
           new MiniCssExtractPlugin({
             filename: '[contenthash]-[name].css',
           }),
         ]
-      : [new webpack.HotModuleReplacementPlugin()]
+      : [
+          new HtmlWebpackPlugin({
+            template: './src/index.html',
+            filename: './index.html',
+          }),
+          new webpack.HotModuleReplacementPlugin(),
+        ]
   );
 
   const devServer = {
@@ -168,6 +175,7 @@ Copied "${url}" to clipboard.
     module: {
       rules: [js, css, svg, images, videos, files],
     },
+    performance: { hints: false },
     optimization,
     plugins,
     devServer,
