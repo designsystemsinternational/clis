@@ -13,6 +13,7 @@ const {
   uploadDirToS3,
   paramsToInquirer,
   assignTemplate,
+  formatAwsName,
   log,
   logTable
 } = require("@designsystemsinternational/cli-utils");
