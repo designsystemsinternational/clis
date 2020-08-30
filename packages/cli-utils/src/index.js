@@ -414,19 +414,20 @@ const waitForChangeset = async (
 
 const timeout = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-// ensures the name follows the AWS naming requirements
+// ensures the name follows the AWS stack and bucket naming requirements
 // https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-s3-bucket-naming-requirements.html
-const formatAwsName = (name, sufix = "") => {
-  const max = sufix ? 63 - sufix.length : 63;
-  const append = sufix ? `-${sufix}` : "";
+// https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-using-console-create-stack-parameters.html
+const formatAwsName = (name, _sufix = "") => {
+  const sufix = _sufix ? `-${_sufix}` : "";
+  const max = 63 - sufix.length;
+
   return (
     name
-      .replace(/[^a-z0-9.-]/g, "-")
-      .replace(/^[^a-z0-9]/, "")
-      .replace(/-$/, "")
-      .replace(/\.+/g, ".")
-      .replace(/\.*-\.*/g, "-")
-      .slice(0, max) + append
+      .replace(/[^a-z0-9-]/g, "-") // keep only lowercase alphanumeric characters and dashes
+      .replace(/^[^a-z]+/, "") // start with alphabetical character
+      .replace(/-+/, "-") // remove repeated dashes
+      .replace(/-$/, "") // remove trailing dash
+      .slice(0, max) + sufix
   );
 };
 
