@@ -1,8 +1,8 @@
 {
-  "singleQuote": false,
+  "singleQuote": true,
   "tabWidth": 2,
   "useTabs": false,
-  "arrowParens": "avoid",
+  "arrowParens": "always",
   "jsxBracketSameLine": true,
   "trailingComma": "none",
   "overrides": [
