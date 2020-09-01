@@ -10,7 +10,7 @@ export const Html = ({ assets, context, body }) => {
     script,
     style,
     htmlAttributes,
-    bodyAttributes
+    bodyAttributes,
   } = context.helmet;
   return (
     <html lang="en" {...htmlAttributes.toComponent()}>
