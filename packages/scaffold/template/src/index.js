@@ -40,7 +40,8 @@ export default (locals) => {
       </HelmetProvider>
     </StaticRouter>
   );
-  return renderToString(
-    <Html assets={assets} body={body} context={helmetCtx} />
+  return (
+    '<!DOCTYPE html> ' +
+    renderToString(<Html assets={assets} body={body} context={helmetCtx} />)
   );
 };
