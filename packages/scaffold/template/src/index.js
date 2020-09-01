@@ -1,18 +1,18 @@
-import React, { Component } from 'react';
-import { render, hydrate } from 'react-dom';
-import { renderToString } from 'react-dom/server';
-import { HelmetProvider } from 'react-helmet-async';
+import React, { Component } from "react";
+import { render, hydrate } from "react-dom";
+import { renderToString } from "react-dom/server";
+import { HelmetProvider } from "react-helmet-async";
 
-import { BrowserRouter, StaticRouter, Route } from 'react-router-dom';
+import { BrowserRouter, StaticRouter, Route } from "react-router-dom";
 
-import Html from './Html';
-import App from './App.js';
-import './index.css';
+import Html from "./Html";
+import App from "./App.js";
+import "./index.css";
 
-import { isClient } from './utils';
+import { isClient } from "./utils";
 
 if (isClient) {
-  const root = document.getElementById('root');
+  const root = document.getElementById("root");
   const app = (
     <HelmetProvider>
       <BrowserRouter>
@@ -27,7 +27,7 @@ if (isClient) {
   }
 }
 
-export default (locals) => {
+export default locals => {
   const assets = Object.keys(locals.webpackStats.compilation.assets);
 
   HelmetProvider.canUseDOM = false;
@@ -40,7 +40,8 @@ export default (locals) => {
       </HelmetProvider>
     </StaticRouter>
   );
-  return renderToString(
-    <Html assets={assets} body={body} context={helmetCtx} />
+  return (
+    "<!DOCTYPE html> " +
+    renderToString(<Html assets={assets} body={body} context={helmetCtx} />)
   );
 };
