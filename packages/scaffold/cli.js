@@ -56,7 +56,7 @@ const prompt = async () => {
   // ----------------------------------------------
 
   const spinner = ora("Creating files").start();
-  const ignore = ["package.json", "index.html", "node_modules", "dist"];
+  const ignore = ["package.json", "node_modules", "dist"];
 
   // Remove all files in test folder if needed
   if (!answers.includeTests) {
