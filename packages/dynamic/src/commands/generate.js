@@ -68,8 +68,8 @@ const map = {
   route,
 };
 
-const generate = async (args) => {
-  await map[template](args);
+const generate = async args => {
+  await map[args.template](args);
 };
 
 module.exports = generate;
