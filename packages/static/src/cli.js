@@ -7,9 +7,9 @@ const show = require("./commands/show");
 const open = require("./commands/open");
 
 const env = {
-  describe: "Ignore current Git branch and use this environment instead",
+  describe: "Ignore current Git branch and use this environment",
   requiresArg: true,
-  type: "string"
+  type: "string",
 };
 
 require("yargs")
@@ -24,11 +24,11 @@ require("yargs")
         .option("env", env)
         .option("configure", {
           describe: "Reconfigure the CloudFormation stack",
-          type: "boolean"
+          type: "boolean",
         })
         .option("confirm", {
           describe: "Deploy without confirmation",
-          type: "boolean"
+          type: "boolean",
         });
     },
     deploy
@@ -48,7 +48,7 @@ require("yargs")
     yargs => {
       yargs.positional("search", {
         describe: "Partial search key to find URL. Try `S3` or `Cloudfront` ",
-        type: "string"
+        type: "string",
       });
     },
     open
