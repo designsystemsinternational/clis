@@ -5,6 +5,9 @@ module.exports = {
       Type: "String"
     }
   },
+  Conditions: {
+    HasParam: { "Fn::Not": [{ "Fn::Equals": [{ Ref: "testParam" }, ""] }] }
+  },
   Resources: {
     testLogGroup: {
       Type: "AWS::Logs::LogGroup",

@@ -75,7 +75,7 @@ const compileCloudformationTemplate = async conf => {
   const templates = micromatch(relFiles, conf.cloudformationMatch).map(f =>
     require(join(cwd, f))
   );
-  const base = { Parameters: {}, Resources: {}, Outputs: {} };
+  const base = { Parameters: {}, Conditions: {}, Resources: {}, Outputs: {} };
   const templateKeys = Object.keys(base);
   templates.forEach(tmpl => {
     templateKeys.forEach(tmplKey => {

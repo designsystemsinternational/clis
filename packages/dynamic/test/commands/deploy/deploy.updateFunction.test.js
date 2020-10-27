@@ -89,7 +89,6 @@ describe("updateFunction", () => {
     expect(calls[0][0].UsePreviousTemplate).toEqual(true);
     expect(calls[0][0].StackName).toEqual("stack-test");
     expect(calls[0][0].ChangeSetName).toBeDefined();
-    expect(calls[0][0].Parameters).toBeDefined();
     expect(calls[0][0].TemplateBody).toBeUndefined();
     expect(calls[0][0].Parameters).toEqual([
       {

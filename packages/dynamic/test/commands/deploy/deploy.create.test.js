@@ -89,10 +89,14 @@ describe("create", () => {
         "lambdaS3Key",
         "showUserS3Key"
       ]);
+
+      expect(tmpl.Conditions.HasParam).toBeDefined();
+
       expect(Object.keys(tmpl.Resources)).toEqual([
         "testLogGroup",
         "anotherLogGroup"
       ]);
+
       expect(Object.keys(tmpl.Outputs)).toEqual([
         "testOutput",
         "anotherOutput"
