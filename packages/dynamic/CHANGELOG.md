@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.3.3
+
+- Adding ability to use `Conditions` in Cloudformation templates
+
 ## 3.2.1
 
 - Fixing bug with `show`
