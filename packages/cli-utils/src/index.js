@@ -433,8 +433,9 @@ const formatAwsName = (name, _sufix = "") => {
 
 const newChangesetName = () => {
   const now = new Date();
-  return `deploy-${now.getFullYear()}-${now.getMonth() +
-    1}-${now.getDate()}-${now.getHours()}-${now.getMinutes()}-${now.getSeconds()}`;
+  return `deploy-${now.getFullYear()}-${
+    now.getMonth() + 1
+  }-${now.getDate()}-${now.getHours()}-${now.getMinutes()}-${now.getSeconds()}`;
 };
 
 const log = (...args) => {

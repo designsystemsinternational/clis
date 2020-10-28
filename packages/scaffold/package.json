@@ -30,5 +30,6 @@
     "recursive-readdir": "^2.2.2",
     "shelljs": "^0.8.3",
     "slugify": "^1.4.0"
-  }
+  },
+  "gitHead": "2a4c0555e2db7e1505fbfccb23031d62aaf6b0d7"
 }

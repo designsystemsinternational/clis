@@ -94,28 +94,32 @@ const createStack = async (env, packageJson, conf, envConf) => {
     parameters = await inquirer.prompt(paramsToInquirer(template.Parameters));
   }
 
+  addAutomaticParameterValues(parameters, template, conf, env);
+
   // Build and upload lambdas
   // ----------------------------------
 
-  spinner.start("Preparing lambda packages");
+  spinner.start("Looking for lambda files");
   const functions = await getFunctions(conf);
-  const stats = await buildFunctions(conf, functions);
-  const functionsInfo = await zipWebpackOutput(stats);
   spinner.succeed();
 
-  spinner.start("Uploading lambda packages to S3");
-  await addS3KeyValues(env, functionsInfo);
-  const uploadInfo = {};
-  Object.keys(functionsInfo).forEach(key => {
-    uploadInfo[functionsInfo[key].zipFile] = functionsInfo[key].s3Key;
-  });
-  await uploadFilesToS3(AWS, conf.bucket, uploadInfo);
-  spinner.succeed();
+  if (functions.length > 0) {
+    spinner.start("Compiling lambda files with Webpack");
+    const stats = await buildFunctions(conf, functions);
+    const functionsInfo = await zipWebpackOutput(stats);
+    spinner.succeed();
 
-  // Assign automatic parameters
-  // ----------------------------------
+    spinner.start("Uploading lambda packages to S3");
+    await addS3KeyValues(env, functionsInfo);
+    const uploadInfo = {};
+    Object.keys(functionsInfo).forEach(key => {
+      uploadInfo[functionsInfo[key].zipFile] = functionsInfo[key].s3Key;
+    });
+    await uploadFilesToS3(AWS, conf.bucket, uploadInfo);
+    spinner.succeed();
 
-  addAutomaticParameterValues(parameters, template, conf, env, functionsInfo);
+    addLambdaParameterValues(parameters, template, functionsInfo);
+  }
 
   // Create stack
   // ----------------------------------
@@ -267,15 +271,6 @@ const updateStack = async (env, packageJson, conf, envConf) => {
   const template = await compileCloudformationTemplate(conf);
   spinner.succeed();
 
-  // Build lambdas
-  // ----------------------------------
-
-  spinner.start("Preparing lambda packages");
-  const functions = await getFunctions(conf);
-  const stats = await buildFunctions(conf, functions);
-  const functionsInfo = await zipWebpackOutput(stats);
-  spinner.succeed();
-
   // Ask for params
   // ----------------------------------
 
@@ -287,22 +282,32 @@ const updateStack = async (env, packageJson, conf, envConf) => {
     );
   }
 
-  // Upload lambdas
+  addAutomaticParameterValues(parameters, template, conf, env);
+
+  // Build lambdas
   // ----------------------------------
 
-  spinner.start("Uploading lambda packages to S3");
-  await addS3KeyValues(env, functionsInfo);
-  const uploadInfo = {};
-  Object.keys(functionsInfo).forEach(key => {
-    uploadInfo[functionsInfo[key].zipFile] = functionsInfo[key].s3Key;
-  });
-  await uploadFilesToS3(AWS, conf.bucket, uploadInfo);
+  spinner.start("Looking for lambda files");
+  const functions = await getFunctions(conf);
   spinner.succeed();
 
-  // Assign automatic parameters
-  // ----------------------------------
+  if (functions.length > 0) {
+    spinner.start("Compiling lambda files with Webpack");
+    const stats = await buildFunctions(conf, functions);
+    const functionsInfo = await zipWebpackOutput(stats);
+    spinner.succeed();
 
-  addAutomaticParameterValues(parameters, template, conf, env, functionsInfo);
+    spinner.start("Uploading lambda packages to S3");
+    await addS3KeyValues(env, functionsInfo);
+    const uploadInfo = {};
+    Object.keys(functionsInfo).forEach(key => {
+      uploadInfo[functionsInfo[key].zipFile] = functionsInfo[key].s3Key;
+    });
+    await uploadFilesToS3(AWS, conf.bucket, uploadInfo);
+    spinner.succeed();
+
+    addLambdaParameterValues(parameters, template, functionsInfo);
+  }
 
   // Create and execute changeset
   // ----------------------------------
@@ -383,7 +388,9 @@ const addAutomaticParameterValues = (
     Type: "String"
   };
   parameters["environment"] = env;
+};
 
+const addLambdaParameterValues = (parameters, template, functionsInfo) => {
   Object.keys(functionsInfo).forEach(key => {
     const paramName = `${key}S3Key`;
     template.Parameters[paramName] = {

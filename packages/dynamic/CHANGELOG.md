@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.3.4
+
+- `dynamic` now works for packages that have no lambda functions
+
 ## 3.3.3
 
 - Adding ability to use `Conditions` in Cloudformation templates

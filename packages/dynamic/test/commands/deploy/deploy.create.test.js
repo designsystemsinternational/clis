@@ -72,6 +72,14 @@ describe("create", () => {
       );
     });
 
+    it("works for package without lambdas", async () => {
+      conf.lambdaMatch = ["thisdoesnotexist"];
+      const deploy = require("../../../src/commands/deploy");
+      await deploy();
+      const uploads = utils.uploadFilesToS3.mock.calls;
+      expect(uploads.length).toBe(0);
+    });
+
     it("runs createStack", async () => {
       const deploy = require("../../../src/commands/deploy");
       await deploy();
