@@ -1,6 +1,6 @@
 {
   "name": "@designsystemsinternational/static",
-  "version": "3.3.2",
+  "version": "3.3.4",
   "description": "A simple, opinionated command-line tool to deploy a static website to S3 and Cloudfront with Cloudformation",
   "repository": {
     "type": "git",
@@ -27,7 +27,7 @@
   },
   "license": "ISC",
   "dependencies": {
-    "@designsystemsinternational/cli-utils": "^3.3.1",
+    "@designsystemsinternational/cli-utils": "^3.3.4",
     "aws-sdk": "^2.705.0",
     "execa": "^1.0.0",
     "inquirer": "^7.2.0",
