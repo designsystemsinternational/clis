@@ -246,8 +246,8 @@ const paramsToInquirer = (params, opts = {}) => {
     questions.push({
       name: key,
       type: obj.AllowedValues ? "list" : "input",
-      message: obj.Description || key,
-      default: obj.Default || opts.default,
+      message: obj.Description ? `[${key}] ${obj.Description}` : key,
+      default: opts.overrideDefault || obj.Default,
       choices: obj.AllowedValues
     });
   });

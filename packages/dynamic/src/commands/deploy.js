@@ -278,7 +278,7 @@ const updateStack = async (env, packageJson, conf, envConf) => {
 
   if (Object.keys(template.Parameters).length > 0) {
     parameters = await inquirer.prompt(
-      paramsToInquirer(template.Parameters, { default: "Use Previous" })
+      paramsToInquirer(template.Parameters, { overrideDefault: "Use Previous" })
     );
   }
 
