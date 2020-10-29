@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.3.8
+
+- "Use Previous" now actually works in inquirer list
+
 ## 3.3.7
 
 - "Use Previous" now works in inquirer list
