@@ -1,6 +1,6 @@
 {
   "name": "@designsystemsinternational/dynamic",
-  "version": "3.3.5",
+  "version": "3.3.6",
   "description": "A simple command-line tool to deploy CloudFormation applications to AWS",
   "repository": {
     "type": "git",
@@ -23,7 +23,7 @@
   ],
   "license": "ISC",
   "dependencies": {
-    "@designsystemsinternational/cli-utils": "^3.3.5",
+    "@designsystemsinternational/cli-utils": "^3.3.6",
     "aws-sdk": "^2.705.0",
     "chalk": "^4.0.0",
     "clean-webpack-plugin": "^3.0.0",
