@@ -248,7 +248,9 @@ const paramsToInquirer = (params, opts = {}) => {
       type: obj.AllowedValues ? "list" : "input",
       message: obj.Description ? `[${key}] ${obj.Description}` : key,
       default: opts.overrideDefault || obj.Default,
-      choices: obj.AllowedValues
+      choices: opts.overrideDefault
+        ? [opts.overrideDefault].concat(obj.AllowedValues)
+        : obj.AllowedValues
     });
   });
   return questions;
