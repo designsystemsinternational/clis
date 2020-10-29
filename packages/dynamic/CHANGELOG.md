@@ -1,5 +1,14 @@
 # Changelog
 
+## 3.3.6
+
+- Now actually fixing "Use Previous"
+- Show parameter key in inquirer questions
+
+## 3.3.5
+
+- Trying to fix "Use Previous" when deploying again
+
 ## 3.3.4
 
 - `dynamic` now works for packages that have no lambda functions
