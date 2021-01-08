@@ -84,7 +84,7 @@ const prompt = async () => {
   if (!answers.includeTests) {
     delete packageJson.jest;
     delete packageJson.scripts.test;
-    const devDependencies = [
+    const deps = [
       "babel-jest",
       "enzyme",
       "enzyme-adapter-react-16",
@@ -92,8 +92,8 @@ const prompt = async () => {
       "jest-environment-enzyme",
       "jest-enzyme"
     ];
-    devDependencies.forEach(dep => {
-      delete packageJson.devDependencies[dep];
+    deps.forEach(dep => {
+      delete packageJson.dependencies[dep];
     });
   }
 
