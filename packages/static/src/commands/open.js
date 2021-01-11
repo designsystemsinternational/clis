@@ -17,7 +17,7 @@ const {
 
 const open = async args => {
   const { conf } = loadConfig("static");
-  const env = await getEnvironment();
+  const env = args && args.env ? args.env : await getEnvironment();
   const envConfig = getEnvironmentConfig(conf, env);
 
   if (!conf) {
