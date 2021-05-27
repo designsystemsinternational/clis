@@ -118,9 +118,12 @@ const runCloudFormation = async (env, conf, packageJson, envConf) => {
     S3BucketName: envConf ? envConf.bucket : answers.stack
   };
 
+  // add default S3BucketName to inquirer params
+  template.Parameters.S3BucketName.Default = defaults.S3BucketName;
+
   // Add questions based on Cloudformation parameters
   const templateAnswers = await inquirer.prompt(
-    paramsToInquirer(template.Parameters, defaults)
+    paramsToInquirer(template.Parameters, {})
   );
 
   const label = envConf ? "Updating stack" : "Creating stack";
