@@ -2,7 +2,8 @@ const pack = require("../../package.json");
 const ora = require("ora");
 const chalk = require("chalk");
 const inquirer = require("inquirer");
-const { execSync } = require("child_process");
+const execa = require("execa");
+
 const {
   getEnvironment,
   getStackName,
@@ -40,7 +41,7 @@ const open = async args => {
 
   // looks for a (case insensitive) partial match
   const match = stack.Outputs.find(o =>
-    o.OutputKey.toLowerCase().includes((args.key || "").toLowerCase())
+    o.OutputKey.toLowerCase().includes((args.search || "").toLowerCase())
   );
 
   const chosen =
@@ -57,12 +58,13 @@ const open = async args => {
       }
     ]));
 
-  const url = /^https?:\/\//.test(chosen.OutputValue)
+  let url = /^https?:\/\//.test(chosen.OutputValue)
     ? chosen.OutputValue
     : `https://${chosen.OutputValue}`;
-
+  url = url + (args.path || "");
   console.log(`opening '${url}'...`);
-  execSync(`open '${url}'`);
+  await execa(`open '${url}'`);
+  return url;
 };
 
 open.description = "Open a url from the outputs list.";
