@@ -123,7 +123,7 @@ const runCloudFormation = async (env, conf, packageJson, envConf) => {
 
   // Add questions based on Cloudformation parameters
   const templateAnswers = await inquirer.prompt(
-    paramsToInquirer(template.Parameters, {})
+    paramsToInquirer(template.Parameters)
   );
 
   const label = envConf ? "Updating stack" : "Creating stack";
