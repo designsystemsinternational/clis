@@ -12,6 +12,12 @@ const env = {
   type: "string"
 };
 
+const path = {
+  describe: "add a custom path to the url to open",
+  requiresArg: true,
+  type: "string"
+};
+
 require("yargs")
   .scriptName("static")
   .usage("$0 <cmd> [args]")
@@ -51,6 +57,7 @@ require("yargs")
           describe: "Partial search key to find URL. Try `S3` or `Cloudfront` ",
           type: "string"
         })
+        .option("path", path)
         .option("env", env);
     },
     open
