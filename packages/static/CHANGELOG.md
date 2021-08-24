@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.3.11
+
+- Making sure to upload HTML files last on deploy
+
 ## 3.2.2
 
 - Making `search` positional optional for `open` command

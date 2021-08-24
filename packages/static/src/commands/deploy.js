@@ -2,6 +2,7 @@ const execa = require("execa");
 const ora = require("ora");
 const inquirer = require("inquirer");
 const chalk = require("chalk");
+const path = require("path");
 
 const {
   loadConfig,
@@ -220,6 +221,16 @@ ${JSON.stringify(newEnvConf, null, 2)}
 const uploadFiles = async (env, conf, packageJson, envConf, args) => {
   let answers = { confirm: args.confirm };
 
+  const {
+    profile,
+    region,
+    shouldRunBuildCommand,
+    buildCommand,
+    buildDir
+  } = conf;
+
+  const { bucket, fileParams } = envConf;
+
   if (!answers.confirm) {
     answers = await inquirer.prompt([
       {
@@ -237,21 +248,40 @@ const uploadFiles = async (env, conf, packageJson, envConf, args) => {
 
   const spinner = ora("Starting deployment").start();
 
-  if (conf.shouldRunBuildCommand) {
+  if (shouldRunBuildCommand) {
     spinner.text = "Running build command";
-    await execa.shell(conf.buildCommand, {
+    await execa.shell(buildCommand, {
       stdout: "inherit"
     });
     spinner.succeed();
   }
 
-  spinner.start("Uploading files");
-  const AWS = getAWSWithProfile(conf.profile, conf.region);
-  await uploadDirToS3(AWS, conf.buildDir, envConf.bucket, envConf.fileParams, {
-    progress: (cur, total) => {
-      if (total > 0) {
-        spinner.text = `Uploading files (${Math.round((cur / total) * 100)}%)`;
-      }
+  const AWS = getAWSWithProfile(profile, region);
+
+  const onProgress = (cur, total) => {
+    if (total > 0) {
+      spinner.text = `Uploading assets (${Math.round((cur / total) * 100)}%)`;
+    }
+  };
+
+  spinner.start("Uploading assets");
+  await uploadDirToS3(AWS, buildDir, bucket, fileParams, {
+    progress: onProgress,
+    fileUploadEnd: file => console.log("uploading", file),
+    shouldUpload: file => {
+      console.log(file, path.extname(file), path.extname(file) !== ".html");
+      return path.extname(file) !== ".html";
+    }
+  });
+  spinner.succeed();
+
+  spinner.start("Uploading HTML files");
+  await uploadDirToS3(AWS, buildDir, bucket, fileParams, {
+    progress: onProgress,
+    fileUploadEnd: file => console.log("uploading", file),
+    shouldUpload: file => {
+      console.log(file, path.extname(file), path.extname(file) === ".html");
+      return path.extname(file) === ".html";
     }
   });
   spinner.succeed();

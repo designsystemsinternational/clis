@@ -147,13 +147,19 @@ const checkS3BucketExists = async (AWS, bucket) => {
   }
 };
 
+/**
+  Uploads a single file to S3.
+**/
 const uploadFileToS3 = async (AWS, bucket, localFile, s3Key) => {
   const s3 = new AWS.S3();
   const stream = createReadStream(localFile);
   await s3.upload({ Bucket: bucket, Key: s3Key, Body: stream }).promise();
 };
 
-// Receives an object with { localFile: s3Key } and uploads all files
+/**
+  Uploads a series of files to S3.
+  Receives an object with { localFile: s3Key } and uploads all files
+**/
 const uploadFilesToS3 = async (AWS, bucket, files) => {
   const promises = Object.keys(files).map(key =>
     uploadFileToS3(AWS, bucket, key, files[key])
@@ -161,12 +167,14 @@ const uploadFilesToS3 = async (AWS, bucket, files) => {
   await Promise.all(promises);
 };
 
-// A function to upload an entire directory to S3.
-// fileParams allows you to specify S3 params for certain files:
-// fileParams = [
-// { match: '*.json', params: { CacheControl: 'public' } }
-// { match: '*.html', params: { CacheControl: 'max-age=500' } }
-//]
+/**
+  A function to upload an entire directory to S3, syncing HTML files last.
+  fileParams allows you to specify S3 params for certain files:
+  fileParams = [
+    { match: '*.json', params: { CacheControl: 'public' } }
+    { match: '*.html', params: { CacheControl: 'max-age=500' } }
+  ]
+**/
 const uploadDirToS3 = async (
   AWS,
   localDir,
@@ -180,6 +188,7 @@ const uploadDirToS3 = async (
         ACL: "public-read",
         CacheControl: "no-store"
       };
+
       if (Array.isArray(fileParams)) {
         const file = fileParams.find(p =>
           micromatch.isMatch(localFile, p.match)
@@ -188,30 +197,41 @@ const uploadDirToS3 = async (
           Object.assign(params, file.params);
         }
       }
-      // Pass null for params to not upload this file
-      callback(null, params);
+
+      if (callbacks.shouldUpload && !callbacks.shouldUpload(localFile)) {
+        callback(null, null);
+      } else {
+        callback(null, params);
+      }
     };
+
     const s3Client = new AWS.S3();
     const client = s3.createClient({ s3Client });
+
     const uploader = client.uploadDir({
       localDir,
       getS3Params,
       s3Params: { Bucket: bucket, Prefix: "" }
     });
+
     uploader.on("error", err => {
       reject(err.stack);
     });
+
     if (callbacks.progress) {
       uploader.on("progress", () =>
         callbacks.progress(uploader.progressAmount, uploader.progressTotal)
       );
     }
+
     if (callbacks.fileUploadStart) {
       uploader.on("fileUploadStart", callbacks.fileUploadStart);
     }
+
     if (callbacks.fileUploadEnd) {
       uploader.on("fileUploadEnd", callbacks.fileUploadEnd);
     }
+
     uploader.on("end", () => {
       resolve();
     });
