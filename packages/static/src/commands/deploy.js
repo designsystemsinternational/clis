@@ -267,22 +267,14 @@ const uploadFiles = async (env, conf, packageJson, envConf, args) => {
   spinner.start("Uploading assets");
   await uploadDirToS3(AWS, buildDir, bucket, fileParams, {
     progress: onProgress,
-    fileUploadEnd: file => console.log("uploading", file),
-    shouldUpload: file => {
-      console.log(file, path.extname(file), path.extname(file) !== ".html");
-      return path.extname(file) !== ".html";
-    }
+    shouldUpload: file => path.extname(file) !== ".html"
   });
   spinner.succeed();
 
   spinner.start("Uploading HTML files");
   await uploadDirToS3(AWS, buildDir, bucket, fileParams, {
     progress: onProgress,
-    fileUploadEnd: file => console.log("uploading", file),
-    shouldUpload: file => {
-      console.log(file, path.extname(file), path.extname(file) === ".html");
-      return path.extname(file) === ".html";
-    }
+    shouldUpload: file => path.extname(file) === ".html"
   });
   spinner.succeed();
 };
