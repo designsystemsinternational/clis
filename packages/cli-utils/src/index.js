@@ -34,7 +34,7 @@ const saveConfig = (cli, conf) => {
 const getEnvironment = async () => {
   try {
     const branch = await gitBranch();
-    return branch === "master" ? "production" : branch;
+    return branch === "master" || branch === "main" ? "production" : branch;
   } catch (err) {
     throw "Git repository not found.";
   }
