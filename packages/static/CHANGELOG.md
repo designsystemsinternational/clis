@@ -1,5 +1,10 @@
 # Changelog
 
+## 4.0.0
+
+- Support for Node 16, 17 and 18
+- Fix default S3 bucket name
+
 ## 3.3.11
 
 - Making sure to upload HTML files last on deploy

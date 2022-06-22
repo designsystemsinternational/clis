@@ -111,10 +111,18 @@ describe("deploy", () => {
       const deploy = require("../../../src/commands/deploy");
       await deploy();
       const { calls } = utils.uploadDirToS3.mock;
-      expect(calls.length).toBe(1);
+      expect(calls.length).toBe(2);
+      // Assets
       expect(calls[0][1]).toEqual("test/build");
       expect(calls[0][2]).toEqual("test-bucket");
       expect(calls[0][3]).toEqual(defaultFileParams);
+      expect(calls[0][4].shouldUpload("test.html")).toEqual(false);
+
+      // HTML
+      expect(calls[1][1]).toEqual("test/build");
+      expect(calls[1][2]).toEqual("test-bucket");
+      expect(calls[1][3]).toEqual(defaultFileParams);
+      expect(calls[1][4].shouldUpload("test.html")).toEqual(true);
     });
 
     it("uses dynamic defaults for inquirer prompt", async () => {

@@ -77,7 +77,7 @@ describe("updateFunction", () => {
     expect(uploadFilesKeys.length).toBe(1);
     expect(uploadFilesKeys[0]).toMatch("dynamic/test/build/lambda.zip");
     expect(uploadFiles[uploadFilesKeys[0]]).toEqual(
-      `functions/test/lambda-5cdadd95e5d195a9956a5c7fc92f9135.zip`
+      `functions/test/lambda-d245d98cf59449a69d3c183fec4853a2.zip`
     );
   });
 
@@ -106,7 +106,7 @@ describe("updateFunction", () => {
       {
         ParameterKey: "lambdaS3Key",
         ParameterValue:
-          "functions/test/lambda-5cdadd95e5d195a9956a5c7fc92f9135.zip"
+          "functions/test/lambda-d245d98cf59449a69d3c183fec4853a2.zip"
       },
       {
         ParameterKey: "showUserS3Key",

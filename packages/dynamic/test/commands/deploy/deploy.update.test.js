@@ -64,10 +64,10 @@ describe("update", () => {
     expect(keys[0]).toMatch("test/build/lambda.zip");
     expect(keys[1]).toMatch("test/build/showUser.zip");
     expect(files[keys[0]]).toEqual(
-      `functions/test/lambda-5cdadd95e5d195a9956a5c7fc92f9135.zip`
+      `functions/test/lambda-d245d98cf59449a69d3c183fec4853a2.zip`
     );
     expect(files[keys[1]]).toEqual(
-      `functions/test/showUser-24ab93dda504c29203080cee6df361a1.zip`
+      `functions/test/showUser-0cd2f14dd8e03d9108323073e3241280.zip`
     );
   });
 
@@ -126,12 +126,12 @@ describe("update", () => {
       {
         ParameterKey: "lambdaS3Key",
         ParameterValue:
-          "functions/test/lambda-5cdadd95e5d195a9956a5c7fc92f9135.zip"
+          "functions/test/lambda-d245d98cf59449a69d3c183fec4853a2.zip"
       },
       {
         ParameterKey: "showUserS3Key",
         ParameterValue:
-          "functions/test/showUser-24ab93dda504c29203080cee6df361a1.zip"
+          "functions/test/showUser-0cd2f14dd8e03d9108323073e3241280.zip"
       }
     ]);
   });

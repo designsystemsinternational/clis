@@ -40,10 +40,19 @@ describe("update", () => {
     const deploy = require("../../../src/commands/deploy");
     await deploy();
     const { calls } = utils.uploadDirToS3.mock;
-    expect(calls.length).toBe(1);
+    expect(calls.length).toBe(2);
+
+    // Assets
     expect(calls[0][1]).toEqual("test/fake-package/build");
     expect(calls[0][2]).toEqual("bucket-test");
     expect(calls[0][3]).toEqual(defaultFileParams);
+    expect(calls[0][4].shouldUpload("test.html")).toEqual(false);
+
+    // HTML
+    expect(calls[0][1]).toEqual("test/fake-package/build");
+    expect(calls[0][2]).toEqual("bucket-test");
+    expect(calls[0][3]).toEqual(defaultFileParams);
+    expect(calls[0][4].shouldUpload("test.html")).toEqual(false);
   });
 
   it("skips prompt with flag", async () => {
@@ -58,9 +67,6 @@ describe("update", () => {
     const deploy = require("../../../src/commands/deploy");
     await deploy({ confirm: true });
     const { calls } = utils.uploadDirToS3.mock;
-    expect(calls.length).toBe(1);
-    expect(calls[0][1]).toEqual("test/fake-package/build");
-    expect(calls[0][2]).toEqual("bucket-test");
-    expect(calls[0][3]).toEqual(defaultFileParams);
+    expect(calls.length).toBe(2);
   });
 });

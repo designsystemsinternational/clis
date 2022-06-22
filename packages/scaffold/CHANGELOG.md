@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.0.0
+
+- Support for Node 16, 17 and 18
+
 ## 2.0.0
 
 - Added ability to not generate tests

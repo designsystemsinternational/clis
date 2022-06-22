@@ -28,14 +28,14 @@
   "license": "ISC",
   "dependencies": {
     "@designsystemsinternational/cli-utils": "^3.3.11",
-    "aws-sdk": "^2.705.0",
+    "aws-sdk": "^2.1159.0",
     "execa": "^1.0.0",
-    "inquirer": "^7.2.0",
-    "ora": "^4.0.4",
-    "yargs": "^15.3.1"
+    "inquirer": "^8.2.4",
+    "ora": "^5.4.1",
+    "yargs": "^17.5.1"
   },
   "devDependencies": {
-    "jest": "^24.9.0"
+    "jest": "^28.1.1"
   },
   "jest": {
     "testEnvironment": "node",
