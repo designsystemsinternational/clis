@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.0.1
+
+- Fix circular dependency warning
+
 ## 4.0.0
 
 - Support for Node 16, 17 and 18
