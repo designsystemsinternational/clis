@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.0.0
+
+- Support for Node 16, 17 and 18
+
 ## 3.3.8
 
 - "Use Previous" now actually works in inquirer list

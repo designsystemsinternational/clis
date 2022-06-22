@@ -120,7 +120,7 @@ const zipWebpackOutput = async stats => {
   const functionsInfo = {};
   Object.keys(assetsByChunkName).forEach(key => {
     functionsInfo[key] = {
-      orgFile: join(outputPath, assetsByChunkName[key]),
+      orgFile: join(outputPath, assetsByChunkName[key][0]),
       zipFile: join(outputPath, key + ".zip")
     };
   });
@@ -259,7 +259,7 @@ const emptyS3Bucket = async (AWS, bucket, prefix) => {
 // Cloudformation utils
 // ---------------------------------------------------
 
-const paramsToInquirer = (params, opts = {}) => {
+const paramsToInquirer = (params, opts = {}, defaults = {}) => {
   const questions = [];
   Object.keys(params).forEach(key => {
     const obj = params[key];
@@ -267,7 +267,7 @@ const paramsToInquirer = (params, opts = {}) => {
       name: key,
       type: obj.AllowedValues ? "list" : "input",
       message: obj.Description ? `[${key}] ${obj.Description}` : key,
-      default: opts.overrideDefault || obj.Default,
+      default: opts.overrideDefault || obj.Default || defaults[key],
       choices: obj.AllowedValues
         ? opts.overrideDefault
           ? [opts.overrideDefault].concat(obj.AllowedValues)

@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.0.0
+
+- Support for Node 16, 17 and 18
+
 ## 3.0.0
 
 - `getEnvironment()` now throws a proper error if the folder is not a Git repo
