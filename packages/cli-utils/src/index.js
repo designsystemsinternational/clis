@@ -68,7 +68,7 @@ const deleteEnvironmentConfig = (cli, env) => {
 
 const getAWSWithProfile = (profile, region) => {
   const opts = { region };
-  if (profile) {
+  if (profile && profile !== "none") {
     opts.credentials = new AWS.SharedIniFileCredentials({ profile });
   }
   AWS.config.update(opts);

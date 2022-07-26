@@ -25,12 +25,17 @@ yargs(hideBin(process.argv))
       yargs
         .option("env", env)
         .option("configure", {
-          describe: "Reconfigure the CloudFormation stack",
+          describe: "Reconfigure the static config",
           type: "boolean"
         })
         .option("confirm", {
-          describe: "Deploy without confirmation",
+          describe: "Deploy without prompting for confirmation",
           type: "boolean"
+        })
+        .option("profile", {
+          describe:
+            "Override the profile from settings. Set to `none` to disable using a profile.",
+          type: "string"
         });
     },
     deploy
