@@ -17,7 +17,8 @@ const micromatch = require("micromatch");
 
 const loadConfig = cli => {
   try {
-    const packageJson = JSON.parse(readFileSync("./package.json"));
+    const packageStr = readFileSync("./package.json", { encoding: "utf8" });
+    const packageJson = JSON.parse(packageStr);
     const conf = packageJson[cli];
     return { conf, packageJson };
   } catch (e) {

@@ -10,10 +10,13 @@ const {
 } = require("@designsystemsinternational/cli-utils/src/constants");
 
 const init = async () => {
+  console.log("0");
   const { conf, packageJson } = loadConfig("static");
   if (conf) {
     throw INIT_WITH_CONFIG;
   }
+
+  console.log("1");
 
   const answers = await inquirer.prompt([
     {
@@ -53,6 +56,8 @@ const init = async () => {
       default: "npm run build"
     }
   ]);
+
+  console.log("2");
 
   if (answers.profile === "none" || answers.profile === "") {
     delete answers.profile;

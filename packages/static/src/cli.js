@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+const yargs = require("yargs/yargs");
+const { hideBin } = require("yargs/helpers");
 
 const init = require("./commands/init");
 const deploy = require("./commands/deploy");
@@ -12,7 +14,7 @@ const env = {
   type: "string"
 };
 
-require("yargs")
+yargs(hideBin(process.argv))
   .scriptName("static")
   .usage("$0 <cmd> [args]")
   .command("init", "Creates a static config file in package.json", {}, init)
@@ -57,5 +59,4 @@ require("yargs")
   )
   .help()
   .strictCommands()
-  .demandCommand(1, "")
-  .showHelpOnFail(true, "See available commands above ☝️\n").argv;
+  .demandCommand(1, "").argv;

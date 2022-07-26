@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-
+const yargs = require("yargs/yargs");
+const { hideBin } = require("yargs/helpers");
 const chalk = require("chalk");
 const init = require("./commands/init");
 const deploy = require("./commands/deploy");
@@ -12,7 +13,7 @@ const env = {
   type: "string"
 };
 
-require("yargs")
+yargs(hideBin(process.argv))
   .scriptName("dynamic")
   .usage("$0 <cmd> [args]")
   .command("init", "Creates a dynamic config file in package.json", {}, init)
