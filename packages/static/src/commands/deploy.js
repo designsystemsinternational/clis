@@ -260,7 +260,7 @@ const uploadFiles = async (env, conf, packageJson, envConf, args) => {
 
   const onProgress = (cur, total) => {
     if (total > 0) {
-      spinner.text = `Uploading assets (${Math.round((cur / total) * 100)}%)`;
+      spinner.text = `Uploading (${Math.round((cur / total) * 100)}%)`;
     }
   };
 
