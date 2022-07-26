@@ -35,11 +35,6 @@ const deploy = async args => {
     throw ACTION_NO_CONFIG;
   }
 
-  // Override conf with command-line arguments
-  if (args.profile) {
-    conf.profile = args.profile;
-  }
-
   const confWithDefaults = Object.assign({}, configDefaults, conf);
   const env = args && args.env ? args.env : await getEnvironment();
   const envConf = getEnvironmentConfig(confWithDefaults, env);
