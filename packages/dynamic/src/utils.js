@@ -12,7 +12,8 @@ const md5File = require("md5-file");
 const configDefaults = {
   cloudformationMatch: ["functions/**/*cf.js"],
   lambdaMatch: ["functions/**/*.js", "!**/*cf.js", "!**/*.test.js"],
-  buildDir: "build"
+  buildDir: "build",
+  fileExtension: "js"
 };
 
 // Lambda utils
@@ -27,7 +28,7 @@ const getFunctions = async (conf, name) => {
   ]);
   const relFiles = allFiles.map(f => relative(cwd, f));
   const functions = micromatch(relFiles, conf.lambdaMatch).map(f => ({
-    name: basename(f, ".js"),
+    name: basename(f, `.${conf.fileExtension}`),
     path: join(cwd, f)
   }));
   if (name) {
