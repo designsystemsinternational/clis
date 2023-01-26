@@ -68,7 +68,6 @@ The `dynamic` config is defined in a `dynamic` key inside the `package.json`. Th
 - `cloudformationMatch`. The glob patterns used to detect cloudformation files. Uses [`micromatch`](https://github.com/micromatch/micromatch) and defaults to `["functions/**/cf.js"]`.
 - `lambdaMatch`. The glob patterns used to detect lambda files. Uses [`micromatch`](https://github.com/micromatch/micromatch) and defaults to `["functions/**/*.js", "!functions/**/cf.js"]`.
 - `buildDir`. Directory where the lambda build files go. Defaults to `build`.
-- `fileExtension`. Extension of the lambda and cloudformation files. Defaults to `js`, if your project is ESM this needs to change to `cjs` so you can corectly use require in your functions.
 
 ## Automatic parameters
 
