@@ -7,7 +7,7 @@ module.exports = (entries, conf) => {
     mode: "production",
     target: "node",
     entry: entries,
-    externals: ["aws-sdk"],
+    externals: ["aws-sdk", ...conf.externalPackages],
     output: {
       path: path.join(process.cwd(), conf.buildDir),
       libraryTarget: "umd",
