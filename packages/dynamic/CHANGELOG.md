@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Fix: Let dynamic correctly handle lambda files ending in `.cjs` or `.mjs`
+
 ## 4.0.1
 
 - Fix circular dependency warning

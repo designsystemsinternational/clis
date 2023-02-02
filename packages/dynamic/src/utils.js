@@ -19,6 +19,18 @@ const configDefaults = {
 // Lambda utils
 // ---------------------------------------------------
 
+const getBaseNameForFunction = fileName => {
+  const allowedExtensions = [".js", ".cjs", ".mjs"];
+
+  for (const ext of allowedExtensions) {
+    if (fileName.endsWith(ext)) {
+      return basename(fileName, ext);
+    }
+  }
+
+  return basename(fileName);
+};
+
 const getFunctions = async (conf, name) => {
   const cwd = process.cwd();
   const allFiles = await recursiveReadDir(cwd, [
@@ -28,7 +40,7 @@ const getFunctions = async (conf, name) => {
   ]);
   const relFiles = allFiles.map(f => relative(cwd, f));
   const functions = micromatch(relFiles, conf.lambdaMatch).map(f => ({
-    name: basename(f, ".js"),
+    name: getBaseNameForFunction(f),
     path: join(cwd, f)
   }));
   if (name) {
@@ -98,6 +110,7 @@ const compileCloudformationTemplate = async conf => {
 };
 
 module.exports = {
+  getBaseNameForFunction,
   configDefaults,
   compileCloudformationTemplate,
   getFunctions,
