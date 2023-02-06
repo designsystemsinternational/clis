@@ -17,7 +17,13 @@ import { getEnvConfig } from '../config/index.js';
 import { stackName, operationsBucketName } from '../constants.js';
 
 import { getParameterFromTemplate } from '../util/templates.js';
-import { logTable, withSpinner, formatAWSError } from '../util/output.js';
+import {
+  logStackFromTemplate,
+  logTable,
+  withSpinner,
+  formatAWSError,
+} from '../util/output.js';
+import { confirmOrExit } from '../util/input.js';
 import {
   findLambdaFunctions,
   buildAllLambdaFunctions,
@@ -25,9 +31,10 @@ import {
 
 import { createBucketIfNonExisting, uploadFileToS3 } from '../util/aws.js';
 
-export default async function deploy(config, env) {
+export default async function deploy({ config, env }) {
   const AWS = getAWSWithProfile(config.profile, config.region);
   const envConfig = getEnvConfig(config, env);
+  const stack = stackName(config.name, env);
 
   // Step 1: Run the build command on the static site (if configured)
   // ----------------------------------------------------------------
@@ -54,15 +61,21 @@ export default async function deploy(config, env) {
     });
   }
 
-  // Step 2: Build the CloudFormation template
-  // ----------------------------------------------------------------
-  const template = await prepareTemplateWithUserInput(
-    createCloudFormationTemplate({
-      config,
-      env,
-      functions: preparedFunctions,
-    }),
+  // Step 2: Build the CloudFormation template and gather user input (if needed)
+  // --------------------------------------------------------------------------
+  const compiledTemplate = createCloudFormationTemplate({
+    config,
+    env,
+    functions: preparedFunctions,
+  });
+
+  console.log(
+    `This operation will create or update your stack (${stack}) to contain the following resources`,
   );
+  logStackFromTemplate(compiledTemplate.template);
+  await confirmOrExit('Do you wish to continue?');
+
+  const template = await prepareTemplateWithUserInput(compiledTemplate);
 
   // Step 3: Uploading Zipped functions to S3
   // ----------------------------------------------------------------
@@ -93,7 +106,6 @@ export default async function deploy(config, env) {
 
   // Step 4: Create or update the CloudFormation stack
   // ----------------------------------------------------------------
-  const stack = stackName(config.name, env);
   const cloudformation = new AWS.CloudFormation();
 
   await withSpinner(

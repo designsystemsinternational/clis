@@ -15,7 +15,7 @@ export function cli(args) {
       const config = loadConfigOrPanic();
       const env = getEnvironment(opts);
 
-      await deploy(config, env);
+      await deploy({ config, env, options: opts });
     });
 
   prog.parse(args);

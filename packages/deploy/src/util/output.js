@@ -55,3 +55,11 @@ export const logTable = (head, rows, includeEmptyRow = true) => {
   if (includeEmptyRow) console.log('');
   console.log(table.toString());
 };
+
+export const logStackFromTemplate = (template) => {
+  logTable(
+    ['Name', 'Type'],
+    Object.entries(template.Resources).map(([key, value]) => [key, value.Type]),
+    false,
+  );
+};
