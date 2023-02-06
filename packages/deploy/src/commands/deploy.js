@@ -23,6 +23,7 @@ import {
   logTable,
   withSpinner,
   formatAWSError,
+  panic,
 } from '../util/output.js';
 import { confirmOrExit } from '../util/input.js';
 import {
@@ -30,10 +31,17 @@ import {
   buildAllLambdaFunctions,
 } from '../util/lambda.js';
 
-import { createBucketIfNonExisting, uploadFileToS3 } from '../util/aws.js';
+import {
+  stackExists,
+  getStackParameters,
+  createBucketIfNonExisting,
+  uploadFileToS3,
+} from '../util/aws.js';
 
 export default async function deploy({ config, env }) {
   const AWS = getAWSWithProfile(config.profile, config.region);
+  const cloudformation = new AWS.CloudFormation();
+
   const envConfig = getEnvConfig(config, env);
   const stack = stackName(config.name, env);
 
@@ -67,15 +75,22 @@ export default async function deploy({ config, env }) {
 
   // Step 2: Build the CloudFormation template and gather user input (if needed)
   // --------------------------------------------------------------------------
+  const currentStackParameters = await getStackParameters({
+    stack,
+    cloudformation,
+  });
+
   const compiledTemplate = createCloudFormationTemplate({
     config,
     env,
     functions: preparedFunctions,
+    currentStackParameters,
   });
 
   console.log(
     `This operation will create or update your stack (${stack}) to contain the following resources`,
   );
+
   logStackFromTemplate(compiledTemplate.template);
   await confirmOrExit('Do you wish to continue?');
 
@@ -95,12 +110,16 @@ export default async function deploy({ config, env }) {
         for (const [i, func] of preparedFunctions.entries()) {
           update(`Uploading ${i + 1} / ${totalFunctions}`);
 
-          await uploadFileToS3({
-            bucketName: operationsBucket,
-            localFile: func.zipFile.zip,
-            remoteFile: func.s3Key,
-            AWS,
-          });
+          try {
+            await uploadFileToS3({
+              bucketName: operationsBucket,
+              localFile: func.zipFile.zip,
+              remoteFile: func.s3Key,
+              AWS,
+            });
+          } catch (e) {
+            panic(formatAWSError(e), { label: 'AWS Error' });
+          }
         }
 
         succeed();
@@ -110,8 +129,6 @@ export default async function deploy({ config, env }) {
 
   // Step 4: Create or update the CloudFormation stack
   // ----------------------------------------------------------------
-  const cloudformation = new AWS.CloudFormation();
-
   await withSpinner(
     'Running CloudFormation',
     async ({ succeed, fail, update }) => {
@@ -125,7 +142,7 @@ export default async function deploy({ config, env }) {
         succeed();
       } catch (error) {
         fail();
-        throw new Error(formatAWSError(error));
+        throw new Error(formatAWSError(error), { label: 'AWS Error' });
       }
     },
   );

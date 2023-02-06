@@ -48,8 +48,16 @@
           "S3Key": { "Ref": "{{name}}S3Key" }
         },
         "Runtime": "{{config.functionsConfig.runtime}}",
+        "Timeout": "{{config.functionsConfig.timeout}}",
         "Handler": "index.handler",
-        "Role": { "Fn::GetAtt": ["{{name}}LambdaRole", "Arn"] }
+        "Role": { "Fn::GetAtt": ["{{name}}LambdaRole", "Arn"] },
+        "Environment": {
+          "Variables": {
+            {{#each config.functionsConfig.envVariables as |envVariable|}}
+              "{{ uppercase envVariable }}": { "Ref": "{{envVariable}}" }{{#unless @last}},{{/unless}}
+            {{/each}}
+          }
+        }
       }
     },
 

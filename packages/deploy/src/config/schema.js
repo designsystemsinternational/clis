@@ -75,12 +75,14 @@ export const configSchema = z.object({
       timeout: z.number().default(10),
       memorySize: z.number().default(128),
       externalModules: z.array(z.string()).default([]),
+      envVariables: z.array(z.string()).default([]),
     })
     .default({
       runtime: 'nodejs16.x',
       timeout: 10,
       memorySize: 128,
       externalModules: [],
+      envVariables: [],
     }),
 
   // The command to run to build the project

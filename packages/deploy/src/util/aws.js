@@ -120,3 +120,24 @@ export const shouldExecuteChangeset = async ({
     );
   }
 };
+
+export const stackExists = async ({ stack, cloudformation }) => {
+  const stacks = await cloudformation.listStacks().promise();
+  const exists = stacks.StackSummaries.some(
+    (s) => s.StackName === stack && s.StackStatus !== 'DELETE_COMPLETE',
+  );
+
+  return exists;
+};
+
+export const getStackParameters = async ({ stack, cloudformation }) => {
+  const hasStack = await stackExists({ stack, cloudformation });
+  if (!hasStack) return [];
+
+  const stacks = await cloudformation
+    .describeStacks({ StackName: stack })
+    .promise();
+  const details = stacks.Stacks[0];
+
+  return details.Parameters;
+};

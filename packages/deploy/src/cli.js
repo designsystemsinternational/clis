@@ -5,6 +5,7 @@ import { getEnvironment, loadConfigOrPanic } from './config/index.js';
 import deploy from './commands/deploy.js';
 import show from './commands/show.js';
 import destroy from './commands/destroy.js';
+import updateEnv from './commands/updateEnv.js';
 
 const prog = sade('deploy').version(version);
 
@@ -45,6 +46,39 @@ export function cli(args) {
       const config = loadConfigOrPanic();
       const env = getEnvironment(opts);
       await destroy({ config, env });
+    });
+
+  // Eject command
+  prog
+    .command('eject')
+    .describe('Eject parts of the default config to overwrite it')
+    .option('--env', 'Environment to use (defaults to current branch)')
+    .action(async (opts) => {
+      const config = loadConfigOrPanic();
+      const env = getEnvironment(opts);
+
+      console.log('TOOO: This command isn’t implemented yet');
+      console.log(config, env);
+    });
+
+  // Init command
+  prog
+    .command('init')
+    .describe('Set up deploy for the current directory')
+    .action(async () => {
+      console.log('TODO: This command isn’t implemented yet');
+    });
+
+  // Command to update env variables
+  prog
+    .command('update-env')
+    .describe('Update env variables for a stack')
+    .option('--env', 'Environment to use (defaults to current branch)')
+    .action(async (opts) => {
+      const config = loadConfigOrPanic();
+      const env = getEnvironment(opts);
+
+      await updateEnv({ config, env });
     });
 
   prog.parse(args);

@@ -4,3 +4,4 @@ export const operationsBucketName = (project) => `${project}-operations`;
 
 export const CACHE_FOLDER = '.deployCache';
 export const DEFAULT_HTTP_VERBS = ['Get', 'Post', 'Put', 'Delete'];
+export const USE_PREVIOUS_VALUE = '______PREVIOUS_VALUE_______';

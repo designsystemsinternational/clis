@@ -52,6 +52,9 @@
   "deploy": {
     "name": "my-deploy-demo-project",
     "profile": "personal",
+    "functionsConfig": {
+      "envVariables": ["apiKey", "somethingElse"]
+    },
     "environments": {
       "production": {
         "indexPage": "index.html",

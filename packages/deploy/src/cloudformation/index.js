@@ -13,6 +13,7 @@ import {
   bucketName,
   operationsBucketName,
   DEFAULT_HTTP_VERBS,
+  USE_PREVIOUS_VALUE,
 } from '../constants.js';
 import { parseTemplate } from '../util/templates.js';
 import { newChangesetName, shouldExecuteChangeset } from '../util/aws.js';
@@ -20,7 +21,12 @@ import { newChangesetName, shouldExecuteChangeset } from '../util/aws.js';
 /**
  * Takes in a validated configuration and turns it into a CloudFormation template.
  */
-export function createCloudFormationTemplate({ config, env, functions = [] }) {
+export function createCloudFormationTemplate({
+  config,
+  env,
+  functions = [],
+  currentStackParameters = [],
+}) {
   const envConfig = getEnvConfig(config, env);
 
   const shouldUseAuth = !!envConfig.auth;
@@ -45,10 +51,28 @@ export function createCloudFormationTemplate({ config, env, functions = [] }) {
 
   const template = mergeTemplates(...sourceTemplates);
 
+  const existingEnvVariableNames = currentStackParameters.map(
+    (p) => p.ParameterKey,
+  );
+
   // Set up the parameters needed for the CloudFormation template. The goal
   // is to gather as much of the needed information from the configuration and
   // only prompt the user to fill in missing details.
   const autoParameters = {};
+  const { envVariables } = config.functionsConfig;
+
+  // Add Environment Variables to the template Parameters
+  envVariables.forEach((variable) => {
+    // If a variable is already set on a stack do not ask it again
+    template.Parameters[variable] = {
+      Description: `Env variable for lambda functions (${variable})`,
+      Type: 'String',
+    };
+
+    if (existingEnvVariableNames.includes(variable)) {
+      autoParameters[variable] = USE_PREVIOUS_VALUE;
+    }
+  });
 
   if (envConfig.indexPage) autoParameters.IndexPage = envConfig.indexPage;
   if (envConfig.errorPage) autoParameters.ErrorPage = envConfig.errorPage;
@@ -127,10 +151,17 @@ export const prepareTemplateWithUserInput = async ({
 
   if (autoParameters) {
     Object.keys(autoParameters).forEach((key) => {
-      parameters.push({
-        ParameterKey: key,
-        ParameterValue: autoParameters[key],
-      });
+      if (autoParameters[key] === USE_PREVIOUS_VALUE) {
+        parameters.push({
+          ParameterKey: key,
+          UsePreviousValue: true,
+        });
+      } else {
+        parameters.push({
+          ParameterKey: key,
+          ParameterValue: autoParameters[key],
+        });
+      }
     });
   }
 
