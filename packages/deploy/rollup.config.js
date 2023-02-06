@@ -2,6 +2,7 @@ import json from '@rollup/plugin-json';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import { string } from 'rollup-plugin-string';
+import externals from 'rollup-plugin-node-externals';
 
 export default [
   {
@@ -22,7 +23,9 @@ export default [
         ignoreDynamicRequires: true,
       }),
       string({ include: '**/*.template.hbs' }),
+      externals({
+        deps: true,
+      }),
     ],
-    external: ['@designsystemsinternational/cli-utils', 'rollup'],
   },
 ];

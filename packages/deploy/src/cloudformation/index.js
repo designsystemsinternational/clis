@@ -3,11 +3,11 @@ import inquirer from 'inquirer';
 import { getEnvConfig } from '../config/index.js';
 import { mergeTemplates, parametersToInquirer } from '../util/templates.js';
 
-import s3Config from './templates/s3static.js';
+import s3ConfigTemplate from './templates/s3static.template.hbs';
 import cloudfrontTemplate from './templates/cloudfront.template.hbs';
 import lambdaFunctionTemplate from './templates/lambda.template.hbs';
-import apiGatewayConfig from './templates/apiGateway.js';
-import authConfig from './templates/auth.js';
+import apiGatewayConfigTemplate from './templates/apiGateway.template.hbs';
+import authConfigTemplate from './templates/auth.template.hbs';
 
 import { bucketName } from '../util/names.js';
 import { parseTemplate } from '../util/templates.js';
@@ -26,14 +26,14 @@ export function createCloudFormationTemplate({ config, env, functions = [] }) {
   );
 
   const sourceTemplates = [
-    s3Config,
+    parseTemplate(s3ConfigTemplate),
     parseTemplate(cloudfrontTemplate, {
       config,
       environment: envConfig,
     }),
-    hasFunctions && apiGatewayConfig,
+    hasFunctions && parseTemplate(apiGatewayConfigTemplate),
     hasFunctions && functionTemplates,
-    shouldUseAuth && authConfig,
+    shouldUseAuth && parseTemplate(authConfigTemplate),
   ]
     .filter(Boolean)
     .flat();
