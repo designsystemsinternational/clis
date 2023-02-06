@@ -59,6 +59,22 @@ export const uploadFileToS3 = async ({
     .promise();
 };
 
+export const emptyS3Bucket = async ({ bucketName, AWS }) => {
+  const s3 = new AWS.S3();
+
+  const objects = await s3.listObjectsV2({ Bucket: bucketName }).promise();
+  if (objects.Contents.length === 0) return;
+
+  await s3
+    .deleteObjects({
+      Bucket: bucketName,
+      Delete: { Objects: objects.Contents.map(({ Key }) => ({ Key })) },
+    })
+    .promise();
+
+  if (objects.IsTruncated) await emptyS3Bucket({ bucketName, AWS });
+};
+
 export const newChangesetName = () => {
   const now = new Date();
   return `deploy-${now.getFullYear()}-${

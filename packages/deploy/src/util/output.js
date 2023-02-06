@@ -1,4 +1,5 @@
 import ora from 'ora';
+import chalk from 'chalk';
 import Table from 'cli-table3';
 
 /**
@@ -28,9 +29,10 @@ export function formatAWSError(error) {
  */
 export const panic = (message, { label } = {}) => {
   if (label) {
-    console.error(label);
+    console.log('');
+    console.log(chalk.red(label));
   }
-  console.error(message);
+  console.log(message);
   process.exit(1);
 };
 

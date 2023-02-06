@@ -15,7 +15,13 @@ export const loadConfigOrPanic = () => {
     fs.readFileSync(path.join(process.cwd(), 'package.json'), 'utf-8'),
   );
 
-  const config = packageJson.deploy || {};
+  const config = packageJson.deploy;
+
+  if (!config)
+    panic(
+      'Could not find a `deploy` config inside your project’s package.json file',
+      { label: 'Config not found' },
+    );
 
   try {
     return configSchema.parse({
@@ -23,9 +29,14 @@ export const loadConfigOrPanic = () => {
       ...config,
     });
   } catch (error) {
-    panic(formatValidationError(error), {
-      label: 'Invalid deploy config',
-    });
+    panic(
+      `Your deploy config is invalid. See below for errors and hints for how to fix them.\n\n${formatValidationError(
+        error,
+      )}`,
+      {
+        label: 'Invalid deploy config',
+      },
+    );
   }
 };
 
