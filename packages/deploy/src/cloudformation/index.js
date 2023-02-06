@@ -120,6 +120,7 @@ export function createCloudFormationTemplate({
 }
 
 export const prepareFunctionTemplate = (fn, config) => {
+  console.log(fn);
   return parseTemplate(lambdaFunctionTemplate, {
     name: fn.name,
     config,

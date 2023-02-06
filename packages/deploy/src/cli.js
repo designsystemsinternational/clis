@@ -6,6 +6,7 @@ import deploy from './commands/deploy.js';
 import show from './commands/show.js';
 import destroy from './commands/destroy.js';
 import updateEnv from './commands/updateEnv.js';
+import eject from './commands/eject.js';
 
 const prog = sade('deploy').version(version);
 
@@ -57,8 +58,7 @@ export function cli(args) {
       const config = loadConfigOrPanic();
       const env = getEnvironment(opts);
 
-      console.log('TOOO: This command isn’t implemented yet');
-      console.log(config, env);
+      await eject({ config, env });
     });
 
   // Init command

@@ -56,12 +56,18 @@ export const getFunctionConfigName = (filename) => {
   return `${name}.config.json`;
 };
 
+export const getFunctionConfigPath = (filename) => {
+  const configName = getFunctionConfigName(filename);
+  const configPath = path.join(path.dirname(filename), configName);
+
+  return configPath;
+};
+
 /**
  * Checks if a function has a custom config and returns that config
  */
 export const resolveFunctionConfig = (filename) => {
-  const configName = getFunctionConfigName(filename);
-  const configPath = path.join(path.dirname(filename), configName);
+  const configPath = getFunctionConfigPath(filename);
   if (fs.existsSync(configPath)) {
     return JSON.parse(fs.readFileSync(configPath, 'utf-8'));
   }

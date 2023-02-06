@@ -32,7 +32,6 @@ import {
 } from '../util/lambda.js';
 
 import {
-  stackExists,
   getStackParameters,
   createBucketIfNonExisting,
   uploadFileToS3,
