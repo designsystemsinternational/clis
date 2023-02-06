@@ -84,7 +84,7 @@ export default async function deploy({ config, env }) {
     config,
     env,
     functions: preparedFunctions,
-    currentStackParameters,
+    currentStackParameters: currentStackParameters.map((p) => p.ParameterKey),
   });
 
   console.log(

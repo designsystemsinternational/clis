@@ -51,9 +51,7 @@ export function createCloudFormationTemplate({
 
   const template = mergeTemplates(...sourceTemplates);
 
-  const existingEnvVariableNames = currentStackParameters.map(
-    (p) => p.ParameterKey,
-  );
+  const existingEnvVariableNames = currentStackParameters;
 
   // Set up the parameters needed for the CloudFormation template. The goal
   // is to gather as much of the needed information from the configuration and
