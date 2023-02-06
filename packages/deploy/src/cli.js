@@ -12,7 +12,7 @@ const prog = sade('deploy').version(version);
 export function cli(args) {
   prog
     // Deploy command (default command)
-    .command('deploy')
+    .command('deploy', '', { default: true })
     .describe('Deploy your app to the cloud')
     .option(
       '--env',
@@ -23,8 +23,10 @@ export function cli(args) {
       const env = getEnvironment(opts);
 
       await deploy({ config, env, options: opts });
-    })
-    // Show command
+    });
+
+  // Show command
+  prog
     .command('show')
     .describe('Show information about an AWS stack')
     .option('--env', 'Environment of the stack (defaults to current branch)')
@@ -32,8 +34,10 @@ export function cli(args) {
       const config = loadConfigOrPanic();
       const env = getEnvironment(opts);
       await show({ config, env });
-    })
-    // Destroy command
+    });
+
+  // Destroy command
+  prog
     .command('destroy')
     .describe('Removes the entire stack from AWS')
     .option('--env', 'Environment of the stack (defaults to current branch)')

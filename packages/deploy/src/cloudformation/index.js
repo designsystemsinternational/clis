@@ -115,7 +115,7 @@ export const prepareTemplateWithUserInput = async ({
   prompt,
   autoParameters,
 }) => {
-  let parameters = {};
+  let parameters = [];
 
   if (prompt.length > 0) {
     const answers = await inquirer.prompt(prompt);
