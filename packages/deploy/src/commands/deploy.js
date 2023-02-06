@@ -1,4 +1,5 @@
 import path from 'node:path';
+import { execa } from 'execa';
 
 import {
   getAWSWithProfile,
@@ -38,9 +39,12 @@ export default async function deploy({ config, env }) {
 
   // Step 1: Run the build command on the static site (if configured)
   // ----------------------------------------------------------------
-  if (config.shouldRunBuildCommand) {
+  if (config.shouldRunBuildCommand && config.buildCommand) {
     await withSpinner('Running build command', async ({ succeed }) => {
-      // TODO
+      await execa(config.buildCommand, {
+        stdtout: 'inherit',
+        shell: true,
+      });
       succeed();
     });
   }

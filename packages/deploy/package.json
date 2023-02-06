@@ -37,6 +37,7 @@
     "cli-table3": "^0.6.3",
     "compressing": "^1.7.0",
     "ejs": "^3.1.8",
+    "execa": "^6.1.0",
     "get-stream": "^6.0.1",
     "git-branch": "^2.0.1",
     "glob": "^8.1.0",
@@ -53,8 +54,7 @@
     "environments": {
       "production": {
         "indexPage": "index.html",
-        "errorPage": "index.html",
-        "auth": true
+        "errorPage": "index.html"
       }
     }
   }

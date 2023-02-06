@@ -1,6 +1,6 @@
 import inquirer from 'inquirer';
 
-export const confirmOrExit = async (msg, defaultValue = true) => {
+export const confirmOrExit = async (msg, defaultValue = false) => {
   const answers = await inquirer.prompt([
     {
       type: 'confirm',
