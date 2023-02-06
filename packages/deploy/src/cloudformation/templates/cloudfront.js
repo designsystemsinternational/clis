@@ -1,0 +1,70 @@
+/**
+ * CloudFormation template for a CloudFront distribution to serve the static
+ * website from the edge.
+ */
+const config = {
+  AWSTemplateFormatVersion: '2010-09-09',
+
+  Description:
+    'AWS CloudFormation template to set up a Cloudfront distribution in front of an S3 hosted website',
+
+  Parameters: {},
+
+  Resources: {
+    CloudfrontDistribution: {
+      Type: 'AWS::CloudFront::Distribution',
+      Properties: {
+        DistributionConfig: {
+          Enabled: true,
+          Comment: { 'Fn::Sub': 'S3 bucket ${S3BucketName}' },
+          DefaultRootObject: 'index.html',
+          HttpVersion: 'http2',
+          IPV6Enabled: true,
+          Origins: [
+            {
+              Id: 's3-website-origin',
+              DomainName: {
+                'Fn::Select': [
+                  2,
+                  {
+                    'Fn::Split': [
+                      '/',
+                      { 'Fn::GetAtt': ['S3Bucket', 'WebsiteURL'] },
+                    ],
+                  },
+                ],
+              },
+
+              CustomOriginConfig: {
+                OriginProtocolPolicy: 'http-only',
+              },
+            },
+          ],
+          DefaultCacheBehavior: {
+            TargetOriginId: 's3-website-origin',
+            MaxTTL: 31536000,
+            MinTTL: 0,
+            Compress: true,
+            ViewerProtocolPolicy: 'redirect-to-https',
+            ForwardedValues: {
+              Cookies: {
+                Forward: 'none',
+              },
+              QueryString: false,
+            },
+          },
+        },
+      },
+    },
+  },
+
+  Outputs: {
+    CloudfrontURL: {
+      Description:
+        'The URL of the cached Cloudfront website. Use this for production.',
+      Value: { 'Fn::GetAtt': ['CloudfrontDistribution', 'DomainName'] },
+    },
+  },
+};
+
+export default config;
