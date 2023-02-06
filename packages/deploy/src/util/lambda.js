@@ -1,10 +1,16 @@
 import path from 'node:path';
 import fs from 'node:fs';
+import crypto from 'node:crypto';
 
 import { rollup } from 'rollup';
 import terser from '@rollup/plugin-terser';
+import compressing from 'compressing';
+import getStream from 'get-stream';
 
 import glob from 'glob';
+
+import { CACHE_FOLDER } from '../constants';
+import { ensureCacheFolder } from './path';
 
 const ALLOWED_EXTENSIONS = ['js', 'cjs', 'mjs'];
 
@@ -63,6 +69,27 @@ export const resolveFunctionConfig = (filename) => {
   return null;
 };
 
+const createZipFileForLambdaFunction = async (code, name, filename) => {
+  ensureCacheFolder();
+
+  const zipStream = new compressing.zip.Stream();
+  const hash = crypto.createHash('md5').update(code).digest('hex');
+  const codeEntry = Buffer.from(code, 'utf8');
+
+  // We save the file as index.js because that's what lambda is going to
+  // assume to be the entry point.
+  zipStream.addEntry(codeEntry, { relativePath: 'index.js' });
+
+  const zipBuffer = await getStream.buffer(zipStream);
+  const zipPath = path.join(process.cwd(), CACHE_FOLDER, `${name}.zip`);
+  fs.writeFileSync(zipPath, zipBuffer);
+
+  return {
+    hash,
+    zip: zipPath,
+  };
+};
+
 /**
  * Builds lambda functions using rollup
  */
@@ -83,7 +110,7 @@ export const buildAllLambdaFunctions = async (functions, config) => {
       sourcemap: false,
     });
 
-    return output[0].code.replaceAll('"', "'").split('\n').join('');
+    return output[0].code;
   };
 
   for (const func of functions) {
@@ -92,10 +119,17 @@ export const buildAllLambdaFunctions = async (functions, config) => {
       externals: config.functionsConfig.externalModules,
     });
 
+    const filename = path.basename(func.file);
+    const zipFile = await createZipFileForLambdaFunction(
+      code,
+      func.name,
+      filename,
+    );
+
     output.push({
       ...func,
-      filename: path.basename(func.file),
-      code,
+      zipFile,
+      s3Key: `functions/${func.name}-${zipFile.hash}.zip`,
     });
   }
 

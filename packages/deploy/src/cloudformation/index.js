@@ -9,8 +9,13 @@ import lambdaFunctionTemplate from './templates/lambda.template.hbs';
 import apiGatewayConfigTemplate from './templates/apiGateway.template.hbs';
 import authConfigTemplate from './templates/auth.template.hbs';
 
-import { bucketName } from '../util/names.js';
+import {
+  bucketName,
+  operationsBucketName,
+  DEFAULT_HTTP_VERBS,
+} from '../constants.js';
 import { parseTemplate } from '../util/templates.js';
+import { newChangesetName, shouldExecuteChangeset } from '../util/aws.js';
 
 /**
  * Takes in a validated configuration and turns it into a CloudFormation template.
@@ -21,9 +26,9 @@ export function createCloudFormationTemplate({ config, env, functions = [] }) {
   const shouldUseAuth = !!envConfig.auth;
   const hasFunctions = functions.length > 0;
 
-  const functionTemplates = functions.map((func) =>
-    prepareFunctionTemplate(func, config),
-  );
+  const functionTemplates = functions.map((func) => {
+    return func.config ?? prepareFunctionTemplate(func, config);
+  });
 
   const sourceTemplates = [
     parseTemplate(s3ConfigTemplate),
@@ -40,31 +45,54 @@ export function createCloudFormationTemplate({ config, env, functions = [] }) {
 
   const template = mergeTemplates(...sourceTemplates);
 
-  // Build the prompt to gather missing information from the user
-  const prompt = parametersToInquirer({
-    params: template.Parameters,
-    defaults: {
-      S3BucketName: bucketName(config.name, env),
-    },
-    // TODO: Refactor this to auto parameter
-    ignore: [shouldUseAuth && ['AuthUsername', 'AuthPassword']].flat(),
-  });
+  // Set up the parameters needed for the CloudFormation template. The goal
+  // is to gather as much of the needed information from the configuration and
+  // only prompt the user to fill in missing details.
+  const autoParameters = {};
 
-  // Add additional parameters that do not need to be added by the user
+  if (envConfig.indexPage) autoParameters.IndexPage = envConfig.indexPage;
+  if (envConfig.errorPage) autoParameters.ErrorPage = envConfig.errorPage;
+
   template.Parameters.environment = {
     Description: 'The environment name based on Git Branch or CLI flag',
     Type: 'String',
   };
+  autoParameters.environment = env;
+
+  template.Parameters.S3BucketName = {
+    Description: 'Name of the S3 bucket.',
+    Type: 'String',
+  };
+  autoParameters.S3BucketName = bucketName(config.name, env);
+
+  if (hasFunctions) {
+    template.Parameters.operationsS3Bucket = {
+      Description: 'Bucket that holds the zipped lambda functions',
+      Type: 'String',
+    };
+
+    autoParameters.operationsS3Bucket = operationsBucketName(config.name);
+
+    for (const func of functions) {
+      const paramName = `${func.name}S3Key`;
+      template.Parameters[paramName] = {
+        Description: `S3Key to find the zip file for the ${func.name} function`,
+        Type: 'String',
+      };
+
+      autoParameters[paramName] = func.s3Key;
+    }
+  }
+
+  // Build the prompt to gather missing information from the user
+  const prompt = parametersToInquirer({
+    params: template.Parameters,
+    ignore: Object.keys(autoParameters),
+  });
 
   return {
     prompt,
-    autoParameters: {
-      environment: env,
-      ...(shouldUseAuth && {
-        AuthUsername: envConfig.auth.username,
-        AuthPassword: envConfig.auth.password,
-      }),
-    },
+    autoParameters,
     template,
   };
 }
@@ -74,7 +102,7 @@ export const prepareFunctionTemplate = (fn, config) => {
     name: fn.name,
     config,
     route: fn.name,
-    httpVerbs: ['Get', 'Post', 'Put', 'Delete'],
+    httpVerbs: DEFAULT_HTTP_VERBS,
     code: fn.code,
   });
 };
@@ -119,6 +147,7 @@ export const createOrUpdateStack = async ({
   cloudformation,
   stack,
   template,
+  onProgress = () => {},
 }) => {
   const stacks = await cloudformation.listStacks().promise();
   const stackExists = stacks.StackSummaries.some(
@@ -126,14 +155,32 @@ export const createOrUpdateStack = async ({
   );
 
   if (stackExists) {
-    try {
-      // TODO: This should probably be handled by a changeset
+    const changesetName = newChangesetName();
+    onProgress('Stack exists. Check if it needs to be updated');
+
+    await cloudformation
+      .createChangeSet({
+        UsePreviousTemplate: false,
+        ChangeSetName: changesetName,
+        StackName: stack,
+        TemplateBody: JSON.stringify(template.template),
+        Parameters: template.parameters,
+        Capabilities: ['CAPABILITY_NAMED_IAM'],
+      })
+      .promise();
+
+    const shouldExecute = await shouldExecuteChangeset({
+      stack,
+      changesetName,
+      cloudformation,
+    });
+
+    if (shouldExecute) {
+      onProgress('Performing Stack Update');
       await cloudformation
-        .updateStack({
+        .executeChangeSet({
           StackName: stack,
-          TemplateBody: JSON.stringify(template.template),
-          Parameters: template.parameters,
-          Capabilities: ['CAPABILITY_NAMED_IAM'],
+          ChangeSetName: changesetName,
         })
         .promise();
 
@@ -142,10 +189,11 @@ export const createOrUpdateStack = async ({
           StackName: stack,
         })
         .promise();
-    } catch (error) {
-      console.log(error);
+    } else {
+      onProgress('No update needed');
     }
   } else {
+    onProgress('Creating Stack');
     await cloudformation
       .createStack({
         StackName: stack,

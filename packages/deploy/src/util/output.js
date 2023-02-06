@@ -1,4 +1,5 @@
 import ora from 'ora';
+import Table from 'cli-table3';
 
 /**
  * Formats a ZOD error into a human readable string.
@@ -43,4 +44,14 @@ export const withSpinner = async (message, fn) => {
     fail: () => spinner.fail(),
     update: (message) => (spinner.text = message),
   });
+};
+
+/**
+ * Outputs a formatted table to the Command Line.
+ */
+export const logTable = (head, rows, includeEmptyRow = true) => {
+  const table = new Table({ head });
+  rows.forEach((row) => table.push(row));
+  if (includeEmptyRow) console.log('');
+  console.log(table.toString());
 };

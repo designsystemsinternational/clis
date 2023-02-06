@@ -43,9 +43,9 @@
         "FunctionName": {
           "Fn::Sub": "${AWS::StackName}-{{name}}"
         },
-        {{! TODO: This should rather use a ZIP file from an S3 bucket }}
         "Code": {
-          "ZipFile": " {{{code}}} "
+          "S3Bucket": { "Ref": "operationsS3Bucket" },
+          "S3Key": { "Ref": "{{name}}S3Key" }
         },
         "Runtime": "{{config.functionsConfig.runtime}}",
         "Handler": "index.handler",

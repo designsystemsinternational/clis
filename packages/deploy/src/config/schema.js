@@ -39,12 +39,10 @@ export const envConfigSchema = z.object({
   fileParameters: fileParamsSchema,
 
   // Optional parameters to setup authentication
-  auth: z
-    .object({
-      username: z.string(),
-      password: z.string(),
-    })
-    .optional(),
+  auth: z.boolean().default(false),
+
+  indexPage: z.string().optional(),
+  errorPage: z.string().optional(),
 });
 
 export const configSchema = z.object({
