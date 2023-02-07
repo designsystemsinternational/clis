@@ -75,6 +75,7 @@ describe('createCloudFormationTemplate', () => {
         {
           file: './my/sample.js',
           name: 'sample',
+          route: 'sample',
           config: null,
         },
       ],

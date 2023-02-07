@@ -8,6 +8,7 @@ import {
 
 import lambdaFunctionTemplate from '../templates/lambda.template.hbs';
 
+import lambdaTemplate from '../templates/lambda.js';
 import staticTemplate from '../templates/static.js';
 
 import { getEnvConfig } from '../config/index.js';
@@ -64,12 +65,12 @@ export const getParameterFromTemplate = (template, key) => {
 };
 
 export const prepareFunctionTemplate = (fn, config) => {
-  return parseTemplate(lambdaFunctionTemplate, {
-    name: fn.name,
+  return lambdaTemplate({
     config,
-    route: fn.name,
-    httpVerbs: DEFAULT_HTTP_VERBS,
-    code: fn.code,
+    functionDefinition: {
+      name: fn.name,
+      route: fn.route,
+    },
   });
 };
 

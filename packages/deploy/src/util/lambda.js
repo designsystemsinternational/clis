@@ -2,6 +2,7 @@ import path from 'node:path';
 import fs from 'node:fs';
 import crypto from 'node:crypto';
 
+import slugify from 'slugify';
 import { rollup } from 'rollup';
 import terser from '@rollup/plugin-terser';
 import compressing from 'compressing';
@@ -29,6 +30,7 @@ export const findLambdaFunctions = (dir) => {
   return functions.map((file) => ({
     file,
     name: getFunctionName(file),
+    route: slugify(getFunctionName(file)),
     config: resolveFunctionConfig(file),
   }));
 };
