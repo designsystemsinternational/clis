@@ -18,21 +18,30 @@ const ALLOWED_EXTENSIONS = ['js', 'cjs', 'mjs'];
 /**
  * Finds all Lambda function files in the given functions directory.
  */
-export const findLambdaFunctions = (dir) => {
+export const findLambdaFunctions = async (dir) => {
   const functionsGlob = path.join(
     process.cwd(),
     dir,
     '**',
     `*.{${ALLOWED_EXTENSIONS.join(',')}}`,
   );
-  const functions = glob.sync(functionsGlob);
+  const functions = glob.sync(functionsGlob, {
+    ignore: ['**/*.config.*'],
+  });
 
-  return functions.map((file) => ({
-    file,
-    name: getFunctionName(file),
-    route: slugify(getFunctionName(file)),
-    config: resolveFunctionConfig(file),
-  }));
+  const output = [];
+
+  for (const file of functions) {
+    const config = await getFunctionConfig(file);
+    output.push({
+      file,
+      name: getFunctionName(file),
+      route: slugify(getFunctionName(file)),
+      config,
+    });
+  }
+
+  return output;
 };
 
 /**
@@ -53,13 +62,13 @@ export const getFunctionName = (filename) => {
  * Turns a function into it's config name, to check if there is a user provided
  * config for this function.
  */
-export const getFunctionConfigName = (filename) => {
+export const getFunctionConfigName = (filename, extension = '{js,mjs}') => {
   const name = getFunctionName(filename);
-  return `${name}.config.json`;
+  return `${name}.config.${extension}`;
 };
 
-export const getFunctionConfigPath = (filename) => {
-  const configName = getFunctionConfigName(filename);
+export const getFunctionConfigPath = (filename, extension = '{js,mjs}') => {
+  const configName = getFunctionConfigName(filename, extension);
   const configPath = path.join(path.dirname(filename), configName);
 
   return configPath;
@@ -67,11 +76,19 @@ export const getFunctionConfigPath = (filename) => {
 
 /**
  * Checks if a function has a custom config and returns that config
+ * If no custom config is found it will return the default config.
  */
-export const resolveFunctionConfig = (filename) => {
+export const getFunctionConfig = async (filename) => {
   const configPath = getFunctionConfigPath(filename);
-  if (fs.existsSync(configPath)) {
-    return JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+  const foundConfigFiles = glob.sync(configPath);
+  if (foundConfigFiles.length > 0) {
+    const configModule = await import(foundConfigFiles[0]);
+
+    if (typeof configModule.default !== 'function') {
+      throw new Error('Config file must export a function');
+    }
+
+    return configModule.default;
   }
 
   return null;

@@ -2,11 +2,8 @@ import handlebars from 'handlebars';
 import {
   bucketName,
   operationsBucketName,
-  DEFAULT_HTTP_VERBS,
   USE_PREVIOUS_VALUE,
 } from '../constants';
-
-import lambdaFunctionTemplate from '../templates/lambda.template.hbs';
 
 import lambdaTemplate from '../templates/lambda.js';
 import staticTemplate from '../templates/static.js';
@@ -65,7 +62,11 @@ export const getParameterFromTemplate = (template, key) => {
 };
 
 export const prepareFunctionTemplate = (fn, config) => {
-  return lambdaTemplate({
+  const templateFn = fn.config ?? lambdaTemplate;
+
+  console.log(templateFn, fn);
+
+  return templateFn({
     config,
     functionDefinition: {
       name: fn.name,
@@ -94,9 +95,7 @@ export function createCloudFormationTemplate({
       environment: env,
       includesLambdaFunctions: hasFunctions,
     }),
-    ...functions.map(
-      (func) => func.config ?? prepareFunctionTemplate(func, config),
-    ),
+    ...functions.map((func) => prepareFunctionTemplate(func, config)),
   );
 
   const existingEnvVariableNames = currentStackParameters;

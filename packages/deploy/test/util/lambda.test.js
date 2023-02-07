@@ -1,11 +1,8 @@
-import fs from 'node:fs';
-
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 
 import {
   getFunctionName,
   getFunctionConfigName,
-  resolveFunctionConfig,
 } from '../../src/util/lambda.js';
 
 describe('util/lambda', () => {
@@ -23,17 +20,13 @@ describe('util/lambda', () => {
 
   describe('getFunctionConfigName', (filename) => {
     it('should correctly handle possible js file endings', () => {
-      expect(getFunctionConfigName('test.js')).toBe('test.config.json');
-      expect(getFunctionConfigName('test.cjs')).toBe('test.config.json');
-      expect(getFunctionConfigName('test.mjs')).toBe('test.config.json');
+      expect(getFunctionConfigName('test.js')).toBe('test.config.{js,mjs}');
+      expect(getFunctionConfigName('test.cjs')).toBe('test.config.{js,mjs}');
+      expect(getFunctionConfigName('test.mjs')).toBe('test.config.{js,mjs}');
     });
-  });
 
-  describe('resolveFunctionConfig', () => {
-    it('should look for config file as sibling of lambda file', () => {
-      const fn = vi.spyOn(fs, 'existsSync').mockImplementationOnce(() => false);
-      resolveFunctionConfig('path/to/lambda.js');
-      expect(fn).toHaveBeenCalledWith('path/to/lambda.config.json');
+    it('should correctly apply the correct file extension if provided', () => {
+      expect(getFunctionConfigName('test.js', 'mjs')).toBe('test.config.mjs');
     });
   });
 });

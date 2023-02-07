@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { vi, describe, it, expect } from 'vitest';
 import {
   simpleConfig,
   withAuth,
@@ -98,20 +98,24 @@ describe('createCloudFormationTemplate', () => {
   });
 
   it('should use user template for lambda function is provided', () => {
+    const configFn = vi.fn().mockReturnValue({
+      Resources: {
+        TEST_RESOURCE: {},
+      },
+    });
+
     const { template } = createCloudFormationTemplate({
       config: simpleConfig,
       functions: [
         {
           file: './my/sample.js',
           name: 'sample',
-          config: {
-            Resources: {
-              TEST_RESOURCE: true,
-            },
-          },
+          config: configFn,
         },
       ],
     });
+
+    expect(configFn).toHaveBeenCalled();
 
     expectTemplateToHaveResources(
       template,

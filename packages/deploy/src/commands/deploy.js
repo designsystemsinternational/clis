@@ -63,7 +63,7 @@ export default async function deploy({ config, env }) {
   // Step 2: Build and upload functions (if any)
   // ----------------------------------------------------------------
   let preparedFunctions = [];
-  const lambdaFunctions = findLambdaFunctions(config.functionsDir);
+  const lambdaFunctions = await findLambdaFunctions(config.functionsDir);
 
   if (lambdaFunctions.length > 0) {
     await withSpinner('Building functions', async ({ succeed }) => {

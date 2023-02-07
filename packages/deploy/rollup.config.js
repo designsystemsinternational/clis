@@ -4,6 +4,7 @@ import commonjs from '@rollup/plugin-commonjs';
 import { string } from 'rollup-plugin-string';
 import externals from 'rollup-plugin-node-externals';
 import terser from '@rollup/plugin-terser';
+import inlineCode from 'rollup-plugin-inline-code';
 
 const isProductionBuild = process.env.BUILD === 'production';
 
@@ -29,6 +30,7 @@ export default [
       externals({
         deps: true,
       }),
+      inlineCode.default(),
       isProductionBuild && terser(),
     ],
   },
