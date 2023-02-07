@@ -1,10 +1,8 @@
-import { getAWSWithProfile } from '@designsystemsinternational/cli-utils';
-
 import { bucketName, stackName } from '../constants.js';
 
 import { confirmOrExit } from '../util/input.js';
 import { formatAWSError, panic, withSpinner } from '../util/output.js';
-import { emptyS3Bucket } from '../util/aws.js';
+import { getAWSWithProfile, emptyS3Bucket } from '../util/aws.js';
 
 export default async function destory({ config, env }) {
   const AWS = getAWSWithProfile(config.profile, config.region);

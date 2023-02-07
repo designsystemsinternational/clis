@@ -3,6 +3,9 @@ import { nodeResolve } from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import { string } from 'rollup-plugin-string';
 import externals from 'rollup-plugin-node-externals';
+import terser from '@rollup/plugin-terser';
+
+const isProductionBuild = process.env.BUILD === 'production';
 
 export default [
   {
@@ -11,7 +14,7 @@ export default [
       dir: './dist',
       format: 'esm',
       exports: 'auto',
-      sourcemap: true,
+      sourcemap: !isProductionBuild,
     },
     plugins: [
       json(),
@@ -26,6 +29,7 @@ export default [
       externals({
         deps: true,
       }),
+      isProductionBuild && terser(),
     ],
   },
 ];

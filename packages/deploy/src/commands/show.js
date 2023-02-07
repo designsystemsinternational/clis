@@ -1,5 +1,4 @@
-import { getAWSWithProfile } from '@designsystemsinternational/cli-utils';
-
+import { getAWSWithProfile } from '../util/aws.js';
 import { stackName } from '../constants.js';
 
 import {

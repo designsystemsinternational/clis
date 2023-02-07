@@ -1,9 +1,10 @@
 {
   "parserOptions": {
-    "ecmaVersion": 2018,
+    "ecmaVersion": "latest",
     "sourceType": "module"
   },
   "extends": [
     "prettier"
-  ]
+  ],
+  "ignorePatterns": ["dist/**/*"]
 }

@@ -1,11 +1,11 @@
 import inquirer from 'inquirer';
 
-import { getAWSWithProfile } from '@designsystemsinternational/cli-utils';
 import { stackName } from '../constants.js';
 
 import { formatAWSError, panic, withSpinner } from '../util/output.js';
 
 import {
+  getAWSWithProfile,
   shouldExecuteChangeset,
   newChangesetName,
   getStackParameters,

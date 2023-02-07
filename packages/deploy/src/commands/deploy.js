@@ -1,23 +1,15 @@
 import path from 'node:path';
 import { execa } from 'execa';
 
-import {
-  getAWSWithProfile,
-  uploadDirToS3,
-} from '@designsystemsinternational/cli-utils';
-
-import {
-  createCloudFormationTemplate,
-  prepareTemplateWithUserInput,
-  createOrUpdateStack,
-  getStackOutputs,
-} from '../cloudformation/index.js';
-
 import { getEnvConfig } from '../config/index.js';
 
 import { stackName, operationsBucketName } from '../constants.js';
 
-import { getParameterFromTemplate } from '../util/templates.js';
+import {
+  createCloudFormationTemplate,
+  getParameterFromTemplate,
+} from '../util/templates.js';
+
 import {
   logStackFromTemplate,
   logTable,
@@ -25,13 +17,20 @@ import {
   formatAWSError,
   panic,
 } from '../util/output.js';
+
 import { confirmOrExit } from '../util/input.js';
+
 import {
   findLambdaFunctions,
   buildAllLambdaFunctions,
 } from '../util/lambda.js';
 
 import {
+  getAWSWithProfile,
+  uploadDirToS3,
+  prepareTemplateWithUserInput,
+  createOrUpdateStack,
+  getStackOutputs,
   getStackParameters,
   createBucketIfNonExisting,
   uploadFileToS3,
@@ -161,6 +160,7 @@ export default async function deploy({ config, env }) {
       succeed();
     } catch (error) {
       fail();
+      panic(formatAWSError(error), { label: 'AWS Error' });
     }
   });
 
@@ -173,6 +173,7 @@ export default async function deploy({ config, env }) {
       succeed();
     } catch (error) {
       fail();
+      panic(formatAWSError(error), { label: 'AWS Error' });
     }
   });
 

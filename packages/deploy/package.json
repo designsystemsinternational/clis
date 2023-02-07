@@ -5,16 +5,17 @@
   "main": "dist/cli.js",
   "type": "module",
   "scripts": {
-    "build": "rollup -c",
+    "build": "rimraf ./dist && rollup -c --environment BUILD:production",
     "dev": "rollup -c -w",
     "test": "vitest run",
     "test:watch": "vitest",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "ci": "npm run lint && npm run test && npm run build"
   },
   "bin": {
     "deploy": "bin/deploy.js"
   },
-  "author": "Lucas Nolte",
+  "author": "Design Systems International <i@designsystems.international>",
   "license": "ISC",
   "devDependencies": {
     "@rollup/plugin-commonjs": "^24.0.1",
@@ -25,6 +26,7 @@
     "eslint": "^8.22.0",
     "eslint-config-prettier": "^8.5.0",
     "prettier": "2.7.1",
+    "rimraf": "^4.1.2",
     "rollup-plugin-node-externals": "^5.1.2",
     "rollup-plugin-string": "^3.0.0",
     "vite": "^3.0.8",
@@ -32,7 +34,7 @@
     "vitest": "^0.22.0"
   },
   "dependencies": {
-    "@designsystemsinternational/cli-utils": "^4.1.0",
+    "@auth0/s3": "^1.0.0",
     "@rollup/plugin-terser": "^0.4.0",
     "aws-sdk": "^2.1309.0",
     "chalk": "^5.2.0",
@@ -45,6 +47,7 @@
     "glob": "^8.1.0",
     "handlebars": "^4.7.7",
     "inquirer": "^9.1.4",
+    "micromatch": "^4.0.5",
     "ora": "^6.1.2",
     "rollup": "^3.13.0",
     "sade": "^1.8.1",
@@ -53,12 +56,6 @@
   "deploy": {
     "name": "my-deploy-demo-project",
     "profile": "personal",
-    "functionsConfig": {
-      "envVariables": [
-        "apiKey",
-        "somethingElse"
-      ]
-    },
     "environments": {
       "production": {
         "indexPage": "index.html",

@@ -7,7 +7,7 @@ import {
   TEST_ENV_VARS,
 } from '../fixtures/configurations';
 
-import { createCloudFormationTemplate } from '../../src/cloudformation/index.js';
+import { createCloudFormationTemplate } from '../../src/util/templates.js';
 import {
   expectTemplateToHaveResources,
   expectTemplateNotToHaveResources,

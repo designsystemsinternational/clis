@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { awsRegions } from '@designsystemsinternational/cli-utils';
+import { awsRegions } from '../util/aws.js';
 
 const isValidAwsRegion = (region) => Object.keys(awsRegions).includes(region);
 
