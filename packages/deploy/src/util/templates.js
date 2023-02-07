@@ -6,11 +6,9 @@ import {
   USE_PREVIOUS_VALUE,
 } from '../constants';
 
-import s3ConfigTemplate from '../templates/s3static.template.hbs';
-import cloudfrontTemplate from '../templates/cloudfront.template.hbs';
-import apiGatewayConfigTemplate from '../templates/apiGateway.template.hbs';
-import authConfigTemplate from '../templates/auth.template.hbs';
 import lambdaFunctionTemplate from '../templates/lambda.template.hbs';
+
+import staticTemplate from '../templates/static.js';
 
 import { getEnvConfig } from '../config/index.js';
 
@@ -86,27 +84,19 @@ export function createCloudFormationTemplate({
 }) {
   const envConfig = getEnvConfig(config, env);
 
-  const shouldUseAuth = !!envConfig.auth;
   const hasFunctions = functions.length > 0;
 
-  const functionTemplates = functions.map((func) => {
-    return func.config ?? prepareFunctionTemplate(func, config);
-  });
-
-  const sourceTemplates = [
-    parseTemplate(s3ConfigTemplate),
-    parseTemplate(cloudfrontTemplate, {
+  const template = mergeTemplates(
+    staticTemplate({
       config,
-      environment: envConfig,
+      environmentConfig: envConfig,
+      environment: env,
+      includesLambdaFunctions: hasFunctions,
     }),
-    hasFunctions && parseTemplate(apiGatewayConfigTemplate),
-    hasFunctions && functionTemplates,
-    shouldUseAuth && parseTemplate(authConfigTemplate),
-  ]
-    .filter(Boolean)
-    .flat();
-
-  const template = mergeTemplates(...sourceTemplates);
+    ...functions.map(
+      (func) => func.config ?? prepareFunctionTemplate(func, config),
+    ),
+  );
 
   const existingEnvVariableNames = currentStackParameters;
 
@@ -129,19 +119,19 @@ export function createCloudFormationTemplate({
     }
   });
 
-  if (envConfig.indexPage) autoParameters.IndexPage = envConfig.indexPage;
-  if (envConfig.errorPage) autoParameters.ErrorPage = envConfig.errorPage;
+  // Add any parameters that are defined in the environment config so we do not
+  // need to prompt the user
+  Object.entries(envConfig.parameters).forEach(([key, value]) => {
+    if (!Object.keys(template.Parameters).includes(key)) {
+      throw new Error(
+        `Parameter ${key} is not defined in the template. Please add it to the template.`,
+      );
+    }
 
-  template.Parameters.environment = {
-    Description: 'The environment name based on Git Branch or CLI flag',
-    Type: 'String',
-  };
+    autoParameters[key] = value;
+  });
+
   autoParameters.environment = env;
-
-  template.Parameters.S3BucketName = {
-    Description: 'Name of the S3 bucket.',
-    Type: 'String',
-  };
   autoParameters.S3BucketName = bucketName(config.name, env);
 
   if (hasFunctions) {

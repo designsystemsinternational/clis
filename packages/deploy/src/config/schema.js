@@ -45,8 +45,10 @@ export const envConfigSchema = z.object({
   // Optional parameters to setup authentication
   auth: z.boolean().default(false),
 
-  indexPage: z.string().optional(),
-  errorPage: z.string().optional(),
+  useCustomDomain: z.boolean().default(false),
+  customDomain: z.string().optional(),
+
+  parameters: z.record(z.string()).default({}),
 });
 
 export const configSchema = z.object({

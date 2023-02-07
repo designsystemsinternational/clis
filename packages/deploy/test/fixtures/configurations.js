@@ -27,13 +27,40 @@ export const withAuth = configSchema.parse({
   },
 });
 
+export const withDomain = configSchema.parse({
+  name: TEST_NAME,
+  profile: TEST_PROFILE,
+  environments: {
+    production: {
+      useCustomDomain: true,
+    },
+  },
+});
+
 export const withEnvConfig = configSchema.parse({
   name: TEST_NAME,
   profile: TEST_PROFILE,
   environments: {
     production: {
-      indexPage: 'test',
-      errorPage: 'test',
+      auth: true,
+      parameters: {
+        IndexPage: 'test',
+        ErrorPage: 'test',
+        AuthUsername: 'admin',
+        AuthPassword: 'password',
+      },
+    },
+  },
+});
+
+export const brokenEnvConfig = configSchema.parse({
+  name: TEST_NAME,
+  profile: TEST_PROFILE,
+  environments: {
+    production: {
+      parameters: {
+        nonExistentParam: 'test',
+      },
     },
   },
 });

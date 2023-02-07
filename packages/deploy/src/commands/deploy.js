@@ -37,7 +37,10 @@ import {
 } from '../util/aws.js';
 
 export default async function deploy({ config, env }) {
+  // Dependency: AWS
   const AWS = getAWSWithProfile(config.profile, config.region);
+
+  // Dependency: CloudFormation
   const cloudformation = new AWS.CloudFormation();
 
   const envConfig = getEnvConfig(config, env);
@@ -46,6 +49,8 @@ export default async function deploy({ config, env }) {
   // Step 1: Run the build command on the static site (if configured)
   // ----------------------------------------------------------------
   if (config.shouldRunBuildCommand && config.buildCommand) {
+    // Dependency: execa
+    // Dependency: ora
     await withSpinner('Running build command', async ({ succeed }) => {
       await execa(config.buildCommand, {
         stdtout: 'inherit',
@@ -90,6 +95,8 @@ export default async function deploy({ config, env }) {
   );
 
   logStackFromTemplate(compiledTemplate.template);
+
+  // Dependency: inquirer
   await confirmOrExit('Do you wish to continue?');
 
   const template = await prepareTemplateWithUserInput(compiledTemplate);

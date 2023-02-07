@@ -4,6 +4,7 @@ import {
   withAuth,
   withEnvVariables,
   withEnvConfig,
+  brokenEnvConfig,
   TEST_ENV_VARS,
 } from '../fixtures/configurations';
 
@@ -124,12 +125,14 @@ describe('createCloudFormationTemplate', () => {
 
   it('should return a user prompt for parameters it cannot derive', () => {
     const { prompt } = createCloudFormationTemplate({
-      config: simpleConfig,
+      config: withAuth,
       env: 'production',
     });
 
     expectPromptToHaveKey(prompt, 'IndexPage');
     expectPromptToHaveKey(prompt, 'ErrorPage');
+    expectPromptToHaveKey(prompt, 'AuthUsername');
+    expectPromptToHaveKey(prompt, 'AuthPassword');
   });
 
   it('should return a user prompt for parameters it cannot derive', () => {
@@ -140,6 +143,15 @@ describe('createCloudFormationTemplate', () => {
 
     expectPromptNotToHaveKey(prompt, 'IndexPage');
     expectPromptNotToHaveKey(prompt, 'ErrorPage');
+  });
+
+  it('should throw if a parameter is added to the environment that’s not defined in the template', () => {
+    expect(() => {
+      createCloudFormationTemplate({
+        config: brokenEnvConfig,
+        env: 'production',
+      });
+    }).toThrow();
   });
 
   it('should add any defined env variables to the prompt', () => {
