@@ -51,16 +51,22 @@
     "ora": "^6.1.2",
     "rollup": "^3.13.0",
     "sade": "^1.8.1",
+    "slugify": "^1.6.5",
     "zod": "^3.20.2"
   },
   "deploy": {
-    "name": "my-deploy-demo-project",
+    "name": "mycoolproject",
     "profile": "personal",
     "environments": {
       "production": {
+        "auth": false,
         "indexPage": "index.html",
-        "errorPage": "index.html"
+        "errorPage": "error.html"
       }
-    }
+    },
+    "region": "us-east-1",
+    "buildDir": "dist",
+    "shouldRunBuildCommand": false,
+    "functionsDir": "functions"
   }
 }

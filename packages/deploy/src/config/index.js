@@ -2,20 +2,33 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 import gitBranch from 'git-branch';
+import slugify from 'slugify';
 
 import { configSchema, envConfigSchema } from './schema';
 import { formatValidationError, panic } from '../util/output.js';
+
+export const validateConfig = (config) => {
+  try {
+    return { valid: true, config: configSchema.parse(config) };
+  } catch (error) {
+    return { valid: false, errors: formatValidationError(error) };
+  }
+};
+
+export const validateEnvConfig = (config) => {
+  try {
+    return { valid: true, config: envConfigSchema.parse(config) };
+  } catch (error) {
+    return { valid: false, errors: formatValidationError(error) };
+  }
+};
 
 /**
  * Merges and validates the user config with the default config. Panics if the
  * resulting config is not valid.
  */
 export const loadConfigOrPanic = () => {
-  const packageJson = JSON.parse(
-    fs.readFileSync(path.join(process.cwd(), 'package.json'), 'utf-8'),
-  );
-
-  const config = packageJson.deploy;
+  const { config, packageJson } = readConfig();
 
   if (!config)
     panic(
@@ -23,21 +36,72 @@ export const loadConfigOrPanic = () => {
       { label: 'Config not found' },
     );
 
-  try {
-    return configSchema.parse({
-      name: packageJson.name,
-      ...config,
-    });
-  } catch (error) {
+  const validation = validateConfig({
+    name: packageJson.name,
+    ...config,
+  });
+
+  if (!validation.valid)
     panic(
-      `Your deploy config is invalid. See below for errors and hints for how to fix them.\n\n${formatValidationError(
-        error,
-      )}`,
-      {
-        label: 'Invalid deploy config',
-      },
+      `Your deploy config is invalid. See below for errors and hints for how to fix them.\n\n${validation.errors}`,
+      { label: 'Invalid deploy config' },
     );
-  }
+
+  return validation.config;
+};
+
+export const readConfig = () => {
+  const packageJson = JSON.parse(
+    fs.readFileSync(path.join(process.cwd(), 'package.json'), 'utf-8'),
+  );
+
+  return { config: packageJson.deploy, packageJson };
+};
+
+export const getProjectName = () => {
+  const { packageJson } = readConfig();
+  return slugify(packageJson.name, {
+    lower: true,
+    strict: true,
+    replacement: '-',
+  });
+};
+
+export const hasConfig = () => {
+  const { config } = readConfig();
+  return !!config;
+};
+
+export const mergeConfig = (pkg, userConfig) => {
+  return {
+    ...pkg,
+    deploy: {
+      ...pkg.deploy,
+      ...userConfig,
+    },
+  };
+};
+
+export const mergeEnvironmentConfig = (pkg, env, userConfig) => {
+  return {
+    ...pkg,
+    deploy: {
+      ...pkg.deploy,
+      environments: {
+        ...pkg.deploy.environments,
+        [env]: {
+          ...userConfig,
+        },
+      },
+    },
+  };
+};
+
+export const writeConfig = (config) => {
+  fs.writeFileSync(
+    path.join(process.cwd(), 'package.json'),
+    JSON.stringify(config, null, 2),
+  );
 };
 
 /**

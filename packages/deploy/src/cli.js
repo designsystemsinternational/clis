@@ -1,12 +1,17 @@
 import sade from 'sade';
 import { version } from '../package.json';
-import { getEnvironment, loadConfigOrPanic } from './config/index.js';
+import {
+  getEnvironment,
+  loadConfigOrPanic,
+  hasConfig,
+} from './config/index.js';
 
 import deploy from './commands/deploy.js';
 import show from './commands/show.js';
 import destroy from './commands/destroy.js';
 import updateEnv from './commands/updateEnv.js';
 import eject from './commands/eject.js';
+import init from './commands/init.js';
 
 const prog = sade('deploy').version(version);
 
@@ -65,8 +70,16 @@ export function cli(args) {
   prog
     .command('init')
     .describe('Set up deploy for the current directory')
-    .action(async () => {
-      console.log('TODO: This command isn’t implemented yet');
+    .option('--env', 'Environment to use (defaults to current branch)')
+    .action(async (opts) => {
+      let config = {};
+      if (hasConfig()) {
+        config = loadConfigOrPanic();
+      }
+
+      const env = getEnvironment(opts);
+
+      await init({ config, env });
     });
 
   // Command to update env variables
