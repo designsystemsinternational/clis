@@ -140,7 +140,34 @@ describe('createCloudFormationTemplate', () => {
     expectPromptToHaveKey(prompt, 'AuthPassword');
   });
 
-  it('should return a user prompt for parameters it cannot derive', () => {
+  it('should not prompt for parameters that already exist on the stack by default', () => {
+    const { prompt } = createCloudFormationTemplate({
+      config: withAuth,
+      env: 'production',
+      currentStackParameters: ['AuthUsername', 'AuthPassword'],
+    });
+
+    expectPromptToHaveKey(prompt, 'IndexPage');
+    expectPromptToHaveKey(prompt, 'ErrorPage');
+    expectPromptNotToHaveKey(prompt, 'AuthUsername');
+    expectPromptNotToHaveKey(prompt, 'AuthPassword');
+  });
+
+  it('should prompt for parameters that already exist on the stack when called with option', () => {
+    const { prompt } = createCloudFormationTemplate({
+      config: withAuth,
+      env: 'production',
+      currentStackParameters: ['AuthUsername', 'AuthPassword'],
+      includeOptionalPrompts: true,
+    });
+
+    expectPromptToHaveKey(prompt, 'IndexPage');
+    expectPromptToHaveKey(prompt, 'ErrorPage');
+    expectPromptToHaveKey(prompt, 'AuthUsername');
+    expectPromptToHaveKey(prompt, 'AuthPassword');
+  });
+
+  it('should not prompt for parameters that are defined in an envs config', () => {
     const { prompt } = createCloudFormationTemplate({
       config: withEnvConfig,
       env: 'production',

@@ -213,7 +213,10 @@ export const shouldExecuteChangeset = async ({
 export const stackExists = async ({ stack, cloudformation }) => {
   const stacks = await cloudformation.listStacks().promise();
   const exists = stacks.StackSummaries.some(
-    (s) => s.StackName === stack && s.StackStatus !== 'DELETE_COMPLETE',
+    (s) =>
+      s.StackName === stack &&
+      s.StackStatus !== 'DELETE_COMPLETE' &&
+      s.StackStatus !== 'REVIEW_IN_PROGRESS',
   );
 
   return exists;
@@ -231,75 +234,75 @@ export const getStackParameters = async ({ stack, cloudformation }) => {
   return details.Parameters;
 };
 
-/**
- * Abstraction to create or update a cloudformation stack.
- */
-export const createOrUpdateStack = async ({
-  cloudformation,
+export const createChangeset = async ({
   stack,
   template,
-  onProgress = () => {},
+  cloudformation,
+  existingStack = true,
 }) => {
-  const stacks = await cloudformation.listStacks().promise();
-  const stackExists = stacks.StackSummaries.some(
-    (s) => s.StackName === stack && s.StackStatus !== 'DELETE_COMPLETE',
-  );
+  const changesetName = newChangesetName();
 
-  if (stackExists) {
-    const changesetName = newChangesetName();
-    onProgress('Stack exists. Check if it needs to be updated');
+  await cloudformation
+    .createChangeSet({
+      ChangeSetType: existingStack ? 'UPDATE' : 'CREATE',
+      UsePreviousTemplate: false,
+      ChangeSetName: changesetName,
+      StackName: stack,
+      TemplateBody: JSON.stringify(template.template),
+      Parameters: template.parameters,
+      Capabilities: ['CAPABILITY_NAMED_IAM'],
+    })
+    .promise();
 
-    await cloudformation
-      .createChangeSet({
-        UsePreviousTemplate: false,
-        ChangeSetName: changesetName,
-        StackName: stack,
-        TemplateBody: JSON.stringify(template.template),
-        Parameters: template.parameters,
-        Capabilities: ['CAPABILITY_NAMED_IAM'],
-      })
-      .promise();
+  const shouldExecute = await shouldExecuteChangeset({
+    stack,
+    changesetName,
+    cloudformation,
+  });
 
-    const shouldExecute = await shouldExecuteChangeset({
-      stack,
-      changesetName,
-      cloudformation,
-    });
+  return {
+    name: changesetName,
+    shouldExecute,
+  };
+};
 
-    if (shouldExecute) {
-      onProgress('Performing Stack Update');
-      await cloudformation
-        .executeChangeSet({
-          StackName: stack,
-          ChangeSetName: changesetName,
-        })
-        .promise();
+export const describeChangeset = async ({
+  stack,
+  changeset,
+  cloudformation,
+}) => {
+  const data = await cloudformation
+    .describeChangeSet({
+      StackName: stack,
+      ChangeSetName: changeset,
+    })
+    .promise();
 
-      await cloudformation
-        .waitFor('stackUpdateComplete', {
-          StackName: stack,
-        })
-        .promise();
-    } else {
-      onProgress('No update needed');
-    }
-  } else {
-    onProgress('Creating Stack');
-    await cloudformation
-      .createStack({
-        StackName: stack,
-        TemplateBody: JSON.stringify(template.template),
-        Parameters: template.parameters,
-        Capabilities: ['CAPABILITY_NAMED_IAM'],
-      })
-      .promise();
+  return data;
+};
 
-    await cloudformation
-      .waitFor('stackCreateComplete', {
-        StackName: stack,
-      })
-      .promise();
-  }
+export const executeChangeset = async ({
+  stack,
+  changeset,
+  cloudformation,
+  existingStack = true,
+}) => {
+  const finalizingEvent = existingStack
+    ? 'stackUpdateComplete'
+    : 'stackCreateComplete';
+
+  await cloudformation
+    .executeChangeSet({
+      StackName: stack,
+      ChangeSetName: changeset,
+    })
+    .promise();
+
+  await cloudformation
+    .waitFor(finalizingEvent, {
+      StackName: stack,
+    })
+    .promise();
 };
 
 export const getStackOutputs = async ({ cloudformation, stack }) => {
@@ -308,6 +311,19 @@ export const getStackOutputs = async ({ cloudformation, stack }) => {
     .promise();
 
   return stackDetails.Stacks[0]?.Outputs ?? [];
+};
+
+export const getStackResources = async ({ cloudformation, stack }) => {
+  const stackDetails = await cloudformation
+    .describeStackResources({
+      StackName: stack,
+    })
+    .promise();
+
+  return stackDetails.StackResources.map((resource) => ({
+    name: resource.LogicalResourceId,
+    type: resource.ResourceType,
+  }));
 };
 
 /**
@@ -322,10 +338,19 @@ export const prepareTemplateWithUserInput = async ({
 
   if (prompt.length > 0) {
     const answers = await inquirer.prompt(prompt);
-    parameters = Object.keys(answers).map((key) => ({
-      ParameterKey: key,
-      ParameterValue: answers[key],
-    }));
+    parameters = Object.keys(answers).map((key) => {
+      if (answers[key] === USE_PREVIOUS_VALUE) {
+        return {
+          ParameterKey: key,
+          UsePreviousValue: true,
+        };
+      } else {
+        return {
+          ParameterKey: key,
+          ParameterValue: answers[key],
+        };
+      }
+    });
   }
 
   if (autoParameters) {

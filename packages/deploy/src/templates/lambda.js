@@ -118,7 +118,7 @@ export default function ({ config, functionDefinition }) {
       }, {}),
     },
     Outputs: {
-      [`${name}}Endpoint`]: {
+      [`${name}Endpoint`]: {
         Description: `Endpoint for ${name} function`,
         Value: {
           'Fn::Sub': `https://\${api}.execute-api.\${AWS::Region}.amazonaws.com/\${stage}/${route}`,

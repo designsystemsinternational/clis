@@ -42,12 +42,14 @@ export const envConfigSchema = z.object({
   // File parameters (can be null)
   fileParameters: fileParamsSchema,
 
-  // Optional parameters to setup authentication
+  // Optional parameter to setup authentication
   auth: z.boolean().default(false),
 
+  // Optional parameter to setup custom domain
   useCustomDomain: z.boolean().default(false),
-  customDomain: z.string().optional(),
 
+  // You can pass any parameters to the CloudFormation template here
+  // so you don't have to answer them in the prompt
   parameters: z.record(z.string()).default({}),
 });
 

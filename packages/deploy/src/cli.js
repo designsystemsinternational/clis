@@ -25,6 +25,11 @@ export function cli(args) {
       '--env',
       'The environment to deploy to (defaults to current branch)',
     )
+    .option(
+      '-u, --update-parameters',
+      'Update the parameters of the stack',
+      false,
+    )
     .action(async (opts) => {
       const config = loadConfigOrPanic();
       const env = getEnvironment(opts);
@@ -72,7 +77,7 @@ export function cli(args) {
     .describe('Set up deploy for the current directory')
     .option('--env', 'Environment to use (defaults to current branch)')
     .action(async (opts) => {
-      let config = {};
+      let config = null;
       if (hasConfig()) {
         config = loadConfigOrPanic();
       }

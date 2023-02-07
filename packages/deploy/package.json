@@ -60,9 +60,19 @@
     "profile": "personal",
     "environments": {
       "production": {
+        "auth": true,
+        "parameters": {
+          "IndexPage": "index.html",
+          "ErrorPage": "index.html"
+        }
+      },
+      "staging": {
         "auth": false,
-        "indexPage": "index.html",
-        "errorPage": "error.html"
+        "useCustomDomain": true,
+        "parameters": {
+          "IndexPage": "index.html",
+          "ErrorPage": "index.html"
+        }
       }
     },
     "region": "us-east-1",

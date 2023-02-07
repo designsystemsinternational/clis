@@ -11,7 +11,7 @@ import {
 } from '../util/templates.js';
 
 import {
-  logStackFromTemplate,
+  logChanges,
   logTable,
   withSpinner,
   formatAWSError,
@@ -29,14 +29,17 @@ import {
   getAWSWithProfile,
   uploadDirToS3,
   prepareTemplateWithUserInput,
-  createOrUpdateStack,
   getStackOutputs,
   getStackParameters,
   createBucketIfNonExisting,
   uploadFileToS3,
+  createChangeset,
+  describeChangeset,
+  executeChangeset,
+  stackExists,
 } from '../util/aws.js';
 
-export default async function deploy({ config, env }) {
+export default async function deploy({ config, env, options }) {
   // Dependency: AWS
   const AWS = getAWSWithProfile(config.profile, config.region);
 
@@ -45,6 +48,8 @@ export default async function deploy({ config, env }) {
 
   const envConfig = getEnvConfig(config, env);
   const stack = stackName(config.name, env);
+
+  const alreadyExists = await stackExists({ stack, cloudformation });
 
   // Step 1: Run the build command on the static site (if configured)
   // ----------------------------------------------------------------
@@ -78,28 +83,59 @@ export default async function deploy({ config, env }) {
 
   // Step 2: Build the CloudFormation template and gather user input (if needed)
   // --------------------------------------------------------------------------
-  const currentStackParameters = await getStackParameters({
-    stack,
-    cloudformation,
+  let compiledTemplate;
+
+  await withSpinner('Building CloudFormation template', async ({ succeed }) => {
+    const currentStackParameters = await getStackParameters({
+      stack,
+      cloudformation,
+    });
+
+    compiledTemplate = createCloudFormationTemplate({
+      config,
+      env,
+      functions: preparedFunctions,
+      currentStackParameters: currentStackParameters.map((p) => p.ParameterKey),
+      includeOptionalPrompts: options['update-parameters'],
+    });
+
+    succeed();
   });
-
-  const compiledTemplate = createCloudFormationTemplate({
-    config,
-    env,
-    functions: preparedFunctions,
-    currentStackParameters: currentStackParameters.map((p) => p.ParameterKey),
-  });
-
-  console.log(
-    `This operation will create or update your stack (${stack}) to contain the following resources`,
-  );
-
-  logStackFromTemplate(compiledTemplate.template);
-
-  // Dependency: inquirer
-  await confirmOrExit('Do you wish to continue?');
 
   const template = await prepareTemplateWithUserInput(compiledTemplate);
+  let changeset;
+
+  await withSpinner(
+    'Checking for needed changes',
+    async ({ succeed, update }) => {
+      changeset = await createChangeset({
+        stack,
+        template,
+        cloudformation,
+        existingStack: alreadyExists,
+      });
+
+      if (changeset.shouldExecute) {
+        // Dependency: inquirer
+        const changes = await describeChangeset({
+          stack,
+          changeset: changeset.name,
+          cloudformation,
+        });
+
+        succeed();
+
+        console.log('');
+        console.log('This will perform these changes:');
+        logChanges(changes.Changes);
+
+        await confirmOrExit('Do you wish to continue?');
+      } else {
+        update('No changes to stack needed. Now deploying...');
+        succeed();
+      }
+    },
+  );
 
   // Step 3: Uploading Zipped functions to S3
   // ----------------------------------------------------------------
@@ -134,23 +170,23 @@ export default async function deploy({ config, env }) {
 
   // Step 4: Create or update the CloudFormation stack
   // ----------------------------------------------------------------
-  await withSpinner(
-    'Running CloudFormation',
-    async ({ succeed, fail, update }) => {
+  if (changeset.shouldExecute) {
+    await withSpinner('Running CloudFormation', async ({ succeed, fail }) => {
       try {
-        await createOrUpdateStack({
+        await executeChangeset({
           cloudformation,
           stack,
-          template,
-          onProgress: (msg) => update(msg),
+          changeset: changeset.name,
+          existingStack: alreadyExists,
         });
+
         succeed();
       } catch (error) {
         fail();
         throw new Error(formatAWSError(error), { label: 'AWS Error' });
       }
-    },
-  );
+    });
+  }
 
   // Step 5: Upload the static site to S3
   // ----------------------------------------------------------------

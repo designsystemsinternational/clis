@@ -64,8 +64,6 @@ export const getParameterFromTemplate = (template, key) => {
 export const prepareFunctionTemplate = (fn, config) => {
   const templateFn = fn.config ?? lambdaTemplate;
 
-  console.log(templateFn, fn);
-
   return templateFn({
     config,
     functionDefinition: {
@@ -83,9 +81,9 @@ export function createCloudFormationTemplate({
   env,
   functions = [],
   currentStackParameters = [],
+  includeOptionalPrompts = false,
 }) {
   const envConfig = getEnvConfig(config, env);
-
   const hasFunctions = functions.length > 0;
 
   const template = mergeTemplates(
@@ -98,26 +96,10 @@ export function createCloudFormationTemplate({
     ...functions.map((func) => prepareFunctionTemplate(func, config)),
   );
 
-  const existingEnvVariableNames = currentStackParameters;
-
   // Set up the parameters needed for the CloudFormation template. The goal
   // is to gather as much of the needed information from the configuration and
   // only prompt the user to fill in missing details.
   const autoParameters = {};
-  const { envVariables } = config.functionsConfig;
-
-  // Add Environment Variables to the template Parameters
-  envVariables.forEach((variable) => {
-    // If a variable is already set on a stack do not ask it again
-    template.Parameters[variable] = {
-      Description: `Env variable for lambda functions (${variable})`,
-      Type: 'String',
-    };
-
-    if (existingEnvVariableNames.includes(variable)) {
-      autoParameters[variable] = USE_PREVIOUS_VALUE;
-    }
-  });
 
   // Add any parameters that are defined in the environment config so we do not
   // need to prompt the user
@@ -152,6 +134,22 @@ export function createCloudFormationTemplate({
       autoParameters[paramName] = func.s3Key;
     }
   }
+
+  // Add the USE_PREVIOUS_VALUE flag to parameters that already exist on the stack
+  // either by setting it as the default value if we prompt for them...
+  // ...or by adding them to autoParameters that will skip prompt
+  Object.keys(template.Parameters).forEach((key) => {
+    if (
+      !Object.keys(autoParameters).includes(key) &&
+      currentStackParameters.includes(key)
+    ) {
+      if (includeOptionalPrompts) {
+        template.Parameters[key].Default = USE_PREVIOUS_VALUE;
+      } else {
+        autoParameters[key] = USE_PREVIOUS_VALUE;
+      }
+    }
+  });
 
   // Build the prompt to gather missing information from the user
   const prompt = parametersToInquirer({

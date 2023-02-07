@@ -32,6 +32,17 @@ export default function ({
         Type: 'String',
       },
 
+      ...(environmentConfig.useCustomDomain && {
+        Domain: {
+          Description: 'Domain of the website',
+          Type: 'String',
+        },
+        HostedZoneID: {
+          Description: 'The ID of your hosted zone in Route 53',
+          Type: 'AWS::Route53::HostedZone::Id',
+        },
+      }),
+
       ...(environmentConfig.auth && {
         AuthUsername: {
           Description: 'Username to be used for basic authentication',
@@ -45,13 +56,13 @@ export default function ({
 
       // Add any env variables defined in the user config to the parameters
       // but only if we have functions to deploy
-      ...(includesLambdaFunctions &&
-        config.functionsConfig.envVariables.map((envVariable) => ({
-          [envVariable]: {
-            Description: `The value for the environment variable ${envVariable}`,
-            Type: 'String',
-          },
-        }))),
+      ...config.functionsConfig.envVariables.reduce((acc, envVariable) => {
+        acc[envVariable] = {
+          Description: `The value for the environment variable ${envVariable}`,
+          Type: 'String',
+        };
+        return acc;
+      }, {}),
     },
     Resources: {
       S3Bucket: {
@@ -280,6 +291,36 @@ export default function ({
           },
         },
       }),
+
+      ...(environmentConfig.useCustomDomain && {
+        Route53Record: {
+          Type: 'AWS::Route53::RecordSet',
+          Properties: {
+            HostedZoneId: { Ref: 'HostedZoneID' },
+            Name: { Ref: 'Domain' },
+            Type: 'A',
+            AliasTarget: {
+              HostedZoneId: 'Z2FDTNDATAQYW2',
+              DNSName: {
+                'Fn::GetAtt': ['CloudfrontDistribution', 'DomainName'],
+              },
+            },
+          },
+        },
+        Certificate: {
+          Type: 'AWS::CertificateManager::Certificate',
+          Properties: {
+            DomainName: { Ref: 'Domain' },
+            ValidationMethod: 'DNS',
+            DomainValidationOptions: [
+              {
+                DomainName: { Ref: 'Domain' },
+                HostedZoneId: { Ref: 'HostedZoneID' },
+              },
+            ],
+          },
+        },
+      }),
     },
     Outputs: {
       S3Url: {
@@ -302,6 +343,14 @@ export default function ({
             'Fn::Sub':
               'https://${api}.execute-api.${AWS::Region}.amazonaws.com/${environment}',
           },
+        },
+      }),
+
+      // Domain
+      ...(environmentConfig.useCustomDomain && {
+        DomainURL: {
+          Description: 'The URL of the custom domain',
+          Value: { Ref: 'Domain' },
         },
       }),
     },

@@ -58,6 +58,18 @@ export const logTable = (head, rows, includeEmptyRow = true) => {
   console.log(table.toString());
 };
 
+export const logChanges = (changes) => {
+  logTable(
+    ['Action', 'Name', 'Type'],
+    changes.map((change) => [
+      change.ResourceChange.Action,
+      change.ResourceChange.LogicalResourceId,
+      change.ResourceChange.ResourceType,
+    ]),
+    false,
+  );
+};
+
 export const logStackFromTemplate = (template) => {
   logTable(
     ['Name', 'Type'],
