@@ -131,6 +131,8 @@ In the eject prompt you can choose if you want to eject the template for the sta
 
 The static template is a function that is called with information on the environment and project's configuration and is expected to return a AWS CloudFormation template as a JS object.
 
+When ejecting the template is written to `deploy.template.js` in the root of your project.
+
 ```js
 export default function ({
   // Full configuration of the current project
@@ -150,6 +152,8 @@ export default function ({
 ### Lambda Template
 
 Similarly the lambda template accepts information about the project's configuration and the lambda function and is expected to return a JS object.
+
+Lambda templates are written to `[functionName].template.js` in your functions directory.
 
 ```js
 export default function ({

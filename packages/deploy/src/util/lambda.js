@@ -29,7 +29,7 @@ export const findLambdaFunctions = async (dir) => {
     `*.{${ALLOWED_LAMBDA_EXTENSIONS.join(',')}}`,
   );
   const functions = glob.sync(functionsGlob, {
-    ignore: ['**/*.config.*'],
+    ignore: ['**/*.template.*'],
   });
 
   const output = [];
@@ -70,7 +70,7 @@ export const getFunctionConfigName = (
   extension = `{${ALLOWED_TEMPLATE_EXTENSIONS.join(',')}}`,
 ) => {
   const name = getFunctionName(filename);
-  return `${name}.config.${extension}`;
+  return `${name}.template.${extension}`;
 };
 
 export const getFunctionConfigPath = (

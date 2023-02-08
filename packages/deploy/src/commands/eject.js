@@ -49,9 +49,10 @@ export const ejectStaticTemplate = async ({ config }) => {
     process.exit();
   }
 
-  await withSpinner('Writing template', async ({ succeed }) => {
+  await withSpinner('Writing template', async ({ succeed, update }) => {
     const writeTemplatePath = getUserTemplatePath('js');
     fs.writeFileSync(writeTemplatePath, stackTemplate);
+    update(`Ejected to ${writeTemplatePath}`);
     succeed();
   });
 };
@@ -74,10 +75,10 @@ export const ejectLambda = async ({ config }) => {
     },
   ]);
 
-  await withSpinner(
-    'Ejecting configuration for selected functions',
-    async ({ succeed }) => {
-      answers.functions.forEach((func) => {
+  await answers.functions.forEach(async (func) => {
+    await withSpinner(
+      `Ejecting configuration for function ${func.name}`,
+      async ({ succeed, update }) => {
         const functionDefinition = lambdaFunctions.find((f) => f.name === func);
 
         // TODO: Find out the correct extension we need here.
@@ -86,8 +87,10 @@ export const ejectLambda = async ({ config }) => {
         const configPath = getFunctionConfigPath(functionDefinition.file, 'js');
 
         fs.writeFileSync(configPath, lambdaTemplate);
+
+        update(`Ejected to ${configPath}`);
         succeed();
-      });
-    },
-  );
+      },
+    );
+  });
 };

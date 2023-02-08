@@ -20,13 +20,13 @@ describe('util/lambda', () => {
 
   describe('getFunctionConfigName', (filename) => {
     it('should correctly handle possible js file endings', () => {
-      expect(getFunctionConfigName('test.js')).toBe('test.config.{js,mjs}');
-      expect(getFunctionConfigName('test.cjs')).toBe('test.config.{js,mjs}');
-      expect(getFunctionConfigName('test.mjs')).toBe('test.config.{js,mjs}');
+      expect(getFunctionConfigName('test.js')).toBe('test.template.{js,mjs}');
+      expect(getFunctionConfigName('test.cjs')).toBe('test.template.{js,mjs}');
+      expect(getFunctionConfigName('test.mjs')).toBe('test.template.{js,mjs}');
     });
 
     it('should correctly apply the correct file extension if provided', () => {
-      expect(getFunctionConfigName('test.js', 'mjs')).toBe('test.config.mjs');
+      expect(getFunctionConfigName('test.js', 'mjs')).toBe('test.template.mjs');
     });
   });
 });
