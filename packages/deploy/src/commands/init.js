@@ -119,15 +119,24 @@ const initializeEnvironment = async ({ env }) => {
   const prompt = [
     {
       type: 'confirm',
+      name: 'useCloudfront',
+      message:
+        'Do you want to set up a CloudFront distribution for this environment?',
+      default: true,
+    },
+    {
+      type: 'confirm',
       name: 'auth',
       message: 'Do you want to enable authentication?',
       default: false,
+      when: (answers) => answers.useCloudfront,
     },
     {
       type: 'confirm',
       name: 'useCustomDomain',
       message: 'Do you want to use a custom domain?',
       default: false,
+      when: (answers) => answers.useCloudfront,
     },
     {
       type: 'input',
@@ -158,8 +167,14 @@ const initializeEnvironment = async ({ env }) => {
   const answers = await inquirer.prompt(prompt);
 
   const configFromAnswers = {
-    auth: answers.auth,
-    useCustomDomain: answers.useCustomDomain,
+    ...(answers.useCloudfront
+      ? {
+          auth: answers.auth,
+          useCustomDomain: answers.useCustomDomain,
+        }
+      : {
+          skipCloudfront: true,
+        }),
     parameters: {
       ...(answers.useCustomDomain && { Domain: answers.domain }),
       ...(answers.useCustomDomain && { HostedZoneID: answers.hosedZoneID }),

@@ -38,20 +38,46 @@ export const fileParamsSchema = z
 /**
  * Default configuration for a deployment environment.
  */
-export const envConfigSchema = z.object({
-  // File parameters (can be null)
-  fileParameters: fileParamsSchema,
+export const envConfigSchema = z
+  .object({
+    // File parameters (can be null)
+    fileParameters: fileParamsSchema,
 
-  // Optional parameter to setup authentication
-  auth: z.boolean().default(false),
+    // Optional parameter to setup authentication
+    auth: z.boolean().default(false),
 
-  // Optional parameter to setup custom domain
-  useCustomDomain: z.boolean().default(false),
+    // Optional parameter to setup custom domain
+    useCustomDomain: z.boolean().default(false),
 
-  // You can pass any parameters to the CloudFormation template here
-  // so you don't have to answer them in the prompt
-  parameters: z.record(z.string()).default({}),
-});
+    // Optional parameter to not create a CloudFront distribution
+    skipCloudfront: z.boolean().default(false),
+
+    // You can pass any parameters to the CloudFormation template here
+    // so you don't have to answer them in the prompt
+    parameters: z.record(z.string()).default({}),
+  })
+  .refine(
+    (envConfig) => {
+      if (envConfig.useCustomDomain && envConfig.skipCloudfront) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: 'Cloudfront is needed to use a custom domain',
+    },
+  )
+  .refine(
+    (envConfig) => {
+      if (envConfig.auth && envConfig.skipCloudfront) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: 'Cloudfront is needed to use authentication',
+    },
+  );
 
 export const configSchema = z.object({
   // Name of the AWS profile in the AWS credentials file

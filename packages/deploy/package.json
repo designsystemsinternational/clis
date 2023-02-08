@@ -57,10 +57,15 @@
   },
   "deploy": {
     "name": "mycoolproject",
-    "profile": "default",
+    "profile": "personal",
     "region": "us-east-1",
     "buildDir": "dist",
     "shouldRunBuildCommand": false,
-    "functionsDir": "functions"
+    "functionsDir": "functions",
+    "environments": {
+      "production": {
+        "skipCloudfront": true
+      }
+    }
   }
 }

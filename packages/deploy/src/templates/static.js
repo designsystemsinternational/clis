@@ -98,61 +98,64 @@ export default function ({
       },
 
       // Cloudfront
-      CloudfrontDistribution: {
-        Type: 'AWS::CloudFront::Distribution',
-        Properties: {
-          DistributionConfig: {
-            Enabled: true,
-            Comment: { 'Fn::Sub': 'S3 bucket ${S3BucketName}' },
-            DefaultRootObject: 'index.html',
-            HttpVersion: 'http2',
-            IPV6Enabled: true,
-            Origins: [
-              {
-                Id: 's3-website-origin',
-                DomainName: {
-                  'Fn::Select': [
-                    2,
+      ...(!environmentConfig.skipCloudfront && {
+        CloudfrontDistribution: {
+          Type: 'AWS::CloudFront::Distribution',
+          Properties: {
+            DistributionConfig: {
+              Enabled: true,
+              Comment: { 'Fn::Sub': 'S3 bucket ${S3BucketName}' },
+              DefaultRootObject: 'index.html',
+              HttpVersion: 'http2',
+              IPV6Enabled: true,
+              Origins: [
+                {
+                  Id: 's3-website-origin',
+                  DomainName: {
+                    'Fn::Select': [
+                      2,
+                      {
+                        'Fn::Split': [
+                          '/',
+                          { 'Fn::GetAtt': ['S3Bucket', 'WebsiteURL'] },
+                        ],
+                      },
+                    ],
+                  },
+
+                  CustomOriginConfig: {
+                    OriginProtocolPolicy: 'http-only',
+                  },
+                },
+              ],
+              DefaultCacheBehavior: {
+                TargetOriginId: 's3-website-origin',
+                MaxTTL: 31536000,
+                MinTTL: 0,
+                Compress: true,
+                ViewerProtocolPolicy: 'redirect-to-https',
+                ForwardedValues: {
+                  Cookies: {
+                    Forward: 'none',
+                  },
+                  QueryString: false,
+                },
+
+                // If an environment should feature Basic Auth we need to add a lambda function to cloudfront
+                ...(environmentConfig.auth && {
+                  LambdaFunctionAssociations: [
                     {
-                      'Fn::Split': [
-                        '/',
-                        { 'Fn::GetAtt': ['S3Bucket', 'WebsiteURL'] },
-                      ],
+                      EventType: 'viewer-request',
+                      LambdaFunctionARN: { Ref: 'VersionedAuthLambda' },
                     },
                   ],
-                },
-
-                CustomOriginConfig: {
-                  OriginProtocolPolicy: 'http-only',
-                },
+                }),
               },
-            ],
-            DefaultCacheBehavior: {
-              TargetOriginId: 's3-website-origin',
-              MaxTTL: 31536000,
-              MinTTL: 0,
-              Compress: true,
-              ViewerProtocolPolicy: 'redirect-to-https',
-              ForwardedValues: {
-                Cookies: {
-                  Forward: 'none',
-                },
-                QueryString: false,
-              },
-
-              // If an environment should feature Basic Auth we need to add a lambda function to cloudfront
-              ...(environmentConfig.auth && {
-                LambdaFunctionAssociations: [
-                  {
-                    EventType: 'viewer-request',
-                    LambdaFunctionARN: { Ref: 'VersionedAuthLambda' },
-                  },
-                ],
-              }),
             },
           },
         },
-      },
+      }),
+
       // Added resources to enable HTTP Basic Auth
       ...(environmentConfig.auth && {
         AuthLambdaRole: {
@@ -329,11 +332,13 @@ export default function ({
           'Fn::GetAtt': ['S3Bucket', 'WebsiteURL'],
         },
       },
-      CloudfrontURL: {
-        Description:
-          'The URL of the cached Cloudfront website. Use this for production.',
-        Value: { 'Fn::GetAtt': ['CloudfrontDistribution', 'DomainName'] },
-      },
+      ...(!environmentConfig.skipCloudfront && {
+        CloudfrontURL: {
+          Description:
+            'The URL of the cached Cloudfront website. Use this for production.',
+          Value: { 'Fn::GetAtt': ['CloudfrontDistribution', 'DomainName'] },
+        },
+      }),
 
       // Add the API Gateway URL to the stack outputs if the stack includes Lambda Functions
       ...(includesLambdaFunctions && {

@@ -85,24 +85,34 @@ The default configuration looks like this:
   // You can additionally keep a config per environment.
   // This can also be set up using `deploy init`
   environments: {
-    // If set to true the website use HTTP Basic Auth
-    // You will be prompted for username and password
-    useAuth: false,
+    // The name of your environment
+    production: {
+      // If set to true no CloudFront Distribution will be created for this
+      // environment. This most likely only makes sense for preview deploys
+      //
+      // PLEASE NOTE: If you do not create a CloudFront distribution you cannot
+      // add auth or a custom domain to your stack
+      skipCloudfront: false,
 
-    // If set to true a custom domain will be attached 
-    // You will be prompted the Domain Name and the ID of 
-    // the Route 53 Hosted Zone
-    useCustomDomain: true,
+      // If set to true the website use HTTP Basic Auth
+      // You will be prompted for username and password
+      useAuth: false,
 
-    // You can also store any Stack Parameters for this environment
-    // in its config. These will not be included in the prompt
-    // during deploy. Heads up: These should not be used for
-    // sensitive data.
-    parameters: {
-      // This way we don't get prompted Domain and Route 53 ID
-      Domain: "mydomain.com",
-      HostedZoneID: "123456",
-    },
+      // If set to true a custom domain will be attached 
+      // You will be prompted the Domain Name and the ID of 
+      // the Route 53 Hosted Zone
+      useCustomDomain: true,
+
+      // You can also store any Stack Parameters for this environment
+      // in its config. These will not be included in the prompt
+      // during deploy. Heads up: These should not be used for
+      // sensitive data.
+      parameters: {
+        // This way we don't get prompted Domain and Route 53 ID
+        Domain: "mydomain.com",
+        HostedZoneID: "123456",
+      },
+    }
   }
 }
 ```
