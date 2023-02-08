@@ -11,7 +11,7 @@ import {
   getParameterFromTemplate,
 } from '../util/templates.js';
 
-import { maybeImportUserTemplate } from '../util/misc.js';
+import { formatPercentage, maybeImportUserTemplate } from '../util/misc.js';
 
 import {
   logChanges,
@@ -197,7 +197,8 @@ export default async function deploy({ config, env, options }) {
   await withSpinner('Uploading Assets', async ({ succeed, fail, update }) => {
     try {
       await uploadDirToS3(AWS, buildDir, s3Bucket, fileParameters, {
-        progress: (cur, total) => update(`Uploading ${cur}/${total}`),
+        progress: (cur, total) =>
+          update(`Uploading Assets ${formatPercentage(cur, total)}%`),
         shouldUpload: (file) => path.extname(file) !== '.html',
       });
       succeed();
@@ -210,7 +211,8 @@ export default async function deploy({ config, env, options }) {
   await withSpinner('Uploading HTML', async ({ succeed, fail, update }) => {
     try {
       await uploadDirToS3(AWS, buildDir, s3Bucket, fileParameters, {
-        progress: (cur, total) => update(`Uploading ${cur}/${total}`),
+        progress: (cur, total) =>
+          update(`Uploading HTML ${formatPercentage(cur, total)}%`),
         shouldUpload: (file) => path.extname(file) === '.html',
       });
       succeed();

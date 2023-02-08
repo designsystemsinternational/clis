@@ -81,8 +81,7 @@ export default function ({ config, functionDefinition }) {
           FunctionName: { Ref: `${name}Lambda` },
           Principal: 'apigateway.amazonaws.com',
           SourceArn: {
-            'Fn::Sub':
-              'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${api}/*/*/{{route}}',
+            'Fn::Sub': `arn:aws:execute-api:\${AWS::Region}:\${AWS::AccountId}:\${api}/*/*/${route}`,
           },
         },
       },

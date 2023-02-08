@@ -56,6 +56,11 @@
     "zod": "^3.20.2"
   },
   "deploy": {
-    "name": "mycoolproject"
+    "name": "mycoolproject",
+    "profile": "default",
+    "region": "us-east-1",
+    "buildDir": "dist",
+    "shouldRunBuildCommand": false,
+    "functionsDir": "functions"
   }
 }

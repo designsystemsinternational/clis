@@ -2,6 +2,11 @@ import glob from 'glob';
 
 export const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+export const formatPercentage = (current, total) => {
+  if (total === 0) return 100;
+  return Math.floor((current / total) * 100);
+};
+
 /**
  * Looks for a potential user template, loads it and returns it if it extists.
  * Returns null if no template is found.
