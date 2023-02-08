@@ -55,7 +55,7 @@ const initializeProject = async ({ defaultName = '' } = {}) => {
       type: 'input',
       name: 'profile',
       message: 'Which AWS profile do you want to use?',
-      default: '',
+      default: 'default',
     },
     {
       type: 'list',
@@ -124,6 +124,24 @@ const initializeEnvironment = async ({ env }) => {
       default: false,
     },
     {
+      type: 'confirm',
+      name: 'useCustomDomain',
+      message: 'Do you want to use a custom domain?',
+      default: false,
+    },
+    {
+      type: 'input',
+      name: 'domain',
+      message: 'What is your custom domain? (domain.tld)',
+      when: (answers) => answers.useCustomDomain,
+    },
+    {
+      type: 'input',
+      name: 'hosedZoneID',
+      message: 'What is your Route 53 hosted zone ID for the domain?',
+      when: (answers) => answers.useCustomDomain,
+    },
+    {
       type: 'input',
       name: 'indexPage',
       message: 'What’s the index page of your project?',
@@ -138,7 +156,19 @@ const initializeEnvironment = async ({ env }) => {
   ];
 
   const answers = await inquirer.prompt(prompt);
-  const validation = validateEnvConfig(answers);
+
+  const configFromAnswers = {
+    auth: answers.auth,
+    useCustomDomain: answers.useCustomDomain,
+    parameters: {
+      ...(answers.useCustomDomain && { Domain: answers.domain }),
+      ...(answers.useCustomDomain && { HostedZoneID: answers.hosedZoneID }),
+      IndexPage: answers.indexPage,
+      ErrorPage: answers.errorPage,
+    },
+  };
+
+  const validation = validateEnvConfig(configFromAnswers);
 
   if (!validation.valid)
     panic(
@@ -147,13 +177,13 @@ const initializeEnvironment = async ({ env }) => {
     );
 
   console.log(`This will set the config for the ${env} environment`);
-  console.log(JSON.stringify(answers, null, 2));
+  console.log(JSON.stringify(configFromAnswers, null, 2));
 
   await confirmOrExit('Do you want to continue?');
 
   await withSpinner('Updating package.json', async ({ succeed }) => {
     const { packageJson } = readConfig();
-    const config = mergeEnvironmentConfig(packageJson, env, answers);
+    const config = mergeEnvironmentConfig(packageJson, env, configFromAnswers);
     writeConfig(config);
     succeed();
   });

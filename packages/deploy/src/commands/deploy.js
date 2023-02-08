@@ -6,13 +6,16 @@ import { getEnvConfig } from '../config/index.js';
 import { stackName, operationsBucketName } from '../constants.js';
 
 import {
+  getUserTemplatePath,
   createCloudFormationTemplate,
   getParameterFromTemplate,
 } from '../util/templates.js';
 
+import { maybeImportUserTemplate } from '../util/misc.js';
+
 import {
   logChanges,
-  logTable,
+  logOutputs,
   withSpinner,
   formatAWSError,
   panic,
@@ -40,10 +43,7 @@ import {
 } from '../util/aws.js';
 
 export default async function deploy({ config, env, options }) {
-  // Dependency: AWS
   const AWS = getAWSWithProfile(config.profile, config.region);
-
-  // Dependency: CloudFormation
   const cloudformation = new AWS.CloudFormation();
 
   const envConfig = getEnvConfig(config, env);
@@ -54,8 +54,6 @@ export default async function deploy({ config, env, options }) {
   // Step 1: Run the build command on the static site (if configured)
   // ----------------------------------------------------------------
   if (config.shouldRunBuildCommand && config.buildCommand) {
-    // Dependency: execa
-    // Dependency: ora
     await withSpinner('Running build command', async ({ succeed }) => {
       await execa(config.buildCommand, {
         stdtout: 'inherit',
@@ -91,12 +89,15 @@ export default async function deploy({ config, env, options }) {
       cloudformation,
     });
 
+    const userTemplate = await maybeImportUserTemplate(getUserTemplatePath());
+
     compiledTemplate = createCloudFormationTemplate({
       config,
       env,
       functions: preparedFunctions,
       currentStackParameters: currentStackParameters.map((p) => p.ParameterKey),
       includeOptionalPrompts: options['update-parameters'],
+      userTemplate,
     });
 
     succeed();
@@ -116,7 +117,6 @@ export default async function deploy({ config, env, options }) {
       });
 
       if (changeset.shouldExecute) {
-        // Dependency: inquirer
         const changes = await describeChangeset({
           stack,
           changeset: changeset.name,
@@ -230,9 +230,6 @@ export default async function deploy({ config, env, options }) {
 
     succeed();
 
-    logTable(
-      ['Key', 'Value', 'Description'],
-      output.map((o) => [o.OutputKey, o.OutputValue, o.Description]),
-    );
+    logOutputs(output);
   });
 }

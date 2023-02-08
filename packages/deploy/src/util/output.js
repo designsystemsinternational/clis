@@ -58,22 +58,32 @@ export const logTable = (head, rows, includeEmptyRow = true) => {
   console.log(table.toString());
 };
 
+/**
+ * Takes in changes returned by an AWS ChangeSet request and formats them using
+ * CLI table.
+ */
 export const logChanges = (changes) => {
   logTable(
-    ['Action', 'Name', 'Type'],
+    ['Action', 'Details'],
     changes.map((change) => [
-      change.ResourceChange.Action,
-      change.ResourceChange.LogicalResourceId,
-      change.ResourceChange.ResourceType,
+      chalk.bold(change.ResourceChange.Action),
+      `${change.ResourceChange.LogicalResourceId}\n${chalk.grey(
+        change.ResourceChange.ResourceType,
+      )}`,
     ]),
     false,
   );
 };
 
-export const logStackFromTemplate = (template) => {
+/**
+ * Takes a stacks' outputs and formats them using CLI table.
+ */
+export const logOutputs = (outputs) => {
   logTable(
-    ['Name', 'Type'],
-    Object.entries(template.Resources).map(([key, value]) => [key, value.Type]),
-    false,
+    ['Key', 'Value'],
+    outputs.map((o) => [
+      o.OutputKey,
+      `${o.OutputValue}\n${chalk.grey(o.Description)}`,
+    ]),
   );
 };

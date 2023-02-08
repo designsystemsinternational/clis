@@ -55,7 +55,7 @@ export const envConfigSchema = z.object({
 
 export const configSchema = z.object({
   // Name of the AWS profile in the AWS credentials file
-  profile: z.string().min(1),
+  profile: z.string().min(1).default('default'),
 
   // AWS Region to deploy to
   region: z

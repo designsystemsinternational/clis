@@ -30,15 +30,9 @@ export const validateEnvConfig = (config) => {
 export const loadConfigOrPanic = () => {
   const { config, packageJson } = readConfig();
 
-  if (!config)
-    panic(
-      'Could not find a `deploy` config inside your project’s package.json file',
-      { label: 'Config not found' },
-    );
-
   const validation = validateConfig({
-    name: packageJson.name,
-    ...config,
+    name: formatProjectName(packageJson.name),
+    ...(config || {}),
   });
 
   if (!validation.valid)
@@ -58,13 +52,17 @@ export const readConfig = () => {
   return { config: packageJson.deploy, packageJson };
 };
 
-export const getProjectName = () => {
-  const { packageJson } = readConfig();
-  return slugify(packageJson.name, {
+export const formatProjectName = (name) => {
+  return slugify(name, {
     lower: true,
     strict: true,
     replacement: '-',
   });
+};
+
+export const getProjectName = () => {
+  const { packageJson } = readConfig();
+  return formatProjectName(packageJson.name);
 };
 
 export const hasConfig = () => {

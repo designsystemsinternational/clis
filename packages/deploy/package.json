@@ -56,28 +56,6 @@
     "zod": "^3.20.2"
   },
   "deploy": {
-    "name": "mycoolproject",
-    "profile": "personal",
-    "environments": {
-      "production": {
-        "auth": true,
-        "parameters": {
-          "IndexPage": "index.html",
-          "ErrorPage": "index.html"
-        }
-      },
-      "staging": {
-        "auth": false,
-        "useCustomDomain": true,
-        "parameters": {
-          "IndexPage": "index.html",
-          "ErrorPage": "index.html"
-        }
-      }
-    },
-    "region": "us-east-1",
-    "buildDir": "dist",
-    "shouldRunBuildCommand": false,
-    "functionsDir": "functions"
+    "name": "mycoolproject"
   }
 }

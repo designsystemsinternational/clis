@@ -9,7 +9,6 @@ import {
 import deploy from './commands/deploy.js';
 import show from './commands/show.js';
 import destroy from './commands/destroy.js';
-import updateEnv from './commands/updateEnv.js';
 import eject from './commands/eject.js';
 import init from './commands/init.js';
 
@@ -63,12 +62,10 @@ export function cli(args) {
   prog
     .command('eject')
     .describe('Eject parts of the default config to overwrite it')
-    .option('--env', 'Environment to use (defaults to current branch)')
-    .action(async (opts) => {
+    .action(async () => {
       const config = loadConfigOrPanic();
-      const env = getEnvironment(opts);
 
-      await eject({ config, env });
+      await eject({ config });
     });
 
   // Init command
@@ -85,18 +82,6 @@ export function cli(args) {
       const env = getEnvironment(opts);
 
       await init({ config, env });
-    });
-
-  // Command to update env variables
-  prog
-    .command('update-env')
-    .describe('Update env variables for a stack')
-    .option('--env', 'Environment to use (defaults to current branch)')
-    .action(async (opts) => {
-      const config = loadConfigOrPanic();
-      const env = getEnvironment(opts);
-
-      await updateEnv({ config, env });
     });
 
   prog.parse(args);

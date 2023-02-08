@@ -1,24 +1,17 @@
-import handlebars from 'handlebars';
+import path from 'path';
+
 import {
   bucketName,
   operationsBucketName,
   USE_PREVIOUS_VALUE,
+  ALLOWED_TEMPLATE_EXTENSIONS,
 } from '../constants';
 
 import lambdaTemplate from '../templates/lambda.js';
 import staticTemplate from '../templates/static.js';
 
 import { getEnvConfig } from '../config/index.js';
-
-/**
- * Renders a template through Handlebars and JSON parses the result.
- */
-export const parseTemplate = (templateString, data) => {
-  handlebars.registerHelper('uppercase', (str) => str.toUpperCase());
-  const template = handlebars.compile(templateString);
-
-  return JSON.parse(template(data));
-};
+import { maybeImportUserTemplate } from './misc';
 
 export const mergeTemplates = (...templates) => {
   const keys = ['Parameters', 'Resources', 'Outputs'];
@@ -82,12 +75,15 @@ export function createCloudFormationTemplate({
   functions = [],
   currentStackParameters = [],
   includeOptionalPrompts = false,
+  userTemplate = null,
 }) {
   const envConfig = getEnvConfig(config, env);
   const hasFunctions = functions.length > 0;
 
+  const stackTemplate = userTemplate ?? staticTemplate;
+
   const template = mergeTemplates(
-    staticTemplate({
+    stackTemplate({
       config,
       environmentConfig: envConfig,
       environment: env,
@@ -163,3 +159,9 @@ export function createCloudFormationTemplate({
     template,
   };
 }
+
+export const getUserTemplatePath = (
+  extension = `{${ALLOWED_TEMPLATE_EXTENSIONS.join(',')}}`,
+) => {
+  return path.join(process.cwd(), `deploy.template.${extension}`);
+};

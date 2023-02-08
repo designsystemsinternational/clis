@@ -205,4 +205,26 @@ describe('createCloudFormationTemplate', () => {
     expectPromptNotToHaveKey(prompt, TEST_ENV_VARS[0]);
     expectPromptToHaveKey(prompt, TEST_ENV_VARS[1]);
   });
+
+  it('should apply the user stack template if it get’s passed in', () => {
+    const userTemplate = vi.fn().mockReturnValue({
+      Resources: {
+        TEST_RESOURCE: {},
+      },
+    });
+
+    const { template } = createCloudFormationTemplate({
+      config: simpleConfig,
+      env: 'production',
+      userTemplate: userTemplate,
+    });
+
+    expect(userTemplate).toHaveBeenCalled();
+    expectTemplateToHaveResources(template, 'TEST_RESOURCE');
+    expectTemplateNotToHaveResources(
+      template,
+      'S3Bucket',
+      'CloudfrontDistribution',
+    );
+  });
 });
