@@ -12,7 +12,8 @@ const md5File = require("md5-file");
 const configDefaults = {
   cloudformationMatch: ["functions/**/*cf.js"],
   lambdaMatch: ["functions/**/*.js", "!**/*cf.js", "!**/*.test.js"],
-  buildDir: "build"
+  buildDir: "build",
+  externalPackages: []
 };
 
 // Lambda utils

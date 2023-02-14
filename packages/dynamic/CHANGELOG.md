@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Fix: Let dynamic correctly handle lambda files ending in `.cjs` or `.mjs`
+- Feat: Allow users to pass external module configuration to the webpack config used to build the lambda functions
 
 ## 4.0.1
 

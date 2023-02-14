@@ -68,6 +68,7 @@ The `dynamic` config is defined in a `dynamic` key inside the `package.json`. Th
 - `cloudformationMatch`. The glob patterns used to detect cloudformation files. Uses [`micromatch`](https://github.com/micromatch/micromatch) and defaults to `["functions/**/cf.js"]`.
 - `lambdaMatch`. The glob patterns used to detect lambda files. Uses [`micromatch`](https://github.com/micromatch/micromatch) and defaults to `["functions/**/*.js", "!functions/**/cf.js"]`.
 - `buildDir`. Directory where the lambda build files go. Defaults to `build`.
+- `externalPackages`. Optional array of NPM packages used in your functions that you don't want to bundle with your lambda code. This is mostly used for libraries that include a binary (like Puppeteer). Packages relying on binaries are easier to set up using a shared [Lambda Layer](https://docs.aws.amazon.com/lambda/latest/dg/configuration-layers.html).
 
 ## Automatic parameters
 
