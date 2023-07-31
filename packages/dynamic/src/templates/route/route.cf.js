@@ -48,7 +48,7 @@ module.exports = {
           S3Bucket: { Ref: "operationsS3Bucket" },
           S3Key: { Ref: "<%= name %>S3Key" }
         },
-        Runtime: "nodejs10.x",
+        Runtime: "nodejs16.x",
         Handler: "index.handler",
         Role: { "Fn::GetAtt": ["<%= name %>LambdaRole", "Arn"] }
       }
