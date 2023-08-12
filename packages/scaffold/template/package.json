@@ -15,7 +15,7 @@
     "@babel/preset-env": "^7.9.0",
     "@babel/preset-react": "^7.9.4",
     "@babel/runtime": "^7.9.2",
-    "axios": "^0.19.0",
+    "axios": "^0.21.2",
     "babel-jest": "^24.8.0",
     "babel-loader": "^8.0.5",
     "classnames": "^2.2.6",
